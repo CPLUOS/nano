@@ -1,0 +1,21 @@
+<bin name="nanoAnalysis" file="nanoAnalysis.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+</bin>
+<bin name="topAnalysis" file="topAnalysis.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+</bin>
+<bin name="testAnalysis" file="testAnalysis.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+</bin>

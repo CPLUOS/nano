@@ -1,0 +1,201 @@
+#!/usr/bin/env python
+
+import sys, os
+from urllib import urlopen
+import csv
+from pandas import DataFrame
+
+gdocbase = "https://docs.google.com/spreadsheets/d/12kLmQfZEH1R9VWt452IOHV9wUKPdJ8VnMnDIHweltA4/pub?gid=%s&single=true&output=csv"
+def getCampaignSummary():
+    url = gdocbase % "843768870"
+    print "Retrieving campaign info..."
+    print "Source URL = ", url
+    return DataFrame.from_csv(urlopen(url))
+
+def getSampleSummary(url):
+    return DataFrame.from_csv(urlopen(url))
+
+url, era = '', ''
+if len(sys.argv) < 2:
+    gidMap = getCampaignSummary()
+    era = gidMap.index[0]
+    print "No argument is given, use latest official production, ", era
+    eraData = gidMap.ix[era]
+    print "="*80
+    print eraData
+    print "="*80
+    url = gdocbase % int(eraData["GID"])
+elif sys.argv[1].startswith("http"):
+    url = sys.argv[1]
+    print "Use cutom spreadsheet, ", url
+    if len(sys.argv) < 3:
+        print "Please give name of this custom era, e.g, v8-0-0a"
+        sys.exit(1)
+    era = sys.argv[2]
+elif sys.argv[1].endswith(".csv") or sys.argv[1].endswith(".txt"):
+    path = sys.argv[1]
+    print "Use custom csv file in local, ", path
+    if len(sys.argv) < 3:
+        print "Please give name of this custom era, e.g, v8-0-0a"
+        sys.exit(1)
+    era = sys.argv[2]
+else:
+    gidMap = getCampaignSummary()
+    era = sys.argv[1]
+    eraData = gidMap.ix[era]
+    print "="*80
+    print eraData
+    print "="*80
+    url = gdocbase % int(eraData["GID"])
+
+print "Using =",era
+
+from ROOT import *
+
+if url != '':
+    print "Retrieving dataset info..."
+    print "Source URL =", url
+    content = list(csv.reader(urlopen(url).readlines()))
+elif path != '' and os.path.exists(path):
+    content = list(csv.reader(open(path).readlines()))
+else:
+    print "!!! input CSV is invalid, ", url, path
+    sys.exit(2)
+
+def str2float(x):
+    x = x.strip()
+    if x == '': return 0.0
+    return float(x)
+def str2int(x):
+    x = x.strip()
+    if x == '': return 0
+    return int(x)
+
+ds = []
+titleBabel = {
+    "Name":"name", "Title":"title", "Type":"type",
+    "Cross section (pb)":"xsec", "NEvent":"nevt",
+    "Avg GenWgt":"avgWgt", "luminosity (fb-1)":"lumi",
+    "colour":"colour", "Path":"path",
+    "DataSetName":"DataSetName", "options":"options",
+}
+titleRule = {
+    "xsec":str2float, "nevt":str2int, "avgWgt":str2float,
+    "lumi":str2float, "colour":(lambda x: eval(x)),
+}
+
+## analyze CSV file
+titleIdx = {}
+for titleCSV in titleBabel:
+    titleJSON = titleBabel[titleCSV]
+    if titleCSV not in content[0]: continue
+    titleIdx[titleJSON] = content[0].index(titleCSV)
+
+for l in content[1:]:
+    if len(l) == 0 or len(l[0]) == 0: continue
+
+    item = {}
+    for title in titleIdx:
+        val = l[titleIdx[title]]
+        if title not in titleRule: item[title] = val
+        else: item[title] = titleRule[title](val)
+    ds.append(item)
+
+## Save results
+outDir = os.environ["CMSSW_BASE"]+"/src/nano/nanoAOD/data"
+if not os.path.exists(outDir+"/dataset"): os.makedirs(outDir+"/dataset")
+
+import json
+f = open("%s/dataset/dataset.json" % outDir, "w")
+print "Saving dataset info to %s/dataset/dataset.json" % outDir
+print>>f, json.dumps(ds, indent=4, sort_keys=True)
+f.close()
+
+print "Trying to verify file list..."
+from libxrd import *
+cmd, xrdbase = guessxrd()
+
+## A hack to add prefix for the sites
+prefix = ""
+hostname = os.environ["HOSTNAME"]
+if "sdfarm" in hostname:
+    prefix = "root://cms-xrdr.sdfarm.kr:1094//"+xrdbase
+    storageprefix = "/store/group/nanoAOD/"+era
+if "sscc" in hostname:
+    prefix = "/home/nanoAOD"
+    storageprefix = "/home/nanoAOD/"+era
+##
+
+# since all files are at kisti
+#if not "sdfarm" in hostname:
+#    sys.exit()
+
+
+unmatching = []
+emptydirectory = []
+print "Listing dataset location"
+print "-"*80
+for d in ds:
+    dataSetName = d['DataSetName']
+    dataSetName = dataSetName.split('/')
+    if len(dataSetName) < 4: continue
+    pdName, sdName = dataSetName[1], dataSetName[2]
+    #era = 'run2_2016MC_NANO'
+    path = "%s/%s/%s" % (storageprefix, pdName, sdName)
+    if not os.path.isdir(path):
+        #era = 'run2_2016RD_NANO'
+        path = "%s/%s/%s" % (storageprefix, pdName, sdName)
+    #print path
+    pathname = ''
+    ## #pathnames = map( lambda x: x, listxrd(path)[0] )
+    ## pathnames = listxrd(path)[0]
+    ## sorted(pathnames)
+    print path
+    tempVersion = 0
+    for ll in listxrd(path)[0]:
+        #print ll
+        currentVersion = int(ll[-13:-7] + ll[-6:])
+        if currentVersion > tempVersion:
+            tempVersion = currentVersion
+            pathname = ll 
+    print pathname
+
+    pp = d['path']
+    d['files'] = []
+    d['size'] = 0
+    for dd in listxrd(pp)[0]:
+        files, size = listxrd(dd)
+        d['size'] += size
+        for ff in files:
+            if not ff.endswith(".root"): continue
+            ff = ff[len(pp)+1:]
+            d['files'].append(ff)
+    d['path'] = prefix + pp
+    d['files'].sort()
+    
+    f = open("%s/dataset/dataset_%s.txt" % (outDir, d['name']), "w")
+    for key in d:
+        if key == "files": continue
+        print>>f, "#", key, "=", d[key]
+    for ff in d['files']:
+        print>>f, os.path.join(d['path'], ff)
+    f.close()
+    if not pathname in pp:
+        unmatching.append(pathname)
+    if len(d['files']) == 0:
+        emptydirectory.append(pdName)
+print "-"*80
+
+if len(unmatching) > 0:
+    print 'List of datasets not matching with database'
+    for i in unmatching:
+        print i
+    print "-"*80
+
+if len(emptydirectory) > 0:
+    print 'List of datasets with no data'
+    for i in emptydirectory:
+        print i
+    print "-"*80
+   
+print "Saved dataset location info to %s/dataset/dataset_SampleName.txt" % (outDir)
