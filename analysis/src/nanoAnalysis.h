@@ -33,7 +33,13 @@ private:
       TH1D* h_Event_Tot;
       TH1D* h_genweights;
       TH1D* h_weight;
-      
+      TH1D* h_FL;
+      TH1D* h_SL;
+      TH1D* h_FH2;
+      TH1D* h_FH3;
+      TH1D* h_FH4;
+      TH1D* h_Out;
+ 
       //Variables
       TLorentzVector b_Dilep, b_Mu1, b_Mu2;
       TLorentzVector b_lep1, b_lep2;
@@ -43,7 +49,8 @@ private:
       std::vector<Float_t> b_CSVv2;
       std::vector<Float_t> b_csvweights;
       
-      Float_t b_genweight, b_puweight, b_weight;
+      Float_t b_genweight, b_weight;
+      Float_t b_puweight, b_puweight_up, b_puweight_dn; 
       Float_t b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
       Float_t b_btagweight;
 
@@ -51,6 +58,8 @@ private:
       
       Float_t b_Met_phi;
       Float_t b_Met;
+      Int_t b_npvs;
+
       //Step and Cutflow
       TH1D* h_cutFlow;
       Int_t b_Step;
