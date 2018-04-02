@@ -228,7 +228,7 @@ void HadTruthProducer::motherTracking(int PID, const TrackingVertex trackVertex,
   if (!decayTrk->genParticles().empty()) {
     for (TrackingParticle::genp_iterator igen = decayTrk->genParticle_begin(); igen != decayTrk->genParticle_end(); ++igen) {
       auto gen = igen->get();
-      if (count != 0 || abs(decayTrk->pdgId()) == PID) {
+      if (count != 0 || decayTrk->pdgId() == PID) {
         isGenHadFrom(gen, 6, count, GenHadFromQuark, GenHadFromTop);
       }
     }
