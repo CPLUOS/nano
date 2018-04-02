@@ -12,7 +12,7 @@
   <lib name="EG"/>
   <use name="nano/analysis"/>
 </bin>
-<bin name="testAnalysis" file="testAnalysis.cc">
+<bin name="vtsAnalysis" file="vtsAnalysis.cc">
   <use name="root"/>
   <use name="rootxml"/>
   <lib name="Eve"/>

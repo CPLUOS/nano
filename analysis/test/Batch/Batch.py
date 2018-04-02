@@ -23,7 +23,7 @@ dataFiles = [data+period for period in ["B","Bv2","C","D","E","F","G","H"] for d
 
 if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "nanoAnalysis";
 elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalysis";
-elif analysis == 'Vts'    : RunFiles = []; analyser = "testAnalysis";
+elif analysis == 'Vts'    : RunFiles = []; analyser = "vtsAnalysis";
 else: print "put right name of analysis (h2mumu/topMass/vts)"
 #RunFiles = ['WW'] # for test
 
