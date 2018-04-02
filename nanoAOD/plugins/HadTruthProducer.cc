@@ -59,7 +59,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  
 	  if (trueHad.isNull()) { trueHad = mother; }
 	  if (mother != trueHad) { continue; }
-	  if (abs(mother->pdgId()) == cand.pdgId()) { nmatched++; }
+	  if (mother->pdgId() == cand.pdgId()) { nmatched++; }
 	}
       }
     }
@@ -92,8 +92,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     for (TrackingVertex::tp_iterator source = trackVertex.sourceTracks_begin(); source != trackVertex.sourceTracks_end(); ++source) {
       auto decayTrk = source->get();
-      if (decayTrk->pdgId() != 310 && decayTrk->pdgId() != 3122) continue;
-
+      if (decayTrk->pdgId() != 310 && abs(decayTrk->pdgId()) != 3122) continue;
       int count = 0;
       int GenHadFromQuark = 0;
       bool GenHadFromTop = false;
@@ -229,7 +228,7 @@ void HadTruthProducer::motherTracking(int PID, const TrackingVertex trackVertex,
   if (!decayTrk->genParticles().empty()) {
     for (TrackingParticle::genp_iterator igen = decayTrk->genParticle_begin(); igen != decayTrk->genParticle_end(); ++igen) {
       auto gen = igen->get();
-      if (count != 0 || decayTrk->pdgId() == PID) {
+      if (count != 0 || abs(decayTrk->pdgId()) == PID) {
         isGenHadFrom(gen, 6, count, GenHadFromQuark, GenHadFromTop);
       }
     }
