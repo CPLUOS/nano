@@ -23,6 +23,12 @@ void nanoAnalysis::SetOutput(string outputName)
   h_genweights = new TH1D("genweight", "genweight" , 1,0,1);
   h_weight = new TH1D("weight", "weight", 1,0,1);
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
+  h_FL = new TH1D("FullyLeptonic", "FullyLeptonic", 1, 0, 1);
+  h_FH2 = new TH1D("FullyLeptonic2", "FullyLeptonic2", 1, 0, 1);
+  h_FH3 = new TH1D("FullyLeptonic3", "FullyLeptonic3", 1, 0, 1);
+  h_FH4 = new TH1D("FullyLeptonic4", "FullyLeptonic4", 1, 0, 1);
+  h_SL = new TH1D("SemiLeptonic", "SemiLeptonic", 1, 0, 1);
+  h_Out = new TH1D("Leftover", "Leftover", 1, 0, 1);
 }
 
 void nanoAnalysis::MakeBranch(TTree* t)
@@ -36,8 +42,10 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("lep2", "TLorentzVector", &b_lep2);
   t->Branch("genweight", &b_genweight, "genweight/F");
   t->Branch("puweight", &b_puweight, "puweight/F");
+  t->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
+  t->Branch("puweight_dn", &b_puweight_dn, "puweight_dn/F");
   t->Branch("weight", &b_weight, "weight/F");
-  t->Branch("PV_npvs", &PV_npvs, "PV_npvs/I");
+  t->Branch("npvs", &b_npvs, "npvs/I");
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("charge", &b_charge, "charge/I");
   t->Branch("nlep", &b_nlep, "nlep/I");
@@ -55,7 +63,8 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("FH3", &b_FH3, "FH3/I");
   t->Branch("FH4", &b_FH4, "FH4/I");
   t->Branch("SL", &b_SL, "SL/I");
- // t->Branch("csvweight", "std::vector<float>", &b_csvweights);
+  t->Branch("csvweight", "std::vector<float>", &b_csvweights);
+  t->Branch("csvweight", "std::vector<float>", &b_csvweights);
   t->Branch("btagweight", &b_btagweight, "btagweight/F");
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   t->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
@@ -75,6 +84,7 @@ void nanoAnalysis::ResetBranch()
   b_El_tlv.clear();
   b_Jet_tlv.clear();
   b_bJet_tlv.clear();
+  b_csvweights.clear();
   b_CSVv2.clear();
   b_Event_Total = 1;
   b_channel = -1;
@@ -101,6 +111,8 @@ bool nanoAnalysis::Analysis()
   if(m_isMC){
     Int_t nvtx = Pileup_nTrueInt;
     b_puweight = m_pileUp->getWeight(nvtx);
+    b_puweight_up = m_pileUp->getWeight(nvtx, 1);
+    b_puweight_dn = m_pileUp->getWeight(nvtx, -1);
     b_genweight = genWeight;
     h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
@@ -117,7 +129,6 @@ bool nanoAnalysis::Analysis()
   if (PV_npvs == 0) return false;
   if (PV_ndof < 4) return false;
   h_cutFlow->Fill(2);
-  
   auto Muons = MuonSelection();
   auto Elecs = ElectronSelection(Muons);
   auto Jets = JetSelection(Muons, Elecs);
@@ -135,7 +146,6 @@ bool nanoAnalysis::Analysis()
   Bool_t IsoMu24 = false;
   Bool_t IsoTkMu24 = false;
 
-//////////////////////////////////////////// TTH -> MuMu Start //////////////////////////////////////////////////////
   for (UInt_t i = 0; i < nTrigObj; ++i){
     if (TrigObj_id[i] != 13) continue;
     if (TrigObj_pt[i] < 24) continue;
@@ -170,7 +180,7 @@ bool nanoAnalysis::Analysis()
   b_nelec = Elecs.size();
   b_njet = Jets.size();
   b_nbjet = BJets.size();
-  
+  b_npvs = PV_npvs;
  
   /////////////////////// Fully Leptonic //////////////////
   if (Muons.size() + Elecs.size() == 4)
@@ -218,6 +228,7 @@ bool nanoAnalysis::Analysis()
     if (mulpdg < 0)
     {
       b_FL = 1;
+      h_FL->Fill(0.5, b_FL);
     }
   }
   ////////////////////// Fully Hadronic //////////////////
@@ -226,6 +237,7 @@ bool nanoAnalysis::Analysis()
      if ((BJets.size() == 1)||(BJets.size() == 2))
      {
        b_FH4 = 1;
+       h_FH4->Fill(0.5, b_FH4);
      }
   }
   if (Elecs.size() == 0 && Muons.size() == 2 && Jets.size() >= 3)
@@ -233,6 +245,7 @@ bool nanoAnalysis::Analysis()
      if ((BJets.size() == 1)||(BJets.size() == 2))
      {
        b_FH3 = 1;
+       h_FH3->Fill(0.5, b_FH3);
      }
   }
   
@@ -241,6 +254,7 @@ bool nanoAnalysis::Analysis()
      if ((BJets.size() == 1)||(BJets.size() == 2))
      {
        b_FH2 = 1;
+       h_FH2->Fill(0.5, b_FH2);
      }
   }
 
@@ -252,6 +266,7 @@ bool nanoAnalysis::Analysis()
       if (Jets.size() >= 2)
       {
         b_SL = 1;
+        h_SL->Fill(0.5, b_SL);
       }
     }
     else if (BJets.size() == 2)
@@ -259,6 +274,7 @@ bool nanoAnalysis::Analysis()
       if (Jets.size() >=1)
       {
         b_SL = 1;
+        h_SL->Fill(0.5, b_SL);
       }
     }
   }
@@ -268,6 +284,7 @@ bool nanoAnalysis::Analysis()
   b_mueffweight_dn = m_muonSF.getScaleFactor(mu1, 13, -1)*m_muonSF.getScaleFactor(mu2, 13, -1);
   
   b_Event_No = 1;
+  if (b_SL == 0 && b_FH2 == 0 && b_FL == 0) h_Out->Fill(0.5, 1);
 
   return true;
 }
@@ -419,7 +436,7 @@ vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
       Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
     }
   }
-  //for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
+  for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
   b_btagweight = Jet_SF_CSV[0];
   return jets;
 }
