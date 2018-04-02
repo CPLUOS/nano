@@ -16,7 +16,8 @@ vector<TParticle> topAnalysis::muonSelection()
     if (Muon_pt[i] < 20) continue;
     if (std::abs(Muon_eta[i]) > 2.4) continue;
     if (Muon_pfRelIso04_all[i] > 0.15) continue;
-
+    if (!Muon_globalMu[i]) continue;
+    if (!Muon_isPFcand[i]) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
     auto muon = TParticle();
@@ -33,17 +34,18 @@ vector<TParticle> topAnalysis::elecSelection()
 {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
-    if (Electron_pt[i] < 20) continue;
+    if (Electron_pt[i]*Electron_eCorr[i] < 20) continue;
     if (std::abs(Electron_eta[i]) > 2.4) continue;
     if (Electron_cutBased[i] < 3) continue;
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
     TLorentzVector mom;
-    mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
+    mom.SetPtEtaPhiM(Electron_pt[i]*Electron_eCorr[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
    
     auto elec = TParticle();
     elec.SetPdgCode(11*Electron_charge[i]*-1);
     elec.SetMomentum(mom);
+    elec.SetWeight(el_scEta);
     elecs.push_back(elec);
   }
   return elecs;
@@ -112,7 +114,7 @@ void topAnalysis::analysis()
     Int_t nvtx = Pileup_nTrueInt;
     b_puweight = m_pileUp->getWeight(nvtx);
       
-    b_genweight = genWeight;
+   b_genweight = genWeight;
     h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
   }
@@ -125,7 +127,6 @@ void topAnalysis::analysis()
   h_nevents->Fill(0.5,b_genweight*b_puweight); 
     
   h_cutFlow->Fill(1);
-
   if (std::abs(PV_z) >= 24.) return;
   if (PV_npvs == 0) return;
   if (PV_ndof < 4) return;
@@ -160,7 +161,6 @@ void topAnalysis::analysis()
       b_channel = CH_ELEL;
   }
 
-  //vector<TLorentzVector> recoleps;
   recolep1.Momentum(b_lep1);
   recolep2.Momentum(b_lep2);
 
@@ -227,6 +227,12 @@ void topAnalysis::analysis()
   b_eleffweight_up = elecSF_.getScaleFactor(recolep1, 11, +1)*elecSF_.getScaleFactor(recolep2, 11, +1);
   b_eleffweight_dn = elecSF_.getScaleFactor(recolep1, 11, -1)*elecSF_.getScaleFactor(recolep2, 11, -1);
 
+  
+  b_tri = b_tri_up = b_tri_dn = 0;
+  b_tri = computeTrigSF(recolep1, recolep2);
+  b_tri_up = computeTrigSF(recolep1, recolep2,  1);
+  b_tri_dn = computeTrigSF(recolep1, recolep2, -1);
+
   auto jets = jetSelection();
   auto bjets = bjetSelection();
   
@@ -289,16 +295,15 @@ void topAnalysis::Loop()
 
 int main(int argc, char* argv[])
 {
-  std::string env = std::getenv("CMSSW_BASE");
+  string env = getenv("CMSSW_BASE");
   string username = getenv("USER");
   lumiTool* lumi = new lumiTool(env+"/src/nano/analysis/data/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt");
   pileUpTool* pileUp = new pileUpTool();
 
   if(argc != 1)
   {
-    //std::string dirName = env+("/src/nano/analysis/topMass/Results/")+argv[1];
-    std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/"+username+"/nanoAOD/"+std::string(argv[1]);
-    std::string temp = argv[1];
+    std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/"+username+"/nanoAOD/"+std::string(argv[1])+"/"+std::string(argv[2]);
+    std::string temp = argv[2];
     
     Bool_t isDL = false;
     Size_t found_DL = temp.find("Double");
@@ -316,7 +321,7 @@ int main(int argc, char* argv[])
     Size_t found = temp.find("Run");
     if(found == std::string::npos) isMC = true;
 
-    for(Int_t i = 2; i < argc; i++)
+    for(Int_t i = 3; i < argc; i++)
     {
       TFile *f = TFile::Open(argv[i], "read");
      
@@ -388,6 +393,11 @@ void topAnalysis::MakeBranch(TTree* t)
   //m_tree->Branch("jet2", "TLorentzVector", &b_jet2);
   //m_tree->Branch("jet2_CSVInclV2", &b_jet2_CSVInclV2, "jet2_CSVInclV2/F");
 
+
+  t->Branch("tri", &b_tri, "tri/F");
+  t->Branch("tri_up", &b_tri_up, "tri_up/F");
+  t->Branch("tri_dn", &b_tri_dn, "tri_dn/F");
+
   t->Branch("met", &b_met, "met/F");
   t->Branch("weight", &b_weight, "weight/F");
   t->Branch("puweight", &b_puweight, "puweight/F");
@@ -451,6 +461,7 @@ void topAnalysis::resetBranch()
   b_nvertex = 0; b_step = -1; b_channel = 0; b_njet = 0; b_nbjet = 0;
   b_step1 = 0; b_step2 = 0; b_step3 = 0; b_step4 = 0; b_step5 = 0; b_step6 = 0; b_step7 = 0;
   b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; b_btagweight = 1;
+  b_tri = 0;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 }
