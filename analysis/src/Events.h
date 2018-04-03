@@ -11,6 +11,7 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <iostream>
 
 // Header file for the classes stored in the TTree if any.
 
@@ -196,37 +197,37 @@ public :
    Float_t         MET_significance;
    Float_t         MET_sumEt;
    UInt_t          nMuon;
-   Float_t         Muon_dxy[5];   //[nMuon]
-   Float_t         Muon_dxyErr[5];   //[nMuon]
-   Float_t         Muon_dz[5];   //[nMuon]
-   Float_t         Muon_dzErr[5];   //[nMuon]
-   Float_t         Muon_eta[5];   //[nMuon]
-   Float_t         Muon_ip3d[5];   //[nMuon]
-   Float_t         Muon_mass[5];   //[nMuon]
-   Float_t         Muon_miniPFRelIso_all[5];   //[nMuon]
-   Float_t         Muon_miniPFRelIso_chg[5];   //[nMuon]
-   Float_t         Muon_pfRelIso03_all[5];   //[nMuon]
-   Float_t         Muon_pfRelIso03_chg[5];   //[nMuon]
-   Float_t         Muon_pfRelIso04_all[5];   //[nMuon]
-   Float_t         Muon_phi[5];   //[nMuon]
-   Float_t         Muon_pt[5];   //[nMuon]
-   Float_t         Muon_ptErr[5];   //[nMuon]
-   Float_t         Muon_segmentComp[5];   //[nMuon]
-   Float_t         Muon_sip3d[5];   //[nMuon]
-   Float_t         Muon_mvaTTH[5];   //[nMuon]
-   Int_t           Muon_charge[5];   //[nMuon]
-   Int_t           Muon_jetIdx[5];   //[nMuon]
-   Int_t           Muon_nStations[5];   //[nMuon]
-   Int_t           Muon_nTrackerLayers[5];   //[nMuon]
-   Int_t           Muon_pdgId[5];   //[nMuon]
-   Int_t           Muon_tightCharge[5];   //[nMuon]
-   Bool_t          Muon_globalMu[5];   //[nMuon]
-   UChar_t         Muon_highPtId[5];   //[nMuon]
-   Bool_t          Muon_isPFcand[5];   //[nMuon]
-   Bool_t          Muon_mediumId[5];   //[nMuon]
-   Bool_t          Muon_softId[5];   //[nMuon]
-   Bool_t          Muon_tightId[5];   //[nMuon]
-   Bool_t          Muon_trackerMu[5];   //[nMuon]
+   Float_t         Muon_dxy[10];   //[nMuon]
+   Float_t         Muon_dxyErr[10];   //[nMuon]
+   Float_t         Muon_dz[10];   //[nMuon]
+   Float_t         Muon_dzErr[10];   //[nMuon]
+   Float_t         Muon_eta[10];   //[nMuon]
+   Float_t         Muon_ip3d[10];   //[nMuon]
+   Float_t         Muon_mass[10];   //[nMuon]
+   Float_t         Muon_miniPFRelIso_all[10];   //[nMuon]
+   Float_t         Muon_miniPFRelIso_chg[10];   //[nMuon]
+   Float_t         Muon_pfRelIso03_all[10];   //[nMuon]
+   Float_t         Muon_pfRelIso03_chg[10];   //[nMuon]
+   Float_t         Muon_pfRelIso04_all[10];   //[nMuon]
+   Float_t         Muon_phi[10];   //[nMuon]
+   Float_t         Muon_pt[10];   //[nMuon]
+   Float_t         Muon_ptErr[10];   //[nMuon]
+   Float_t         Muon_segmentComp[10];   //[nMuon]
+   Float_t         Muon_sip3d[10];   //[nMuon]
+   Float_t         Muon_mvaTTH[10];   //[nMuon]
+   Int_t           Muon_charge[10];   //[nMuon]
+   Int_t           Muon_jetIdx[10];   //[nMuon]
+   Int_t           Muon_nStations[10];   //[nMuon]
+   Int_t           Muon_nTrackerLayers[10];   //[nMuon]
+   Int_t           Muon_pdgId[10];   //[nMuon]
+   Int_t           Muon_tightCharge[10];   //[nMuon]
+   Bool_t          Muon_globalMu[10];   //[nMuon]
+   UChar_t         Muon_highPtId[10];   //[nMuon]
+   Bool_t          Muon_isPFcand[10];   //[nMuon]
+   Bool_t          Muon_mediumId[10];   //[nMuon]
+   Bool_t          Muon_softId[10];   //[nMuon]
+   Bool_t          Muon_tightId[10];   //[nMuon]
+   Bool_t          Muon_trackerMu[10];   //[nMuon]
    UInt_t          nPhoton;
    Float_t         Photon_eCorr[7];   //[nPhoton]
    Float_t         Photon_energyErr[7];   //[nPhoton]
@@ -2021,7 +2022,6 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
-   virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
@@ -2034,12 +2034,8 @@ Events::Events(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/xrootd/store/group/nanoAOD/run2_2016v3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/180117_180123/0000/nanoAOD_111.root");
-      if (!f || !f->IsOpen()) {
-         f = new TFile("/xrootd/store/group/nanoAOD/run2_2016v3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/180117_180123/0000/nanoAOD_111.root");
-      }
-      f->GetObject("Events",tree);
-
+     std::cerr << "TTree is null!" << std::endl;
+     return;
    }
    Init(tree);
 }
