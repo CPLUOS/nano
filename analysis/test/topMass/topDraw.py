@@ -25,15 +25,15 @@ mcfilelist = [
 rdfilelist = ['ch_me','ch_ee','ch_mm']
 
 rootfileDir = "/xrootd/store/user/dayoung/nanoAOD/test/results_merged/topmass_"
-#rootfileDir = "/xrootd/store/user/dayoung/results_merged_180316/topmass_"
+#rootfileDir = "/xrootd/store/user/dayoung/results_merged_ecorr/topmass_"
 
 channel_name = ['MuEl', 'ElEl', 'MuMu']
 
-datasets = json.load(open("%s/src/nano/analysis/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
+datasets = json.load(open("%s/src/nano/nanoAOD/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
 #defalts
 step = 5
-channel = 1
+channel = 2
 cut = 'tri !=0'
 weight = 'genweight*puweight*mueffweight*eleffweight*btagweight*tri'#*topPtWeight'
 plotvar = 'dilep.M()'

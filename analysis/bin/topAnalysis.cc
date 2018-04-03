@@ -1,11 +1,10 @@
 #define topAnalysis_cxx
-#include "nano/analysis/src/topAnalysis.h"
+#include "nano/analysis/src/nanoAnalysis.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <iostream>
 #include <cstdlib>
-
 using namespace std;
 
 vector<TParticle> topAnalysis::muonSelection()
@@ -34,13 +33,13 @@ vector<TParticle> topAnalysis::elecSelection()
 {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
-    if (Electron_pt[i]*Electron_eCorr[i] < 20) continue;
+    if (Electron_pt[i] < 20) continue;
     if (std::abs(Electron_eta[i]) > 2.4) continue;
     if (Electron_cutBased[i] < 3) continue;
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
     TLorentzVector mom;
-    mom.SetPtEtaPhiM(Electron_pt[i]*Electron_eCorr[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
+    mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
    
     auto elec = TParticle();
     elec.SetPdgCode(11*Electron_charge[i]*-1);
@@ -105,7 +104,7 @@ vector<TParticle> topAnalysis::bjetSelection()
 }
 
 
-void topAnalysis::analysis()
+bool topAnalysis::analysis()
 {
   h_cutFlow->Fill(0);
 
@@ -122,21 +121,21 @@ void topAnalysis::analysis()
   {
     b_puweight = 1;
     b_genweight = 0;
-    if (!(m_lumi->LumiCheck(run, luminosityBlock))) return;
+    if (!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
   }
   h_nevents->Fill(0.5,b_genweight*b_puweight); 
     
   h_cutFlow->Fill(1);
-  if (std::abs(PV_z) >= 24.) return;
-  if (PV_npvs == 0) return;
-  if (PV_ndof < 4) return;
+  if (std::abs(PV_z) >= 24.) return false;
+  if (PV_npvs == 0) return false;
+  if (PV_ndof < 4) return false;
 
   h_cutFlow->Fill(2);
 
   auto muons = muonSelection();
   auto elecs = elecSelection();
 
-  if(muons.size()+ elecs.size() != 2) return;
+  if(muons.size()+ elecs.size() != 2) return false;
 
   h_cutFlow->Fill(3);
 
@@ -181,40 +180,40 @@ void topAnalysis::analysis()
 
   if (b_channel == CH_MUMU){
     if (m_isMC){
-      if (!(b_trig_mm || b_trig_m)) return;
+      if (!(b_trig_mm || b_trig_m)) return false;
     }
     if (m_isDL){
-      if (!(b_trig_mm)) return;
+      if (!(b_trig_mm)) return false;
     }
     if (m_isSL_m){
-      if (b_trig_mm||!b_trig_m) return;  
+      if (b_trig_mm||!b_trig_m) return false;  
     }
   }
 
   if (b_channel == CH_MUEL){
     if (m_isMC){
-      if (!(b_trig_em || b_trig_m || b_trig_e)) return;
+      if (!(b_trig_em || b_trig_m || b_trig_e)) return false;
     }
     if (m_isDL){
-      if (!(b_trig_em)) return;
+      if (!(b_trig_em)) return false;
     }
     if (m_isSL_e) {
-      if (b_trig_em || !b_trig_e || b_trig_m) return;
+      if (b_trig_em || !b_trig_e || b_trig_m) return false;
     }
     if (m_isSL_m) {
-      if (b_trig_em || b_trig_e || !b_trig_m) return;
+      if (b_trig_em || b_trig_e || !b_trig_m) return false;
     } 
   }
 
   if (b_channel == CH_ELEL){
     if (m_isMC){
-      if (!(b_trig_ee || b_trig_e)) return;
+      if (!(b_trig_ee || b_trig_e)) return false;
     }
     if (m_isDL){
-      if (!b_trig_ee) return;
+      if (!b_trig_ee) return false;
     }
     if (m_isSL_e){
-      if (b_trig_ee || !b_trig_e) return;
+      if (b_trig_ee || !b_trig_e) return false;
     }
   }
 
@@ -236,36 +235,43 @@ void topAnalysis::analysis()
   auto jets = jetSelection();
   auto bjets = bjetSelection();
   
-  if (b_dilep.M() < 20.) return;
-  if (mulpdg > 0 ) return;
+  if (b_dilep.M() < 20. || mulpdg > 0) return false;
   b_step1 = true;
   b_step = 1;
   h_cutFlow->Fill(4);
 
-  if (b_channel != CH_MUEL && 76 < b_dilep.M() && b_dilep.M() < 106) return;
-  b_step2 = true;
-  b_step = 2;
-  h_cutFlow->Fill(5);
-   
+  if (b_channel == CH_MUEL || b_dilep.M() < 76 || b_dilep.M() > 106){
+    b_step2 = true;
+    b_step = 2;
+    h_cutFlow->Fill(5);
+  }
+
   b_met = MET_pt;
   b_njet = jets.size();
   b_nbjet = bjets.size();
 
-  if (b_channel != CH_MUEL && b_met < 40) return;
-  b_step3 = true;
-  b_step = 3;
-  h_cutFlow->Fill(6);
-
-  if (b_njet < 2) return;
-  b_step4 = true;
-  b_step = 4;
-  h_cutFlow->Fill(7);
-
-  if (b_nbjet < 1) return;
-  b_step5 = true;
-  b_step = 5;
-  h_cutFlow->Fill(8);
-
+  if (b_channel == CH_MUEL || b_met > 40){ 
+    b_step3 = true;
+    if (b_step == 2){
+      ++b_step;
+      h_cutFlow->Fill(6);
+    }
+  }
+  if (b_njet >= 2){
+    b_step4 = true;
+    if (b_step == 3){
+      ++b_step;
+      h_cutFlow->Fill(7);
+    }
+  }
+  if (b_nbjet > 0){
+    b_step5 = true;
+    if (b_step == 4){
+      ++b_step;
+      h_cutFlow->Fill(8);
+    }
+  }
+  return true;
 }
 
 void topAnalysis::LoadModules(pileUpTool* pileUp, lumiTool* lumi)
@@ -288,8 +294,10 @@ void topAnalysis::Loop()
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry); nbytes += nb;
-    analysis();
-    m_tree->Fill();
+    bool keep = analysis();
+    if (keep){
+      m_tree->Fill();
+    }
   }
 }
 
