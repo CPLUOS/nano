@@ -276,7 +276,8 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<float> had_lxy, had_lxySig, had_l3D, had_l3DSig, had_dca, had_angleXY, had_angleXYZ;
   vector<float> had_dau1_chi2, had_dau1_nHits, had_dau1_pt, had_dau1_ipsigZ, had_dau1_ipsigXY;
   vector<float> had_dau2_chi2, had_dau2_nHits, had_dau2_pt, had_dau2_ipsigZ, had_dau2_ipsigXY;
-  
+  vector<float> had_pvx, had_pvy, had_pvz; 
+ 
   for (auto cand: hadronCandidates){
     had_cands->push_back(cand.vcc);
     had_jets->push_back(cand.jet);
@@ -343,6 +344,11 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     had_dca.push_back(cand.dca);
     had_angleXY.push_back(cand.angleXY);
     had_angleXYZ.push_back(cand.angleXYZ);
+
+    had_pvx.push_back(pv.position().x());
+    had_pvy.push_back(pv.position().y());
+    had_pvz.push_back(pv.position().z());
+
   }
   
   auto had_table = make_unique<nanoaod::FlatTable>(had_cands->size(),"had",false);
@@ -372,6 +378,10 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   had_table->addColumn<float>("dau2_pt",had_dau2_pt,"dau2 Pt",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau2_ipsigXY",had_dau2_ipsigXY,"dau2 ipsigXY",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau2_ipsigZ",had_dau2_ipsigZ,"dau2 ipsigZ",nanoaod::FlatTable::FloatColumn);
+
+  had_table->addColumn<float>("pvx",had_pvx,"primary vertex X position, in cm",nanoaod::FlatTable::FloatColumn);
+  had_table->addColumn<float>("pvy",had_pvy,"primary vertex Y position, in cm",nanoaod::FlatTable::FloatColumn);
+  had_table->addColumn<float>("pvz",had_pvz,"primary vertex Z position, im cm",nanoaod::FlatTable::FloatColumn);
 
   iEvent.put(move(had_table),"had");
   iEvent.put(move(had_cands));
