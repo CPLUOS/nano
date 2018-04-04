@@ -12,8 +12,6 @@
 #include "ElecScaleFactorEvaluator.h"
 #include "BTagWeightEvaluator.h"
 
-void Events::Loop(){}
-
 void makeEventsClass(const char* filedir){
     TFile *f = TFile::Open(filedir);
     TTree *t = (TTree*) f->Get("Events");
@@ -105,12 +103,12 @@ public:
       //set output file
       void SetOutput(std::string outputName);
       void LoadModules(pileUpTool* pileUp, lumiTool* lumi, RoccoR* rocCor);
-      nanoAnalysis(TTree *tree=0, Bool_t flag = false);
+      nanoAnalysis(TTree *tree=0, Bool_t isMc = false);
       ~nanoAnalysis();
       virtual void     Loop();
 };
 
-nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t flag) : Events(tree), m_isMC(flag)
+nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC)
 {
 }
 
@@ -142,6 +140,7 @@ public:
       ~vtsAnalysis();
       virtual void     Loop();
 };
-vtsAnalysis::vtsAnalysis(TTree *tree) { Init(tree); }
+vtsAnalysis::vtsAnalysis(TTree *tree) : Events(tree)
+{ }
 vtsAnalysis::~vtsAnalysis(){ }
 #endif
