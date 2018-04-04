@@ -59,7 +59,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  
 	  if (trueHad.isNull()) { trueHad = mother; }
 	  if (mother != trueHad) { continue; }
-	  if (abs(mother->pdgId()) == cand.pdgId()) { nmatched++; }
+	  if (mother->pdgId() == cand.pdgId()) { nmatched++; }
 	}
       }
     }
@@ -92,8 +92,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     for (TrackingVertex::tp_iterator source = trackVertex.sourceTracks_begin(); source != trackVertex.sourceTracks_end(); ++source) {
       auto decayTrk = source->get();
-      if (decayTrk->pdgId() != 310 && decayTrk->pdgId() != 3122) continue;
-
+      if (decayTrk->pdgId() != 310 && abs(decayTrk->pdgId()) != 3122) continue;
       int count = 0;
       int GenHadFromQuark = 0;
       bool GenHadFromTop = false;
