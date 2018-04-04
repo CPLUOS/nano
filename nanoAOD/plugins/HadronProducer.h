@@ -102,7 +102,7 @@ private:
   const float kshort_m_ = 0.4976, lambda_m_ = 1.11568;
   
   const int lambdab_pdgId_ = 5122;
-  const float lambdab_m_ = 6.202;
+  const float lambdab_m_ = 5.61958;
   
   // cuts on initial track selection
   float tkChi2Cut_;
