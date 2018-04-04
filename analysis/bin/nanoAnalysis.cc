@@ -66,6 +66,14 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("csvweight", "std::vector<float>", &b_csvweights);
   t->Branch("csvweight", "std::vector<float>", &b_csvweights);
   t->Branch("btagweight", &b_btagweight, "btagweight/F");
+  t->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
+  t->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
+  t->Branch("lf__up", &b_lf_up, "lf_up/F");
+  t->Branch("lf__dn", &b_lf_dn, "lf_dn/F");
+  t->Branch("hfstats1_up", &b_hfstats1_up, "hfstats1_up/F");
+  t->Branch("hfstats1_dn", &b_hfstats1_dn, "hfstats1_dn/F");
+  t->Branch("hfstats2_up", &b_hfstats2_up, "hfstats2_up/F");
+  t->Branch("hfstats2_dn", &b_hfstats2_dn, "hfstats2_dn/F");
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   t->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
   t->Branch("mueffweight_dn", &b_mueffweight_dn, "mueffweight_dn/F");
@@ -174,7 +182,6 @@ bool nanoAnalysis::Analysis()
   if (b_charge == 0) return false; 
 
   b_Dilep = b_Mu1 + b_Mu2;
-  
   b_nlep = Muons.size() + Elecs.size();
   b_nmuon = Muons.size();
   b_nelec = Elecs.size();
@@ -345,7 +352,7 @@ int main(Int_t argc, Char_t** argv)
   }
   else
   {
-    TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/WW_TuneCUETP8M1_13TeV-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180125_132925/0000/nanoAOD_11.root", "read");
+    TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/ttHToMuMu_M125_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180125_131219/0000/nanoAOD_004.root", "read");
     TTree *tree;
     f->GetObject("Events", tree);
     
@@ -437,7 +444,19 @@ vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
     }
   }
   for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
-  b_btagweight = Jet_SF_CSV[0];
+    b_btagweight = Jet_SF_CSV[0];
+    b_btagweight_up = Jet_SF_CSV[1];
+    b_btagweight_dn = Jet_SF_CSV[2];
+
+    b_lf_up = Jet_SF_CSV[3];
+    b_lf_dn = Jet_SF_CSV[4];
+
+    b_hfstats1_up = Jet_SF_CSV[7];
+    b_hfstats1_dn = Jet_SF_CSV[8];
+
+    b_hfstats2_up = Jet_SF_CSV[9];
+    b_hfstats2_dn = Jet_SF_CSV[10];
+
   return jets;
 }
 

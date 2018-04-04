@@ -251,6 +251,7 @@ public :
    Bool_t          Photon_mvaID_WP90[7];   //[nPhoton]
    Bool_t          Photon_pixelSeed[7];   //[nPhoton]
    Int_t           Pileup_nPU;
+   //Float_t           Pileup_nTrueInt;
    Int_t           Pileup_nTrueInt;
    Float_t         PuppiMET_phi;
    Float_t         PuppiMET_pt;

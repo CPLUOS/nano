@@ -52,7 +52,8 @@ private:
       Float_t b_genweight, b_weight;
       Float_t b_puweight, b_puweight_up, b_puweight_dn; 
       Float_t b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
-      Float_t b_btagweight;
+      Float_t b_btagweight, b_btagweight_up, b_btagweight_dn;
+      Float_t b_lf_up, b_lf_dn, b_hfstats1_up, b_hfstats1_dn, b_hfstats2_up, b_hfstats2_dn;
 
       Int_t b_Event_No, b_Event_Total;
       
@@ -109,9 +110,8 @@ public:
       virtual void     Loop();
 };
 
-nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t flag) : m_isMC(flag)
+nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t flag) : Events(tree), m_isMC(flag)
 {
-  Init(tree);
 }
 
 nanoAnalysis::~nanoAnalysis()
