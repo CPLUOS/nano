@@ -120,5 +120,4 @@ private:
   float cosThetaXYZCut_;  
 };
 
-DEFINE_FWK_MODULE(HadronProducer);
 #endif

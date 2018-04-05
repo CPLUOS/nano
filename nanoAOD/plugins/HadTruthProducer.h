@@ -7,8 +7,6 @@
 
 #include<memory>
 
-#include "HadronProducer.h"
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 
@@ -73,5 +71,4 @@ private:
   
 };
 
-DEFINE_FWK_MODULE(HadTruthProducer);
 #endif

@@ -668,3 +668,5 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<
   }
   return hadrons;
 }
+
+DEFINE_FWK_MODULE(HadronProducer);

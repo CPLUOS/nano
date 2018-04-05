@@ -1,4 +1,5 @@
 #include "HadTruthProducer.h"
+#include "HadronProducer.h"
 //#define debugMode
 
 HadTruthProducer::HadTruthProducer(const edm::ParameterSet & iConfig) :
@@ -215,20 +216,20 @@ int HadTruthProducer::trackingVertex_pdgId(const TrackingVertex* tv)
 const reco::GenParticleRef HadTruthProducer::getMother(const TrackingParticleRef& tp)
 {
   const TrackingVertexRef& tv = tp->parentVertex();
-  if (tv->nSourceTracks()){
+  if (tv->nSourceTracks()) {
     for (TrackingVertex::tp_iterator source = tv->sourceTracks_begin(); source != tv->sourceTracks_end(); ++source) {
       auto mothers = source->get()->genParticles();
-      if (!mothers.empty()){
+      if (!mothers.empty()) {
 	reco::GenParticleRefVector::const_iterator im = mothers.begin();
 	return *im;
       }
     }
   }
 
-  if (!tp->genParticles().empty()){
+  if (!tp->genParticles().empty()) {
     auto genpart = tp->genParticles()[0];
     const reco::GenParticleRefVector& mothers = genpart->motherRefVector();
-    if (!mothers.empty()){
+    if (!mothers.empty()) {
       reco::GenParticleRefVector::const_iterator im = mothers.begin();
       return *im;
     }
@@ -236,7 +237,6 @@ const reco::GenParticleRef HadTruthProducer::getMother(const TrackingParticleRef
 
   return reco::GenParticleRef();
 }
-
 
 bool HadTruthProducer::isGenHadFrom(const reco::GenParticle* particle, int pdgId, int count,int & GenHadFromQuark, bool & GenHadFromTop)
 {
@@ -302,3 +302,5 @@ void HadTruthProducer::fillDescriptions(edm::ConfigurationDescriptions& descript
   desc.setUnknown();
   descriptions.addDefault(desc);
 }
+
+DEFINE_FWK_MODULE(HadTruthProducer);
