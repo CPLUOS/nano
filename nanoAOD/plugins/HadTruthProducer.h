@@ -49,7 +49,7 @@ public:
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-private:
+private: 
   void produce( edm::Event&, const edm::EventSetup& ) override;
 
   reco::LeafCandidate getCandidate(const TrackingParticle* tp) {
@@ -68,7 +68,7 @@ private:
   edm::EDGetTokenT<edm::View<reco::GenParticle> > genLabel_;
   edm::EDGetTokenT<TrackingVertexCollection> trackingVertexLabel_;
   edm::EDGetTokenT<TrackingParticleCollection> trackingParticleLabel_;
+  
 };
 
-DEFINE_FWK_MODULE(HadTruthProducer);
 #endif
