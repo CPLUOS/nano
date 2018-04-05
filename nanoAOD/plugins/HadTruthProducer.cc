@@ -1,4 +1,5 @@
 #include "HadTruthProducer.h"
+#include "HadronProducer.h"
 //#define debugMode
 
 HadTruthProducer::HadTruthProducer(const edm::ParameterSet & iConfig) :
@@ -31,6 +32,9 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByToken(trackingVertexLabel_, trackingVertexs);
   edm::Handle<TrackingParticleCollection> trackingParticles;
   iEvent.getByToken(trackingParticleLabel_, trackingParticles);
+
+  edm::Handle<edm::View<reco::GenParticle>> genParticles;
+  iEvent.getByToken(genLabel_, genParticles);
 
   vector<int> nmatchedv;
 
@@ -86,13 +90,57 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<int> dau1_pdgId, dau2_pdgId;
   vector<float> dau1_pt, dau1_eta, dau1_phi, dau2_pt, dau2_eta, dau2_phi;
   vector<float> vx, vy, vz;
+  vector<int> isGenParticle;// for distinguishing genParticles from trackingVertexs
+
+  // for LambdaB and JPsi
+  for (auto gen : *genParticles) {
+    if (abs(gen.pdgId()) != HadronProducer::lambdab_pdgId_ && gen.pdgId() != HadronProducer::jpsi_pdgId_) continue;
+        int count=0;
+        int GenHadFromQuark=0;
+        bool GenHadFromTop=false;
+        
+        // mother tracking
+        isGenHadFrom( &gen, 6, count, GenHadFromQuark, GenHadFromTop);
+        
+        inVol.push_back(0);
+        isGenHadFromTop.push_back(GenHadFromTop);
+        isGenHadFromTsb.push_back(GenHadFromQuark);
+       
+        vx.push_back(0);
+        vy.push_back(0);
+        vz.push_back(0);
+
+        isGenParticle.push_back(1);
+        
+        candidates->push_back(gen);
+        if (gen.numberOfDaughters() >= 2) {
+            auto dau1 = gen.daughterRefVector()[0];
+            auto dau2 = gen.daughterRefVector()[1];
+            dau1_pdgId.push_back(dau1->pdgId());
+            dau2_pdgId.push_back(dau2->pdgId());
+            dau1_pt.push_back(dau1->pt());
+            dau2_pt.push_back(dau2->pt());
+            dau1_eta.push_back(dau1->eta());
+            dau2_eta.push_back(dau2->eta());
+            dau1_phi.push_back(dau1->phi());
+            dau2_phi.push_back(dau2->phi());
+        } else {
+            dau1_pdgId.push_back(0);
+            dau2_pdgId.push_back(0);
+            dau1_pt.push_back(-99);
+            dau2_pt.push_back(-99);
+            dau1_eta.push_back(-99);
+            dau2_eta.push_back(-99);
+            dau1_phi.push_back(-99);
+            dau2_phi.push_back(-99);
+        }
+  }// through genParticles
 
   for (auto const& trackVertex : *trackingVertexs.product()) {
     if (trackVertex.eventId().bunchCrossing() != 0) continue;  // Consider only in-time events
-    
     for (TrackingVertex::tp_iterator source = trackVertex.sourceTracks_begin(); source != trackVertex.sourceTracks_end(); ++source) {
       auto decayTrk = source->get();
-      if (decayTrk->pdgId() != 310 && abs(decayTrk->pdgId()) != 3122) continue;
+      if (decayTrk->pdgId() != HadronProducer::kshort_pdgId_ && abs(decayTrk->pdgId()) != HadronProducer::lambda_pdgId_) continue;
       int count = 0;
       int GenHadFromQuark = 0;
       bool GenHadFromTop = false;
@@ -106,6 +154,9 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       vx.push_back(trackVertex.position().x());
       vy.push_back(trackVertex.position().y());
       vz.push_back(trackVertex.position().z());
+      
+      // for distinguishing genParticles from trackingVertexs
+      isGenParticle.push_back(0);
 
       candidates->push_back(getCandidate(decayTrk));
       if (trackVertex.nDaughterTracks() >= 2) { 
@@ -148,6 +199,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   genHadTable->addColumn<float>("vx", vx,"vertex x postion",nanoaod::FlatTable::FloatColumn);
   genHadTable->addColumn<float>("vy", vy,"vertex y postion",nanoaod::FlatTable::FloatColumn);
   genHadTable->addColumn<float>("vz", vz,"vertex z postion",nanoaod::FlatTable::FloatColumn);
+  genHadTable->addColumn<int>("isGenParticle", isGenParticle,"from genParticle or not",nanoaod::FlatTable::IntColumn); // for distinguishing genParticles from trackingVertexs
 
   iEvent.put(move(genHadTable),"genHadron");
   iEvent.put(move(candidates));
@@ -164,20 +216,20 @@ int HadTruthProducer::trackingVertex_pdgId(const TrackingVertex* tv)
 const reco::GenParticleRef HadTruthProducer::getMother(const TrackingParticleRef& tp)
 {
   const TrackingVertexRef& tv = tp->parentVertex();
-  if (tv->nSourceTracks()){
+  if (tv->nSourceTracks()) {
     for (TrackingVertex::tp_iterator source = tv->sourceTracks_begin(); source != tv->sourceTracks_end(); ++source) {
       auto mothers = source->get()->genParticles();
-      if (!mothers.empty()){
+      if (!mothers.empty()) {
 	reco::GenParticleRefVector::const_iterator im = mothers.begin();
 	return *im;
       }
     }
   }
 
-  if (!tp->genParticles().empty()){
+  if (!tp->genParticles().empty()) {
     auto genpart = tp->genParticles()[0];
     const reco::GenParticleRefVector& mothers = genpart->motherRefVector();
-    if (!mothers.empty()){
+    if (!mothers.empty()) {
       reco::GenParticleRefVector::const_iterator im = mothers.begin();
       return *im;
     }
@@ -185,7 +237,6 @@ const reco::GenParticleRef HadTruthProducer::getMother(const TrackingParticleRef
 
   return reco::GenParticleRef();
 }
-
 
 bool HadTruthProducer::isGenHadFrom(const reco::GenParticle* particle, int pdgId, int count,int & GenHadFromQuark, bool & GenHadFromTop)
 {
@@ -251,3 +302,5 @@ void HadTruthProducer::fillDescriptions(edm::ConfigurationDescriptions& descript
   desc.setUnknown();
   descriptions.addDefault(desc);
 }
+
+DEFINE_FWK_MODULE(HadTruthProducer);
