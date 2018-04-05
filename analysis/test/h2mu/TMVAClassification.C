@@ -291,8 +291,10 @@ int TMVAClassification( TString myMethodList = "" )
    //factory->SetBackgroundWeightExpression( "weight" );                 /////////////////////////////////<~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    // Apply additional cuts on the signal and background samples (can be different)
-   TCut mycuts = "FL == 1 && all_Dilep_Pt > 12 && FL_lep2Pt > 0 && FL_lep2Pt < 250 && Event_No % 2 != 0"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
-   TCut mycutb = "FL == 1 && all_Dilep_Pt > 12 && FL_lep2Pt > 0 && FL_lep2Pt < 250"; // for example: TCut mycutb = "abs(var1)<0.5";
+  // TCut mycuts = "FL == 1 && channel == 1 && all_Dilep_Pt > 12 && FL_lep2Pt > 0 && FL_lep2Pt < 250 && Event_No % 2 != 0"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+  // TCut mycutb = "FL == 1 && channel == 1 && all_Dilep_Pt > 12 && FL_lep2Pt > 0 && FL_lep2Pt < 250"; // for example: TCut mycutb = "abs(var1)<0.5";
+   TCut mycuts = "FL == 1 && channel == 3 && all_Dilep_Pt > 12 && Event_No % 2 != 0"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   TCut mycutb = "FL == 1 && channel == 3 && all_Dilep_Pt > 12"; // for example: TCut mycutb = "abs(var1)<0.5";
 
    // Tell the factory how to use the training and testing events
    //
