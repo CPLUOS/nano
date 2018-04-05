@@ -48,11 +48,11 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("npvs", &b_npvs, "npvs/F");
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("charge", &b_charge, "charge/I");
-  t->Branch("nlep", &b_nlep, "nlep/I");
-  t->Branch("nmuon", &b_nmuon, "nmuon/I");
-  t->Branch("nelec", &b_nelec, "nelec/I");
-  t->Branch("njet", &b_njet, "njet/I");
-  t->Branch("nbjet", &b_nbjet, "nbjet/I");
+  t->Branch("nlep", &b_nlep, "nlep/F");
+  t->Branch("nmuon", &b_nmuon, "nmuon/F");
+  t->Branch("nelec", &b_nelec, "nelec/F");
+  t->Branch("njet", &b_njet, "njet/F");
+  t->Branch("nbjet", &b_nbjet, "nbjet/F");
   t->Branch("trig_m", &b_trig_m, "trig_m/O");
   t->Branch("trig_m2", &b_trig_m2, "trig_m2/O");
   t->Branch("Met", &b_Met, "Met/F");
@@ -95,6 +95,9 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("FL_lepDR", &b_FL_lepDR, "FL_lepDR/F");
   t->Branch("FL_nJet", &b_FL_nJet, "FL_nJet/F");
   t->Branch("FL_nbJet", &b_FL_nbJet, "FL_nbJet/F");
+  //FH//
+  t->Branch("Central_Jets", &b_Central_Jets, "Central_Jets/F");
+  t->Branch("Forward_Jets", &b_Forward_Jets, "Forward_Jets/F");
 }
 
 void nanoAnalysis::ResetBranch()
@@ -249,12 +252,26 @@ bool nanoAnalysis::Analysis()
       {
         if (Muons[i].Pt() != b_Mu2.Pt())
         {
-          mulpdg = Muons[i].GetPdgCode()*Muons[3].GetPdgCode();
-          Muons[i].Momentum(b_lep1);
-         break;
+          for (UInt_t j = 1; i < Muons.size(); j++)
+          {
+            if (Muons[j].Pt() != b_Mu2.Pt() && Muons[i].Pt() != Muons[j].Pt())
+            {
+              mulpdg = Muons[i].GetPdgCode()*Muons[j].GetPdgCode();
+              if (Muons[i].Pt() > Muons[j].Pt())
+              {
+                Muons[i].Momentum(b_lep1);
+                Muons[j].Momentum(b_lep2);
+              }
+              else 
+              {
+                Muons[i].Momentum(b_lep2);
+                Muons[j].Momentum(b_lep1);
+              }
+              break;
+            }
+          }
         }
       }
-      Muons[3].Momentum(b_lep2);
       b_channel = CH_MUMU;
     }
 
@@ -334,15 +351,25 @@ bool nanoAnalysis::Analysis()
     b_FL_lep1Eta = b_lep1.Eta();
     b_FL_lep2Pt = b_lep2.Pt();
     b_FL_lep2Eta = b_lep2.Eta();
-
-    /// Jet ///
-    b_FL_nJet = Jets.size();
-    b_FL_nbJet = BJets.size();
   }
   //SL 
   //FH2
   //FH3
   //FH4
+  if (b_FH4 == 1 || b_FH3 == 1 || b_FH2 ==1) 
+  {
+    for (UInt_t i; i > Jet.size(); i++)
+    {
+      if (abs(Jet[i].Eta()) < 2.4)
+      {
+         b_Central_Jets ++ 1;   
+      }
+      else 
+      {
+         b_Forward_Jets ++ 1; 
+      }
+    }
+  }
   
   b_mueffweight = m_muonSF.getScaleFactor(mu1, 13, 0)*m_muonSF.getScaleFactor(mu2, 13, 0);
   b_mueffweight_up = m_muonSF.getScaleFactor(mu1, 13, +1)*m_muonSF.getScaleFactor(mu2, 13, +1);
