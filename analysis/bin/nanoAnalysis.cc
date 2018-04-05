@@ -45,7 +45,7 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
   t->Branch("puweight_dn", &b_puweight_dn, "puweight_dn/F");
   t->Branch("weight", &b_weight, "weight/F");
-  t->Branch("npvs", &b_npvs, "npvs/I");
+  t->Branch("npvs", &b_npvs, "npvs/F");
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("charge", &b_charge, "charge/I");
   t->Branch("nlep", &b_nlep, "nlep/I");
@@ -77,6 +77,24 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   t->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
   t->Branch("mueffweight_dn", &b_mueffweight_dn, "mueffweight_dn/F");
+  /////////////////////BDT////////////////////////////
+  t->Branch("all_muEtaDiff", &b_all_muEtaDiff, "all_muEtaDiff/F");
+  t->Branch("all_muPtDiff", &b_all_muPtDiff, "all_muPtDiff/F");
+  t->Branch("all_muPhiDiff", &b_all_muPhiDiff, "all_muPhiDiff/F");
+  t->Branch("all_muDR", &b_all_muDR, "all_muDR/F");
+  t->Branch("all_Dilep_Pt", &b_all_Dilep_Pt, "all_Dilep_Pt/F");
+  t->Branch("all_Dilep_Eta", &b_all_Dilep_Eta, "all_Dilep_Eta/F");
+  //FL//
+  t->Branch("FL_lepEtaDiff", &b_FL_lepEtaDiff, "FL_lepEtaDiff/F");
+  t->Branch("FL_lepPtDiff", &b_FL_lepPtDiff, "FL_lepPtDiff/F");
+  t->Branch("FL_lepPhiDiff", &b_FL_lepPhiDiff, "FL_lepPhiDiff/F");
+  t->Branch("FL_lep1Pt", &b_FL_lep1Pt, "FL_lep1Pt/F");
+  t->Branch("FL_lep1Eta", &b_FL_lep1Eta, "FL_lep1Eta/F");
+  t->Branch("FL_lep2Pt", &b_FL_lep2Pt, "FL_lep2Pt/F");
+  t->Branch("FL_lep2Eta", &b_FL_lep2Eta, "FL_lep2Eta/F");
+  t->Branch("FL_lepDR", &b_FL_lepDR, "FL_lepDR/F");
+  t->Branch("FL_nJet", &b_FL_nJet, "FL_nJet/F");
+  t->Branch("FL_nbJet", &b_FL_nbJet, "FL_nbJet/F");
 }
 
 void nanoAnalysis::ResetBranch()
@@ -188,11 +206,11 @@ bool nanoAnalysis::Analysis()
   b_njet = Jets.size();
   b_nbjet = BJets.size();
   b_npvs = PV_npvs;
- 
+  
   /////////////////////// Fully Leptonic //////////////////
   if (Muons.size() + Elecs.size() == 4)
   {
-    Int_t mulpdg = -1;
+    Int_t mulpdg = 1;
 
     if (Muons.size() == 2)
     {
@@ -209,11 +227,19 @@ bool nanoAnalysis::Analysis()
         if (Muons[i].Pt() != b_Mu2.Pt())
         {
           mulpdg = Muons[i].GetPdgCode()*Elecs[0].GetPdgCode();
-          Muons[i].Momentum(b_lep1);
+          if (Muons[i].Pt() > Elecs[0].Pt())
+          {
+            Muons[i].Momentum(b_lep1);
+            Elecs[0].Momentum(b_lep2);
+          }
+          else 
+          {
+            Muons[i].Momentum(b_lep2);
+            Elecs[0].Momentum(b_lep1);
+          }
           break;
         }
       }
-      Elecs[0].Momentum(b_lep2);
       b_channel = CH_MUEL;
     }
 
@@ -286,10 +312,42 @@ bool nanoAnalysis::Analysis()
     }
   }
   
+  
+  ////////// BDT //////////////////////////////
+  /// BDT Varialbe Set ALL ///
+  b_all_muEtaDiff = abs(b_Mu1.Eta() - b_Mu2.Eta());
+  b_all_muPtDiff = abs(b_Mu1.Pt() - b_Mu2.Pt());
+  b_all_muPhiDiff = abs(b_Mu1.Phi() - b_Mu2.Phi());
+  b_all_muDR = abs(b_Mu1.DeltaR(b_Mu2));
+  b_all_Dilep_Pt = b_Dilep.Pt();   
+  b_all_Dilep_Eta = b_Dilep.Eta();   
+
+  //FL
+  if (b_FL == 1)
+  {
+    /// lepton ///
+    b_FL_lepEtaDiff = abs(b_lep1.Eta() - b_lep2.Eta());
+    b_FL_lepPtDiff = abs(b_lep1.Pt() - b_lep2.Pt());
+    b_FL_lepPhiDiff = abs(b_lep1.Phi() - b_lep2.Phi());
+    b_FL_lepDR = abs(b_lep1.DeltaR(b_lep2));
+    b_FL_lep1Pt = b_lep1.Pt();
+    b_FL_lep1Eta = b_lep1.Eta();
+    b_FL_lep2Pt = b_lep2.Pt();
+    b_FL_lep2Eta = b_lep2.Eta();
+
+    /// Jet ///
+    b_FL_nJet = Jets.size();
+    b_FL_nbJet = BJets.size();
+  }
+  //SL 
+  //FH2
+  //FH3
+  //FH4
+  
   b_mueffweight = m_muonSF.getScaleFactor(mu1, 13, 0)*m_muonSF.getScaleFactor(mu2, 13, 0);
   b_mueffweight_up = m_muonSF.getScaleFactor(mu1, 13, +1)*m_muonSF.getScaleFactor(mu2, 13, +1);
   b_mueffweight_dn = m_muonSF.getScaleFactor(mu1, 13, -1)*m_muonSF.getScaleFactor(mu2, 13, -1);
-  
+
   b_Event_No = 1;
   if (b_SL == 0 && b_FH2 == 0 && b_FL == 0) h_Out->Fill(0.5, 1);
 
@@ -352,7 +410,8 @@ int main(Int_t argc, Char_t** argv)
   }
   else
   {
-    TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/ttHToMuMu_M125_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180125_131219/0000/nanoAOD_004.root", "read");
+    //TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/ttHToMuMu_M125_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180125_131219/0000/nanoAOD_004.root", "read");
+    TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/180125_131129/0000/nanoAOD_100.root", "read");
     TTree *tree;
     f->GetObject("Events", tree);
     
@@ -444,6 +503,7 @@ vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
     }
   }
   for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
+  if(m_isMC){
     b_btagweight = Jet_SF_CSV[0];
     b_btagweight_up = Jet_SF_CSV[1];
     b_btagweight_dn = Jet_SF_CSV[2];
@@ -456,7 +516,7 @@ vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
 
     b_hfstats2_up = Jet_SF_CSV[9];
     b_hfstats2_dn = Jet_SF_CSV[10];
-
+  }
   return jets;
 }
 
