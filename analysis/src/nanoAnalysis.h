@@ -55,10 +55,19 @@ private:
 
       Int_t b_Event_No, b_Event_Total;
       
+      // BDT Variables
+      // all
       Float_t b_Met_phi;
       Float_t b_Met;
-      Int_t b_npvs;
-
+      Float_t b_npvs;
+      Float_t b_all_muEtaDiff, b_all_muPtDiff, b_all_muPhiDiff, b_all_muDR;
+      Float_t b_all_Dilep_Pt, b_all_Dilep_Eta;
+      // FL
+      Float_t b_FL_lepEtaDiff, b_FL_lepPtDiff, b_FL_lepPhiDiff, b_FL_lepDR;
+      Float_t b_FL_lep1Pt, b_FL_lep1Eta, b_FL_lep2Pt, b_FL_lep2Eta;
+      Float_t b_FL_nJet, b_FL_nbJet; 
+      // SL
+      
       //Step and Cutflow
       TH1D* h_cutFlow;
       Int_t b_Step;
