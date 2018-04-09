@@ -8,17 +8,19 @@ from math import ceil
 
 analysis = sys.argv[1]
 
-mcFiles_h2mumu = ['ttH',
-                  "WWTo2L2Nu", "WZTo3LNu_amcatnlo", "WZTo2LQQ", "ZZTo2L2Nu", "ZZTo2L2Q",
-                  "TTZToLLNuNu", "ZZTo4L_powheg", "ttWToLNu",
-                  "WWW", "WWZ", "WZZ", "ZZZ",
-                  "ZZ", "WZ", "WW"]
+mcFiles_h2mumu = [#'ttH',
+#                  "WWTo2L2Nu", "WZTo3LNu_amcatnlo", "WZTo2LQQ", "ZZTo2L2Nu", "ZZTo2L2Q",
+#                  "TTZToLLNuNu", "ZZTo4L_powheg", "ttWToLNu",
+#                  "WWW", "WWZ", "WZZ", "ZZZ",
+                  "ZZ", "WZ", "WW"
+]
 mcFiles_topmass = ["TTJets_DiLept", "TTJets_DiLept_Tune4", 'TTJets_aMC', 
                    "SingleTop_tW", "SingleTbar_tW",
                    'DYJets', 'DYJets_MG_10to50',
                    'DYJets_MG2', 'DYJets_2J', 'DYJets_1J', 'DYJets_0J', 'DYJets_10to50']
-dataFiles = ['SingleMuon_Run2016', 'SingleEG_Run2016',
-             'DoubleMuon_Run2016', 'DoubleEG_Run2016']
+dataFiles = [#'SingleMuon_Run2016', 'SingleEG_Run2016',
+             #'DoubleMuon_Run2016', 'DoubleEG_Run2016'
+	     ]
 dataFiles = [data+period for period in ["B","Bv2","C","D","E","F","G","H"] for data in dataFiles]
 
 if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "nanoAnalysis";
@@ -29,7 +31,7 @@ else: print "put right name of analysis (h2mumu/topMass/vts)"
 
 maxFiles = 10
 SetDir = "test"
-datadir = '{}/src/nano/nanoAOD/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
+datadir = '{}/src/nano/analysis/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
 
 for datasetName in RunFiles:
     fileList = datadir + datasetName + '.txt'

@@ -69,6 +69,18 @@ public:
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
+  static const int pion_pdgId_ = 211, kaon_pdgId_ = 321, proton_pdgId_ = 2212;
+  static constexpr float pion_m_ = 0.1396, kaon_m_ = 0.4937, proton_m_ = 0.938272;
+
+  static const int jpsi_pdgId_ = 443, d0_pdgId_ = 421, dstar_pdgId_ = 413;
+  static constexpr float jpsi_m_ = 3.096, d0_m_ = 1.865, dstar_m_ = 2.010;
+
+  static const int kshort_pdgId_ = 310, lambda_pdgId_ = 3122;
+  static constexpr float kshort_m_ = 0.4976, lambda_m_ = 1.11568;
+  
+  static const int lambdab_pdgId_ = 5122;
+  static constexpr float lambdab_m_ = 5.61958;
+  
 private:
   void produce( edm::Event&, const edm::EventSetup& ) override;
 
@@ -92,18 +104,6 @@ private:
   edm::EDGetTokenT<reco::CandidateView> pfCandidates_;
   edm::ESHandle<TransientTrackBuilder> trackBuilder_;
 
-  const int pion_pdgId_ = 211, kaon_pdgId_ = 321, proton_pdgId_ = 2212;
-  const float pion_m_ = 0.1396, kaon_m_ = 0.4937, proton_m_ = 0.938272;
-
-  const int jpsi_pdgId_ = 443, d0_pdgId_ = 421, dstar_pdgId_ = 413;
-  const float jpsi_m_ = 3.096, d0_m_ = 1.865, dstar_m_ = 2.010;
-
-  const int kshort_pdgId_ = 310, lambda_pdgId_ = 3122;
-  const float kshort_m_ = 0.4976, lambda_m_ = 1.11568;
-  
-  const int lambdab_pdgId_ = 5122;
-  const float lambdab_m_ = 6.202;
-  
   // cuts on initial track selection
   float tkChi2Cut_;
   int tkNHitsCut_;
@@ -120,5 +120,4 @@ private:
   float cosThetaXYZCut_;  
 };
 
-DEFINE_FWK_MODULE(HadronProducer);
 #endif

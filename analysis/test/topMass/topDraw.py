@@ -2,7 +2,7 @@
 import ROOT, nano.analysis.CMS_lumi, json, os, getopt, sys
 from nano.analysis.histoHelper import *
 from ROOT import TLorentzVector
-#import DYestimation
+import DYestimation
 ROOT.gROOT.SetBatch(True)
 
 json_used = 'Golden'
@@ -24,20 +24,18 @@ mcfilelist = [
              ]
 rdfilelist = ['ch_me','ch_ee','ch_mm']
 
-rootfileDir = "/xrootd/store/user/dayoung/nanoAOD/results_merged/topmass_"
+rootfileDir = "/xrootd/store/user/dayoung/nanoAOD/test/results_merged/topmass_"
+#rootfileDir = "/xrootd/store/user/dayoung/results_merged_ecorr/topmass_"
 
 channel_name = ['MuEl', 'ElEl', 'MuMu']
 
-datasets = json.load(open("%s/src/nano/analysis/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
+datasets = json.load(open("%s/src/nano/nanoAOD/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
 #defalts
 step = 5
-channel = 3
-cut = 'dilep.M() > 20'
-#weight = 'genweight*puweight'
-#weight = 'genweight*puweight*mueffweight*eleffweight'
-weight = 'genweight*puweight*mueffweight*eleffweight*btagweight'
-#weight = 'genweight'
+channel = 2
+cut = 'tri !=0'
+weight = 'genweight*puweight*mueffweight*eleffweight*btagweight*tri'#*topPtWeight'
 plotvar = 'dilep.M()'
 binning = [60, 20, 320]
 x_name = 'mass [GeV]'
@@ -85,7 +83,11 @@ if channel == 0:
 
 tcut = '(%s&&%s)*(%s)'%(stepch_tcut,cut,weight)
 rd_tcut = '%s&&%s'%(stepch_tcut,cut)
-rdfname = rootfileDir + rdfilelist[0] +".root"
+
+#DYestimation
+if not os.path.exists('./DYFactor.json'):
+    DYestimation.printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelist)#This will create 'DYFactor.json' on same dir.
+dyratio=json.load(open('./DYFactor.json'))
 
 mchistList = []
 for imc,mcname in enumerate(mcfilelist):
@@ -108,6 +110,8 @@ for imc,mcname in enumerate(mcfilelist):
     mchist.SetLineColor(colour)
     mchistList.append(mchist)
 
+
+#data histo
 if channel != 0:
     rfname = rootfileDir + rdfilelist[channel-1] +".root"
     rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, rd_tcut)
@@ -129,5 +133,12 @@ var = var.replace('()','')
 outfile = "%s_s%d_%s.png"%(channel_name[channel-1],step,var)
 if channel == 0: outfile = "Dilepton_s%d_%s.png"%(step,var)
 canv = drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name,dolog,True,0.5)
+
+mainPad = canv.GetPrimitive("mainPad")
+mainPad.cd()
+mainPad.GetPrimitive("data").Draw("esamex0")
+extraText(canv, [0.4,0.85], outfile.split("_")[0])
+canv.Update()
+
 canv.SaveAs(outfile)        
 print outfile
