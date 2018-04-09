@@ -116,7 +116,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       idx.push_back(i);
       isMatched.push_back(false);
       pdgId.push_back(p.pdgId());
-      isMatHadFromTsb.push_back(MatnHadFromQuark);
+      isMatHadFromTsb.push_back(MatHadFromQuark);
       isMatHadFromTop.push_back(MatHadFromTop);
 
 //      cout << "not matched !! : " << i << " pdgId : " << p.pdgId() << endl;
