@@ -92,21 +92,33 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::vector<int> idx;
   std::vector<int> pdgId;
   std::vector<uint8_t> isMatched;
+  std::vector<int> isMatHadFromTsb;
+  std::vector<uint8_t> isMatHadFromTop;
 
   for (unsigned int i = 0; i < genParticles.product()->size(); ++i) {
     auto p = (*genParticles)[i];
 //    auto p_tlv = p.p4();
     if (p.pdgId() != HadronProducer::kshort_pdgId_ && abs(p.pdgId()) != HadronProducer::lambda_pdgId_ && abs(p.pdgId()) != HadronProducer::lambdab_pdgId_ && p.pdgId() != HadronProducer::jpsi_pdgId_  ) continue;
+    int count = 0;
+    int MatHadFromQuark = 0;
+    bool MatHadFromTop = false;
+    isGenHadFrom(&p, 6, count,MatHadFromQuark,MatHadFromTop);
     if (matchHad.find(i) != matchHad.end()) {
       idx.push_back(i);
       isMatched.push_back(true);
       pdgId.push_back(p.pdgId());
+      isMatHadFromTsb.push_back(MatHadFromQuark);
+      isMatHadFromTop.push_back(MatHadFromTop);
 //      cout << "genPart Idx : " << i << " genPart pdgId : " << p.pdgId() << " P4 : " << p_tlv.pt() << " , " << p_tlv.eta() << " , " << p_tlv.phi() << " , " << p_tlv.M() << endl;
+//      cout << "hadCands info " << i << " hadCand pdgId : " << matchHad[i].pdgId() << " P4 : " << matchHad[i].pt() << " , " << matchHad[i].eta() << " , "  << matchHad[i].phi() << " ," << matchHad[i].mass() << endl;
     }
     else {
       idx.push_back(i);
       isMatched.push_back(false);
       pdgId.push_back(p.pdgId());
+      isMatHadFromTsb.push_back(MatnHadFromQuark);
+      isMatHadFromTop.push_back(MatHadFromTop);
+
 //      cout << "not matched !! : " << i << " pdgId : " << p.pdgId() << endl;
     }
   }
@@ -115,6 +127,8 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   matHadTable->addColumn<int>("idx", idx, "Index of hadron", nanoaod::FlatTable::IntColumn);
   matHadTable->addColumn<int>("pdgId", pdgId, "pdgId of matched hadron", nanoaod::FlatTable::IntColumn);
   matHadTable->addColumn<uint8_t>("isMatched", isMatched, "isMatched", nanoaod::FlatTable::UInt8Column);
+  matHadTable->addColumn<int>("isMatHadFromTsb", isMatHadFromTsb, "hadron from t->s/b", nanoaod::FlatTable::IntColumn);
+  matHadTable->addColumn<uint8_t>("isMatHadFromTop", isMatHadFromTop, "hadron from top", nanoaod::FlatTable::UInt8Column);
   iEvent.put(move(matHadTable), "matHadTruth");
 
   auto candidates = make_unique<std::vector<reco::LeafCandidate>>();
