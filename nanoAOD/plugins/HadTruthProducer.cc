@@ -11,6 +11,7 @@ HadTruthProducer::HadTruthProducer(const edm::ParameterSet & iConfig) :
   trackingParticleLabel_(consumes<TrackingParticleCollection>(iConfig.getParameter<edm::InputTag>("trackingParticleLabel")))
 {
   produces<nanoaod::FlatTable>("hadTruth");
+  produces<nanoaod::FlatTable>("matHadTruth");
   produces<nanoaod::FlatTable>("genHadron");
   produces<std::vector<reco::LeafCandidate> >();
 }
@@ -37,10 +38,11 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByToken(genLabel_, genParticles);
 
   vector<int> nmatchedv;
-
   vector<int> isHadFromTsb;
   vector<uint8_t> isHadFromTop;
-  
+
+  std::map<int, reco::VertexCompositeCandidate> matchHad; 
+ 
   for (auto& cand : *hadronCands) {
     int count = 0;
     int hadFromQuark = -99;
@@ -71,6 +73,10 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if (nmatched == 2) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
+      auto trueHadIdx = trueHad.key();
+      auto t_tlv = trueHad->p4();
+      matchHad.insert({trueHadIdx, cand});
+//      cout << "trueHad Idx : " <<trueHadIdx << " trueHad pdgId : " << trueHad->pdgId() << " P4 : " << t_tlv.pt() << " , " << t_tlv.eta() << " , " << t_tlv.phi() << " , " << t_tlv.M() <<endl;
     }
 
     isHadFromTsb.push_back(hadFromQuark);
@@ -82,7 +88,31 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   hadTruthTable->addColumn<int>("isHadFromTsb",isHadFromTsb,"Hadron from t->s/b",nanoaod::FlatTable::IntColumn);
   hadTruthTable->addColumn<uint8_t>("isHadFromTop",isHadFromTop,"Hadron from Top",nanoaod::FlatTable::UInt8Column);  
   iEvent.put(move(hadTruthTable),"hadTruth");
-  
+
+  std::vector<int> matchedIdx;
+  std::vector<int> pdgId;
+
+  for (unsigned int i = 0; i < genParticles.product()->size(); ++i) {
+    auto p = (*genParticles)[i];
+    auto p_tlv = p.p4();
+    if (p.pdgId() != HadronProducer::kshort_pdgId_ && abs(p.pdgId()) != HadronProducer::lambda_pdgId_ && abs(p.pdgId()) != HadronProducer::lambdab_pdgId_ && p.pdgId() != HadronProducer::jpsi_pdgId_  ) continue;
+    if (matchHad.find(i) != matchHad.end()) {
+      matchedIdx.push_back(i);
+      pdgId.push_back(p.pdgId());
+//      cout << "genPart Idx : " << i << " genPart pdgId : " << p.pdgId() << " P4 : " << p_tlv.pt() << " , " << p_tlv.eta() << " , " << p_tlv.phi() << " , " << p_tlv.M() << endl;
+    }
+    else {
+      matchedIdx.push_back(-99);
+      pdgId.push_back(p.pdgId());
+//      cout << "not matched !! : " << i << " pdgId : " << p.pdgId() << endl;
+    }
+  }
+
+  auto matHadTable = make_unique<nanoaod::FlatTable>(matchedIdx.size(),"matHadTruth",false);
+  matHadTable->addColumn<int>("matchedIdx", matchedIdx, "Index of matched hadron", nanoaod::FlatTable::IntColumn);
+  matHadTable->addColumn<int>("pdgId", pdgId, "pdgId of matched hadron", nanoaod::FlatTable::IntColumn);
+  iEvent.put(move(matHadTable), "matHadTruth");
+
   auto candidates = make_unique<std::vector<reco::LeafCandidate>>();
   vector<int> isGenHadFromTsb;
   vector<uint8_t> isGenHadFromTop;
