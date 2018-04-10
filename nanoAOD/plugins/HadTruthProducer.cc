@@ -11,7 +11,6 @@ HadTruthProducer::HadTruthProducer(const edm::ParameterSet & iConfig) :
   trackingParticleLabel_(consumes<TrackingParticleCollection>(iConfig.getParameter<edm::InputTag>("trackingParticleLabel")))
 {
   produces<nanoaod::FlatTable>("hadTruth");
-  produces<nanoaod::FlatTable>("matHadTruth");
   produces<nanoaod::FlatTable>("genHadron");
   produces<std::vector<reco::LeafCandidate> >();
 }
@@ -41,8 +40,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<int> isHadFromTsb;
   vector<uint8_t> isHadFromTop;
 
-  std::map<int, reco::VertexCompositeCandidate> matchHad; 
- 
+  std::map<const reco::GenParticle*, const reco::VertexCompositeCandidate*> matchHad; 
   for (auto& cand : *hadronCands) {
     int count = 0;
     int hadFromQuark = -99;
@@ -73,10 +71,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if (nmatched == 2) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
-      auto trueHadIdx = trueHad.key();
-//      auto t_tlv = trueHad->p4();
-      matchHad.insert({trueHadIdx, cand});
-//      cout << "trueHad Idx : " <<trueHadIdx << " trueHad pdgId : " << trueHad->pdgId() << " P4 : " << t_tlv.pt() << " , " << t_tlv.eta() << " , " << t_tlv.phi() << " , " << t_tlv.M() <<endl;
+      matchHad.insert({trueHad.get(), &cand});
     }
 
     isHadFromTsb.push_back(hadFromQuark);
@@ -89,48 +84,6 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   hadTruthTable->addColumn<uint8_t>("isHadFromTop",isHadFromTop,"Hadron from Top",nanoaod::FlatTable::UInt8Column);  
   iEvent.put(move(hadTruthTable),"hadTruth");
 
-  std::vector<int> idx;
-  std::vector<int> pdgId;
-  std::vector<uint8_t> isMatched;
-  std::vector<int> isMatHadFromTsb;
-  std::vector<uint8_t> isMatHadFromTop;
-
-  for (unsigned int i = 0; i < genParticles.product()->size(); ++i) {
-    auto p = (*genParticles)[i];
-//    auto p_tlv = p.p4();
-    if (p.pdgId() != HadronProducer::kshort_pdgId_ && abs(p.pdgId()) != HadronProducer::lambda_pdgId_ && abs(p.pdgId()) != HadronProducer::lambdab_pdgId_ && p.pdgId() != HadronProducer::jpsi_pdgId_  ) continue;
-    int count = 0;
-    int MatHadFromQuark = 0;
-    bool MatHadFromTop = false;
-    isGenHadFrom(&p, 6, count,MatHadFromQuark,MatHadFromTop);
-    if (matchHad.find(i) != matchHad.end()) {
-      idx.push_back(i);
-      isMatched.push_back(true);
-      pdgId.push_back(p.pdgId());
-      isMatHadFromTsb.push_back(MatHadFromQuark);
-      isMatHadFromTop.push_back(MatHadFromTop);
-//      cout << "genPart Idx : " << i << " genPart pdgId : " << p.pdgId() << " P4 : " << p_tlv.pt() << " , " << p_tlv.eta() << " , " << p_tlv.phi() << " , " << p_tlv.M() << endl;
-//      cout << "hadCands info " << i << " hadCand pdgId : " << matchHad[i].pdgId() << " P4 : " << matchHad[i].pt() << " , " << matchHad[i].eta() << " , "  << matchHad[i].phi() << " ," << matchHad[i].mass() << endl;
-    }
-    else {
-      idx.push_back(i);
-      isMatched.push_back(false);
-      pdgId.push_back(p.pdgId());
-      isMatHadFromTsb.push_back(MatHadFromQuark);
-      isMatHadFromTop.push_back(MatHadFromTop);
-
-//      cout << "not matched !! : " << i << " pdgId : " << p.pdgId() << endl;
-    }
-  }
-
-  auto matHadTable = make_unique<nanoaod::FlatTable>(idx.size(),"matHadTruth",false);
-  matHadTable->addColumn<int>("idx", idx, "Index of hadron", nanoaod::FlatTable::IntColumn);
-  matHadTable->addColumn<int>("pdgId", pdgId, "pdgId of matched hadron", nanoaod::FlatTable::IntColumn);
-  matHadTable->addColumn<uint8_t>("isMatched", isMatched, "isMatched", nanoaod::FlatTable::UInt8Column);
-  matHadTable->addColumn<int>("isMatHadFromTsb", isMatHadFromTsb, "hadron from t->s/b", nanoaod::FlatTable::IntColumn);
-  matHadTable->addColumn<uint8_t>("isMatHadFromTop", isMatHadFromTop, "hadron from top", nanoaod::FlatTable::UInt8Column);
-  iEvent.put(move(matHadTable), "matHadTruth");
-
   auto candidates = make_unique<std::vector<reco::LeafCandidate>>();
   vector<int> isGenHadFromTsb;
   vector<uint8_t> isGenHadFromTop;
@@ -140,48 +93,102 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<float> vx, vy, vz;
   vector<int> isGenParticle;// for distinguishing genParticles from trackingVertexs
 
+  vector<uint8_t> isMatching, isMatched; // for hadTruth-GenParticle matching
+
   // for LambdaB and JPsi
   for (auto gen : *genParticles) {
-    if (abs(gen.pdgId()) != HadronProducer::lambdab_pdgId_ && gen.pdgId() != HadronProducer::jpsi_pdgId_) continue;
-        int count=0;
-        int GenHadFromQuark=0;
-        bool GenHadFromTop=false;
-        
-        // mother tracking
-        isGenHadFrom( &gen, 6, count, GenHadFromQuark, GenHadFromTop);
-        
-        inVol.push_back(0);
-        isGenHadFromTop.push_back(GenHadFromTop);
-        isGenHadFromTsb.push_back(GenHadFromQuark);
-       
-        vx.push_back(0);
-        vy.push_back(0);
-        vz.push_back(0);
+    if (gen.pdgId() == HadronProducer::kshort_pdgId_ || abs(gen.pdgId()) == HadronProducer::lambda_pdgId_) {
+      int n = 0;
+      int MatHadFromQuark = 0;
+      bool MatHadFromTop = false;
 
-        isGenParticle.push_back(1);
+      isGenHadFrom(&gen, 6, n,MatHadFromQuark,MatHadFromTop);
+
+      inVol.push_back(0);
+      isGenParticle.push_back(1);
+      vx.push_back(0);
+      vy.push_back(0);
+      vz.push_back(0);
+
+      candidates->push_back(gen);
+
+      isMatching.push_back(true);
+
+      if (matchHad.find(&gen) != matchHad.end()) {
+        isGenHadFromTsb.push_back(MatHadFromQuark);
+        isGenHadFromTop.push_back(MatHadFromTop);
+        isMatched.push_back(true);
+
+        auto dau1 = gen.daughterRefVector()[0];
+        auto dau2 = gen.daughterRefVector()[1];
+        dau1_pdgId.push_back(dau1->pdgId());
+        dau2_pdgId.push_back(dau2->pdgId());
+        dau1_pt.push_back(dau1->pt());
+        dau2_pt.push_back(dau2->pt());
+        dau1_eta.push_back(dau1->eta());
+        dau2_eta.push_back(dau2->eta());
+        dau1_phi.push_back(dau1->phi());
+        dau2_phi.push_back(dau2->phi());
+      }
+      else {
+        isGenHadFromTsb.push_back(MatHadFromQuark);
+        isGenHadFromTop.push_back(MatHadFromTop);
+        isMatched.push_back(false);
+
+        dau1_pdgId.push_back(0);
+        dau2_pdgId.push_back(0);
+        dau1_pt.push_back(-99);
+        dau2_pt.push_back(-99);
+        dau1_eta.push_back(-99);
+        dau2_eta.push_back(-99);
+        dau1_phi.push_back(-99);
+        dau2_phi.push_back(-99);
+      }
+    }
+
+    if (abs(gen.pdgId()) != HadronProducer::lambdab_pdgId_ && gen.pdgId() != HadronProducer::jpsi_pdgId_) continue;
+    int count=0;
+    int GenHadFromQuark=0;
+    bool GenHadFromTop=false;
         
-        candidates->push_back(gen);
-        if (gen.numberOfDaughters() >= 2) {
-            auto dau1 = gen.daughterRefVector()[0];
-            auto dau2 = gen.daughterRefVector()[1];
-            dau1_pdgId.push_back(dau1->pdgId());
-            dau2_pdgId.push_back(dau2->pdgId());
-            dau1_pt.push_back(dau1->pt());
-            dau2_pt.push_back(dau2->pt());
-            dau1_eta.push_back(dau1->eta());
-            dau2_eta.push_back(dau2->eta());
-            dau1_phi.push_back(dau1->phi());
-            dau2_phi.push_back(dau2->phi());
-        } else {
-            dau1_pdgId.push_back(0);
-            dau2_pdgId.push_back(0);
-            dau1_pt.push_back(-99);
-            dau2_pt.push_back(-99);
-            dau1_eta.push_back(-99);
-            dau2_eta.push_back(-99);
-            dau1_phi.push_back(-99);
-            dau2_phi.push_back(-99);
-        }
+    // mother tracking
+    isGenHadFrom( &gen, 6, count, GenHadFromQuark, GenHadFromTop);
+        
+    inVol.push_back(0);
+    isGenHadFromTop.push_back(GenHadFromTop);
+    isGenHadFromTsb.push_back(GenHadFromQuark);
+       
+    vx.push_back(0);
+    vy.push_back(0);
+    vz.push_back(0);
+
+    isGenParticle.push_back(1);
+        
+    candidates->push_back(gen);
+    if (gen.numberOfDaughters() >= 2) {
+        auto dau1 = gen.daughterRefVector()[0];
+        auto dau2 = gen.daughterRefVector()[1];
+        dau1_pdgId.push_back(dau1->pdgId());
+        dau2_pdgId.push_back(dau2->pdgId());
+        dau1_pt.push_back(dau1->pt());
+        dau2_pt.push_back(dau2->pt());
+        dau1_eta.push_back(dau1->eta());
+        dau2_eta.push_back(dau2->eta());
+        dau1_phi.push_back(dau1->phi());
+        dau2_phi.push_back(dau2->phi());
+    } else {
+        dau1_pdgId.push_back(0);
+        dau2_pdgId.push_back(0);
+        dau1_pt.push_back(-99);
+        dau2_pt.push_back(-99);
+        dau1_eta.push_back(-99);
+        dau2_eta.push_back(-99);
+        dau1_phi.push_back(-99);
+        dau2_phi.push_back(-99);
+    }
+
+    isMatching.push_back(false);
+    isMatched.push_back(false);
   }// through genParticles
 
   for (auto const& trackVertex : *trackingVertexs.product()) {
@@ -205,6 +212,8 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       
       // for distinguishing genParticles from trackingVertexs
       isGenParticle.push_back(0);
+      isMatching.push_back(false);
+      isMatched.push_back(false);
 
       candidates->push_back(getCandidate(decayTrk));
       if (trackVertex.nDaughterTracks() >= 2) { 
@@ -248,6 +257,8 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   genHadTable->addColumn<float>("vy", vy,"vertex y postion",nanoaod::FlatTable::FloatColumn);
   genHadTable->addColumn<float>("vz", vz,"vertex z postion",nanoaod::FlatTable::FloatColumn);
   genHadTable->addColumn<int>("isGenParticle", isGenParticle,"from genParticle or not",nanoaod::FlatTable::IntColumn); // for distinguishing genParticles from trackingVertexs
+  genHadTable->addColumn<uint8_t>("isMatching", isMatching,"is Matching event",nanoaod::FlatTable::UInt8Column);
+  genHadTable->addColumn<uint8_t>("isMatched", isMatched,"hadTruth and GenParticle matching",nanoaod::FlatTable::UInt8Column); // For seeing not matched case, you should choose entries with isMatching == true
 
   iEvent.put(move(genHadTable),"genHadron");
   iEvent.put(move(candidates));
