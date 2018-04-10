@@ -96,7 +96,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<uint8_t> isMatching, isMatched; // for hadTruth-GenParticle matching
 
   // for LambdaB and JPsi
-  for (auto gen : *genParticles) {
+  for (const auto& gen : *genParticles) {
     if (gen.pdgId() == HadronProducer::kshort_pdgId_ || abs(gen.pdgId()) == HadronProducer::lambda_pdgId_) {
       int n = 0;
       int MatHadFromQuark = 0;
@@ -119,16 +119,28 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
         isGenHadFromTop.push_back(MatHadFromTop);
         isMatched.push_back(true);
 
-        auto dau1 = gen.daughterRefVector()[0];
-        auto dau2 = gen.daughterRefVector()[1];
-        dau1_pdgId.push_back(dau1->pdgId());
-        dau2_pdgId.push_back(dau2->pdgId());
-        dau1_pt.push_back(dau1->pt());
-        dau2_pt.push_back(dau2->pt());
-        dau1_eta.push_back(dau1->eta());
-        dau2_eta.push_back(dau2->eta());
-        dau1_phi.push_back(dau1->phi());
-        dau2_phi.push_back(dau2->phi());
+	if (gen.numberOfDaughters() >= 2) {
+          auto dau1 = gen.daughterRefVector()[0];
+          auto dau2 = gen.daughterRefVector()[1];
+          dau1_pdgId.push_back(dau1->pdgId());
+          dau2_pdgId.push_back(dau2->pdgId());
+          dau1_pt.push_back(dau1->pt());
+          dau2_pt.push_back(dau2->pt());
+          dau1_eta.push_back(dau1->eta());
+          dau2_eta.push_back(dau2->eta());
+          dau1_phi.push_back(dau1->phi());
+          dau2_phi.push_back(dau2->phi());
+	}
+        else {
+          dau1_pdgId.push_back(0);
+          dau2_pdgId.push_back(0);
+          dau1_pt.push_back(-99);
+          dau2_pt.push_back(-99);
+          dau1_eta.push_back(-99);
+          dau2_eta.push_back(-99);
+          dau1_phi.push_back(-99);
+          dau2_phi.push_back(-99);
+        }
       }
       else {
         isGenHadFromTsb.push_back(MatHadFromQuark);
@@ -145,7 +157,6 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
         dau2_phi.push_back(-99);
       }
     }
-
     if (abs(gen.pdgId()) != HadronProducer::lambdab_pdgId_ && gen.pdgId() != HadronProducer::jpsi_pdgId_) continue;
     int count=0;
     int GenHadFromQuark=0;
@@ -306,8 +317,8 @@ bool HadTruthProducer::isGenHadFrom(const reco::GenParticle* particle, int pdgId
     GenHadFromTop = true;
     return true;
   }
-  
-  const reco::GenParticleRefVector& mothers = particle->motherRefVector(); 
+
+  const reco::GenParticleRefVector& mothers = particle->motherRefVector();
   count = count + 1;
   for (reco::GenParticleRefVector::const_iterator im = mothers.begin(); im != mothers.end(); ++im) {
     const reco::GenParticle& part = **im;
