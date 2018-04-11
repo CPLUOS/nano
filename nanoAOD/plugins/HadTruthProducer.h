@@ -58,6 +58,7 @@ private:
   bool isGenHadFrom(const reco::GenParticle* particle, int pdgId, int count,int & GenHadFromQuark, bool & GenHadFromTop);
   bool isHadFrom(const reco::GenParticleRef &particle, int pdgId, int count, int & hadFromQuark, bool & hadFromTop);
   void motherTracking(int PID, const TrackingVertex trackVertex, const TrackingParticle *decayTrk, int count, int & GenHadFromQuark, bool & GenHadFromTop);
+  const reco::GenParticle* genChecking(int PID, const TrackingParticle *decayTrk);
 
   int trackingVertex_pdgId(const TrackingVertex* tv);
   const reco::GenParticleRef getMother(const TrackingParticleRef& tp);

@@ -31,3 +31,4 @@ hadTruthCandidateTable.variables.eta.precision=14
 hadTruthCandidateTable.variables.mass.precision=14
 
 hadTruthTables = cms.Sequence(hadTruthTable+hadTruthCandidateTable)
+
