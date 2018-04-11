@@ -2,6 +2,7 @@
 //#define debugMode
 using namespace edm;
 using namespace std;
+int HadronProducer::hadrons_size_=0;
 
 HadronProducer::HadronProducer(const edm::ParameterSet & iConfig) :
   jetLabel_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetLabel"))),
@@ -27,7 +28,6 @@ HadronProducer::HadronProducer(const edm::ParameterSet & iConfig) :
   produces<reco::VertexCompositeCandidateCollection>();
   produces<vector<pat::Jet>>("jet");
 }
-
 
 reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& cands,
 						   reco::Vertex& pv, int pdgId,
@@ -183,6 +183,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByToken(pfCandidates_, pfCandidates);
   
   vector<hadronCandidate> hadronCandidates;
+  init_hadrons_size(); ////// for index. should alwyas be followed by hadronCandidates list declaration.
 
   vector<reco::Candidate*> chargedHadrons, leptons;  
   for (auto & pfcand : *pfCandidates){
@@ -276,12 +277,12 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<float> had_lxy, had_lxySig, had_l3D, had_l3DSig, had_dca, had_angleXY, had_angleXYZ;
   vector<float> had_dau1_chi2, had_dau1_nHits, had_dau1_pt, had_dau1_ipsigZ, had_dau1_ipsigXY;
   vector<float> had_dau2_chi2, had_dau2_nHits, had_dau2_pt, had_dau2_ipsigZ, had_dau2_ipsigXY;
+  vector<int> had_idx, had_dau1_idx, had_dau2_idx;
   
   for (auto cand: hadronCandidates){
     had_cands->push_back(cand.vcc);
     had_jets->push_back(cand.jet);
     if (abs(cand.vcc.pdgId()) != lambdab_pdgId_) {
-
       const reco::Track* dau1 = cand.vcc.daughter(0)->bestTrack();
       if (dau1) {
 	had_dau1_chi2.push_back(dau1->normalizedChi2());
@@ -343,6 +344,9 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     had_dca.push_back(cand.dca);
     had_angleXY.push_back(cand.angleXY);
     had_angleXYZ.push_back(cand.angleXYZ);
+    had_idx.push_back(cand.idx);
+    had_dau1_idx.push_back(cand.dau1_idx);
+    had_dau2_idx.push_back(cand.dau2_idx);
   }
   
   auto had_table = make_unique<nanoaod::FlatTable>(had_cands->size(),"had",false);
@@ -373,6 +377,10 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   had_table->addColumn<float>("dau2_ipsigXY",had_dau2_ipsigXY,"dau2 ipsigXY",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau2_ipsigZ",had_dau2_ipsigZ,"dau2 ipsigZ",nanoaod::FlatTable::FloatColumn);
 
+  had_table->addColumn<int>("idx",had_idx,"index of itself",nanoaod::FlatTable::IntColumn);
+  had_table->addColumn<int>("dau1_idx",had_dau1_idx,"index of dau1",nanoaod::FlatTable::IntColumn);
+  had_table->addColumn<int>("dau2_idx",had_dau2_idx,"index of dau2",nanoaod::FlatTable::IntColumn);
+  
   iEvent.put(move(had_table),"had");
   iEvent.put(move(had_cands));
   iEvent.put(move(had_jets),"jet");
@@ -400,6 +408,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findJPsiCands(vector<rec
       if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - jpsi_m_) > 0.2) continue;
       
+      hc.setIndex();
       hc.vcc = cand;
       hc.jet = aPatJet;
       
@@ -445,6 +454,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco:
       if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - d0_m_) > 0.2) continue;
       
+      hc.setIndex();
       hc.vcc = cand;
       hc.jet = aPatJet;
       
@@ -506,6 +516,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
       float diffMass_Dstar = cand.mass() - d0.vcc.mass();      
       if (abs(diffMass_Dstar - (dstar_m_ - d0_m_)) > 0.2) continue;
       
+      hc.setIndex();
       hc.vcc = cand;
       hc.jet = aPatJet;
       
@@ -552,6 +563,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<r
       if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - kshort_m_) > 0.2) continue;
 
+      hc.setIndex();
       hc.vcc = cand;
       hc.jet = pat::Jet();
 
@@ -596,6 +608,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
       if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - lambda_m_) > 0.2) continue;
 
+      hc.setIndex();
       hc.vcc = cand;
       hc.jet = pat::Jet();
 
@@ -625,8 +638,6 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<
       // if (lambda.vcc.pdgId()!=lambda_pdgId_ && lambda.vcc.pdgId()!=-lambda_pdgId_) continue;
       // if (lambda.vcc.pdgId() * jpsi.vcc.pdgId() != 0) continue;
 
-      hadronCandidate hc;
-
       ///// TODO Can't vertex Lambda daughter with jpsi daughters due
       ///// to Lambda flight, need to write a fit function that can
       ///// vertex lambda (not a RecoChargedCandidate!) and jpsi
@@ -644,11 +655,18 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<
       math::XYZTLorentzVector tlv;
       tlv += lambda.vcc.p4();
       tlv += jpsi.vcc.p4();
+      
       reco::VertexCompositeCandidate cand(0, tlv, jpsi.vcc.vertex(), jpsi.vcc.vertexCovariance(), jpsi.vcc.vertexChi2(), jpsi.vcc.vertexNdof(), (lambda.vcc.pdgId() > 0) ? lambdab_pdgId_ : -lambdab_pdgId_);
 
       // if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - lambdab_m_) > 0.2) continue;
+     
+      cand.addDaughter(lambda.vcc);
+      cand.addDaughter(jpsi.vcc);          
       
+      hadronCandidate hc;
+      
+      hc.setIndex();
       hc.vcc = cand;
       hc.jet = aPatJet;
       
@@ -662,7 +680,9 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<
       hc.nJet = nJet;
       hc.nDau = 2;
       hc.diffMass = -9;
-
+     
+      hc.dau1_idx = lambda.idx; 
+      hc.dau2_idx = jpsi.idx;
       hadrons.push_back(hc);
     }
   }

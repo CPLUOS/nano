@@ -58,11 +58,21 @@ class HadronProducer : public edm::stream::EDProducer<> {
   typedef ROOT::Math::SVector<double, 3> SVector3;
 
 public:
+  static int hadrons_size_;
+  static void init_hadrons_size() { hadrons_size_ = 0; }
+
   struct hadronCandidate {
     reco::VertexCompositeCandidate vcc;
     pat::Jet jet;
     int nJet, nDau;
     float diffMass, lxy, lxySig, l3D, l3DSig, dca, angleXY, angleXYZ;
+    int idx;
+    int dau1_idx = -1;
+    int dau2_idx = -1;
+    void setIndex() {
+        idx = hadrons_size_;
+        hadrons_size_ += 1; 
+    }
   };
   
   explicit HadronProducer(const edm::ParameterSet & iConfig);
