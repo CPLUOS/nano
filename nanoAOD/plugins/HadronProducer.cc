@@ -182,8 +182,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   Handle<reco::CandidateView> pfCandidates;
   iEvent.getByToken(pfCandidates_, pfCandidates);
   
-  vector<hadronCandidate> hadronCandidates;
-  init_hadrons_size(); ////// for index. should alwyas be followed by hadronCandidates list declaration.
+  hadronCandidateCollection hadronCandidates;
 
   vector<reco::Candidate*> chargedHadrons, leptons;  
   for (auto & pfcand : *pfCandidates){
@@ -388,7 +387,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 vector<HadronProducer::hadronCandidate> HadronProducer::findJPsiCands(vector<reco::Candidate*> &leptons, reco::Vertex& pv, int nJet, const pat::Jet & aPatJet)
 {
-  vector<hadronCandidate> hadrons;
+  hadronCandidateCollection hadrons;
   // find jpsi to mumu or ee
   for (auto lep1Cand : leptons){
     if (lep1Cand->pdgId() > 0) continue; 
@@ -408,7 +407,6 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findJPsiCands(vector<rec
       if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - jpsi_m_) > 0.2) continue;
       
-      hc.setIndex();
       hc.vcc = cand;
       hc.jet = aPatJet;
       
@@ -431,7 +429,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findJPsiCands(vector<rec
 
 vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco::Candidate*> &chargedHads, reco::Vertex& pv, int nJet, const pat::Jet & aPatJet)
 {
-  vector<hadronCandidate> hadrons;
+  hadronCandidateCollection hadrons;
   // find jpsi to mumu or ee
   for (auto pion : chargedHads){
     //cout <<"pion pt = "<< pion->pt() << ", eta = "<< pion->eta() << ", pid = "<< pion->pdgId()<<endl;
@@ -454,7 +452,6 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco:
       if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - d0_m_) > 0.2) continue;
       
-      hc.setIndex();
       hc.vcc = cand;
       hc.jet = aPatJet;
       
@@ -478,7 +475,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco:
 vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<HadronProducer::hadronCandidate>& d0cands, vector<reco::Candidate*> &chargedHads,
 								       reco::Vertex& pv, int nJet, const pat::Jet & aPatJet)
 {
-  vector<hadronCandidate> hadrons;
+  hadronCandidateCollection hadrons;
   // find jpsi to mumu or ee
   for (auto d0 : d0cands){
     
@@ -516,7 +513,6 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
       float diffMass_Dstar = cand.mass() - d0.vcc.mass();      
       if (abs(diffMass_Dstar - (dstar_m_ - d0_m_)) > 0.2) continue;
       
-      hc.setIndex();
       hc.vcc = cand;
       hc.jet = aPatJet;
       
@@ -541,7 +537,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
 vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<reco::Candidate*> &chargedHads,
 									reco::Vertex& pv, int nJet)
 {
-  vector<hadronCandidate> hadrons;
+  hadronCandidateCollection hadrons;
   for (auto pion1 : chargedHads){
     // avoid double counting pions by explicit charge finding
     if (pion1->charge() != +1) continue;
@@ -563,7 +559,6 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<r
       if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - kshort_m_) > 0.2) continue;
 
-      hc.setIndex();
       hc.vcc = cand;
       hc.jet = pat::Jet();
 
@@ -587,7 +582,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<r
 vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<reco::Candidate*> &chargedHads,
 									reco::Vertex& pv, int nJet)
 {
-  vector<hadronCandidate> hadrons;
+  hadronCandidateCollection hadrons;
   for (auto proton : chargedHads){
     for (auto pion : chargedHads){
       if ( proton->charge() * pion->charge() != -1 ) continue;
@@ -608,7 +603,6 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
       if (cand.numberOfDaughters() < 2) continue;
       if (abs(cand.mass() - lambda_m_) > 0.2) continue;
 
-      hc.setIndex();
       hc.vcc = cand;
       hc.jet = pat::Jet();
 
@@ -631,7 +625,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
 
 vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<HadronProducer::hadronCandidate>& LambdaCands,vector<HadronProducer::hadronCandidate>& jpsiCands, reco::Vertex& pv, int nJet, const pat::Jet & aPatJet)
 {
-  vector<hadronCandidate> hadrons;
+  hadronCandidateCollection hadrons;
   // find jpsi to mumu or ee
   for (auto lambda :LambdaCands) {
     for (auto jpsi : jpsiCands) {
@@ -666,7 +660,6 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<
       
       hadronCandidate hc;
       
-      hc.setIndex();
       hc.vcc = cand;
       hc.jet = aPatJet;
       

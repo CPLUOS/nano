@@ -69,10 +69,31 @@ public:
     int idx;
     int dau1_idx = -1;
     int dau2_idx = -1;
-    void setIndex() {
-        idx = hadrons_size_;
-        hadrons_size_ += 1; 
-    }
+  };
+
+  class hadronCandidateCollection : public std::vector<hadronCandidate> {
+    public:
+      int current_index_ = 0;
+      void push_back(const hadronCandidate& h) {
+        hadronCandidate cand = h;
+        cand.idx = this->current_index_;
+        this->current_index_ += 1;
+        this->std::vector<hadronCandidate>::push_back(cand);
+      }
+      void clear() {
+        this->std::vector<hadronCandidate>::clear();
+        this->current_index_ = 0;
+      }
+      iterator insert(hadronCandidateCollection::iterator position, hadronCandidateCollection::iterator first, hadronCandidateCollection::iterator last) {
+        hadronCandidateCollection::iterator step = first;
+        while(step < last) {
+          step->idx = this->current_index_;
+          this->current_index_ += 1;
+          step++;
+        }
+        this->std::vector<hadronCandidate>::insert(position, first, last);
+        return last;
+      }
   };
   
   explicit HadronProducer(const edm::ParameterSet & iConfig);
