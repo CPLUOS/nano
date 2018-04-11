@@ -97,66 +97,6 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   // for LambdaB and JPsi
   for (const auto& gen : *genParticles) {
-    if (gen.pdgId() == HadronProducer::kshort_pdgId_ || abs(gen.pdgId()) == HadronProducer::lambda_pdgId_) {
-      int n = 0;
-      int MatHadFromQuark = 0;
-      bool MatHadFromTop = false;
-
-      isGenHadFrom(&gen, 6, n,MatHadFromQuark,MatHadFromTop);
-
-      inVol.push_back(0);
-      isGenParticle.push_back(1);
-      vx.push_back(0);
-      vy.push_back(0);
-      vz.push_back(0);
-
-      candidates->push_back(gen);
-
-      isMatching.push_back(true);
-
-      if (matchHad.find(&gen) != matchHad.end()) {
-        isGenHadFromTsb.push_back(MatHadFromQuark);
-        isGenHadFromTop.push_back(MatHadFromTop);
-        isMatched.push_back(true);
-
-	if (gen.numberOfDaughters() >= 2) {
-          auto dau1 = gen.daughterRefVector()[0];
-          auto dau2 = gen.daughterRefVector()[1];
-          dau1_pdgId.push_back(dau1->pdgId());
-          dau2_pdgId.push_back(dau2->pdgId());
-          dau1_pt.push_back(dau1->pt());
-          dau2_pt.push_back(dau2->pt());
-          dau1_eta.push_back(dau1->eta());
-          dau2_eta.push_back(dau2->eta());
-          dau1_phi.push_back(dau1->phi());
-          dau2_phi.push_back(dau2->phi());
-	}
-        else {
-          dau1_pdgId.push_back(0);
-          dau2_pdgId.push_back(0);
-          dau1_pt.push_back(-99);
-          dau2_pt.push_back(-99);
-          dau1_eta.push_back(-99);
-          dau2_eta.push_back(-99);
-          dau1_phi.push_back(-99);
-          dau2_phi.push_back(-99);
-        }
-      }
-      else {
-        isGenHadFromTsb.push_back(MatHadFromQuark);
-        isGenHadFromTop.push_back(MatHadFromTop);
-        isMatched.push_back(false);
-
-        dau1_pdgId.push_back(0);
-        dau2_pdgId.push_back(0);
-        dau1_pt.push_back(-99);
-        dau2_pt.push_back(-99);
-        dau1_eta.push_back(-99);
-        dau2_eta.push_back(-99);
-        dau1_phi.push_back(-99);
-        dau2_phi.push_back(-99);
-      }
-    }
     if (abs(gen.pdgId()) != HadronProducer::lambdab_pdgId_ && gen.pdgId() != HadronProducer::jpsi_pdgId_) continue;
     int count=0;
     int GenHadFromQuark=0;
@@ -211,8 +151,11 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       int GenHadFromQuark = 0;
       bool GenHadFromTop = false;
 
-      motherTracking(decayTrk->pdgId(), trackVertex, decayTrk, count, GenHadFromQuark, GenHadFromTop);
+      candidates->push_back(getCandidate(decayTrk));
 
+      auto gen = genChecking(decayTrk->pdgId(), decayTrk);
+      if (gen != nullptr) isGenHadFrom(gen, 6, count,GenHadFromQuark,GenHadFromTop);
+      isGenParticle.push_back(0); // for distinguishing genParticles from trackingVertexs
       inVol.push_back(trackVertex.inVolume());
       isGenHadFromTop.push_back(GenHadFromTop);
       isGenHadFromTsb.push_back(GenHadFromQuark);
@@ -220,13 +163,16 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       vx.push_back(trackVertex.position().x());
       vy.push_back(trackVertex.position().y());
       vz.push_back(trackVertex.position().z());
-      
-      // for distinguishing genParticles from trackingVertexs
-      isGenParticle.push_back(0);
-      isMatching.push_back(false);
-      isMatched.push_back(false);
 
-      candidates->push_back(getCandidate(decayTrk));
+      isMatching.push_back(true);
+
+      if (matchHad.find(gen) != matchHad.end()) {
+        isMatched.push_back(true);
+      }
+      else {
+	isMatched.push_back(false);
+      }
+
       if (trackVertex.nDaughterTracks() >= 2) { 
         auto dau1 = trackVertex.daughterTracks().at(0).get();
         auto dau2 = trackVertex.daughterTracks().at(1).get();
@@ -363,6 +309,21 @@ void HadTruthProducer::motherTracking(int PID, const TrackingVertex trackVertex,
     }
   }
 }
+
+const reco::GenParticle* HadTruthProducer::genChecking(int PID, const TrackingParticle *decayTrk)
+{
+
+  if (!decayTrk->genParticles().empty()) {
+    for (TrackingParticle::genp_iterator igen = decayTrk->genParticle_begin(); igen != decayTrk->genParticle_end(); ++igen) {
+      auto gen = igen->get();
+      if (decayTrk->pdgId() == PID) {
+        return gen;
+      }
+    }
+  }
+  return nullptr;
+}
+
 
 void HadTruthProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
 {
