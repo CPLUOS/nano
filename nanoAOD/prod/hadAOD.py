@@ -27,8 +27,8 @@ process.maxEvents = cms.untracked.PSet(
 #process.maxEvents.input = cms.untracked.int32(1000)
 # Input source
 process.source = cms.Source("PoolSource",
-#fileNames = cms.untracked.vstring('/store/user/jlee/tsW_13TeV_PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v4_reco/reco_234.root'),
-fileNames = cms.untracked.vstring('file:/cms/ldap_home/jlee/run2Prod/src/reco.root'),
+fileNames = cms.untracked.vstring('/store/user/jlee/tsW_13TeV_PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v4_reco/reco_234.root'),
+#fileNames = cms.untracked.vstring('file:/cms/ldap_home/jlee/run2Prod/src/reco.root'),
 secondaryFileNames = cms.untracked.vstring()
 )
 

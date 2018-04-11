@@ -21,19 +21,19 @@ hadTable = cms.EDProducer("HadronProducer",
   
   # -- cuts on the vertex --
   # Vertex chi2 <
-  vtxChi2Cut = cms.double(10),
+  vtxChi2Cut = cms.double(5),
   # XY decay distance significance >
-  vtxDecaySigXYCut = cms.double(-1),
+  vtxDecaySigXYCut = cms.double(1),
   # XYZ decay distance significance >
-  vtxDecaySigXYZCut = cms.double(-1.),
+  vtxDecaySigXYZCut = cms.double(1.),
   
   # -- miscellaneous cuts --
   # POCA distance between tracks <
-  tkDCACut = cms.double(100),
+  tkDCACut = cms.double(2),
   # cos(angleXY) between x and p of V0 candidate >
-  cosThetaXYCut = cms.double(100),
+  cosThetaXYCut = cms.double(0.9),
   # cos(angleXYZ) between x and p of V0 candidate >
-  cosThetaXYZCut = cms.double(100),
+  cosThetaXYZCut = cms.double(0.9),
 )
 
 hadCandidateTable =  cms.EDProducer("SimpleCandidateFlatTableProducer",
