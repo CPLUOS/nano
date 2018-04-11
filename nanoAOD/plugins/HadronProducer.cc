@@ -2,7 +2,6 @@
 //#define debugMode
 using namespace edm;
 using namespace std;
-int HadronProducer::hadrons_size_=0;
 
 HadronProducer::HadronProducer(const edm::ParameterSet & iConfig) :
   jetLabel_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetLabel"))),

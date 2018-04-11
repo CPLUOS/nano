@@ -58,9 +58,6 @@ class HadronProducer : public edm::stream::EDProducer<> {
   typedef ROOT::Math::SVector<double, 3> SVector3;
 
 public:
-  static int hadrons_size_;
-  static void init_hadrons_size() { hadrons_size_ = 0; }
-
   struct hadronCandidate {
     reco::VertexCompositeCandidate vcc;
     pat::Jet jet;
