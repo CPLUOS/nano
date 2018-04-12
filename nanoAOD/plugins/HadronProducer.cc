@@ -272,7 +272,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto had_jets = make_unique<vector<pat::Jet>>();
   vector<int> had_nJet, had_nDau;
   vector<float> had_jetDR, had_legDR, had_diffMass;
-  vector<float> had_lxy, had_lxySig, had_l3D, had_l3DSig, had_dca, had_angleXY, had_angleXYZ;
+  vector<float> had_lxy, had_lxyErr, had_l3D, had_l3DErr, had_dca, had_angleXY, had_angleXYZ;
   vector<float> had_dau1_chi2, had_dau1_nHits, had_dau1_pt, had_dau1_ipsigZ, had_dau1_ipsigXY;
   vector<float> had_dau2_chi2, had_dau2_nHits, had_dau2_pt, had_dau2_ipsigZ, had_dau2_ipsigXY;
   vector<int> had_idx, had_dau1_idx, had_dau2_idx;
@@ -336,9 +336,9 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     had_diffMass.push_back(cand.diffMass);
     had_lxy.push_back(cand.lxy);
-    had_lxySig.push_back(cand.lxySig);
+    had_lxyErr.push_back(cand.lxyErr);
     had_l3D.push_back(cand.l3D);
-    had_l3DSig.push_back(cand.l3DSig);
+    had_l3DErr.push_back(cand.l3DErr);
     had_dca.push_back(cand.dca);
     had_angleXY.push_back(cand.angleXY);
     had_angleXYZ.push_back(cand.angleXYZ);
@@ -356,9 +356,9 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   had_table->addColumn<float>("diffMass",had_diffMass,"mass difference",nanoaod::FlatTable::FloatColumn);
 
   had_table->addColumn<float>("lxy",had_lxy,"2D decay length in cm",nanoaod::FlatTable::FloatColumn);
-  had_table->addColumn<float>("lxySig",had_lxySig,"2D decay length sig in cm",nanoaod::FlatTable::FloatColumn);
+  had_table->addColumn<float>("lxyErr",had_lxyErr,"2D decay length sigma in cm",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("l3D",had_l3D,"3D decay length in cm",nanoaod::FlatTable::FloatColumn);
-  had_table->addColumn<float>("l3DSig",had_l3DSig,"3D decay length sig in cm",nanoaod::FlatTable::FloatColumn);
+  had_table->addColumn<float>("l3DErr",had_l3DErr,"3D decay length sigma in cm",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dca",had_dca,"distance of closest approach cm",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("angleXY",had_angleXY,"2D angle between vertex and tracks",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("angleXYZ",had_angleXYZ,"3D angle between vertex and tracks",nanoaod::FlatTable::FloatColumn);
@@ -411,10 +411,10 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findJPsiCands(vector<rec
       
       auto d2 = getDistance(2,cand,pv);
       hc.lxy = d2.first;      
-      hc.lxySig = d2.second;
+      hc.lxyErr = d2.second;
       auto d3 = getDistance(3,cand,pv);	
       hc.l3D = d3.first;
-      hc.l3DSig = d3.second;
+      hc.l3DErr = d3.second;
 
       hc.nJet = nJet;
       hc.nDau = 2;
@@ -456,10 +456,10 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco:
       
       auto d2 = getDistance(2,cand,pv);
       hc.lxy = d2.first;      
-      hc.lxySig = d2.second;
+      hc.lxyErr = d2.second;
       auto d3 = getDistance(3,cand,pv);	
       hc.l3D = d3.first;
-      hc.l3DSig = d3.second;
+      hc.l3DErr = d3.second;
 
       hc.nJet = nJet;
       hc.nDau = 2;
@@ -517,10 +517,10 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
       
       auto d2 = getDistance(2,cand,pv);
       hc.lxy = d2.first;      
-      hc.lxySig = d2.second;
+      hc.lxyErr = d2.second;
       auto d3 = getDistance(3,cand,pv);	
       hc.l3D = d3.first;
-      hc.l3DSig = d3.second;
+      hc.l3DErr = d3.second;
 
       hc.nJet = nJet;
       hc.nDau = 3;
@@ -563,10 +563,10 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<r
 
       auto d2 = getDistance(2,cand,pv);
       hc.lxy = d2.first;
-      hc.lxySig = d2.second;
+      hc.lxyErr = d2.second;
       auto d3 = getDistance(3,cand,pv);
       hc.l3D = d3.first;
-      hc.l3DSig = d3.second;
+      hc.l3DErr = d3.second;
 
       hc.nJet = nJet;
       hc.nDau = 2;
@@ -607,10 +607,10 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
 
       auto d2 = getDistance(2,cand,pv);
       hc.lxy = d2.first;
-      hc.lxySig = d2.second;
+      hc.lxyErr = d2.second;
       auto d3 = getDistance(3,cand,pv);
       hc.l3D = d3.first;
-      hc.l3DSig = d3.second;
+      hc.l3DErr = d3.second;
 
       hc.nJet = nJet;
       hc.nDau = 2;
@@ -664,10 +664,10 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<
       
       auto d2 = getDistance(2,cand,pv);
       hc.lxy = d2.first;
-      hc.lxySig = d2.second;
+      hc.lxyErr = d2.second;
       auto d3 = getDistance(3,cand,pv);	
       hc.l3D = d3.first;
-      hc.l3DSig = d3.second;
+      hc.l3DErr = d3.second;
 
       hc.nJet = nJet;
       hc.nDau = 2;
