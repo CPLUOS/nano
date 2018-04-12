@@ -658,7 +658,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<
       reco::VertexCompositeCandidate cand(0, tlv, jpsi.vcc.vertex(), jpsi.vcc.vertexCovariance(), jpsi.vcc.vertexChi2(), jpsi.vcc.vertexNdof(), (lambda.vcc.pdgId() > 0) ? lambdab_pdgId_ : -lambdab_pdgId_);
 
       // if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - lambdab_m_) > 0.2) continue;
+      if (abs(cand.mass() - lambdab_m_) > 0.4) continue;
      
       cand.addDaughter(lambda.vcc);
       cand.addDaughter(jpsi.vcc);          
