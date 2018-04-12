@@ -104,6 +104,7 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
     tlv += lv;
     ++i;
   }
+
   math::XYZPoint referencePos = pv.position();
 
   // 2D pointing angle
@@ -112,13 +113,13 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
   double px = totalP.x();
   double py = totalP.y();
   angleXY = (dx*px+dy*py)/(sqrt(dx*dx+dy*dy)*sqrt(px*px+py*py));
-  if (angleXY > cosThetaXYCut_) return reco::VertexCompositeCandidate();
+  if (angleXY < cosThetaXYCut_) return reco::VertexCompositeCandidate();
   
   // 3D pointing angle
   double dz = theVtx.z()-referencePos.z();
   double pz = totalP.z();
   angleXYZ = (dx*px+dy*py+dz*pz)/(sqrt(dx*dx+dy*dy+dz*dz)*sqrt(px*px+py*py+pz*pz));
-  if (angleXYZ > cosThetaXYZCut_) return reco::VertexCompositeCandidate();
+  if (angleXYZ < cosThetaXYZCut_) return reco::VertexCompositeCandidate();
 
   reco::Particle::Point vtx(theVtx.x(), theVtx.y(), theVtx.z());
   const reco::Vertex::CovarianceMatrix vtxCov(theVtx.covariance());
@@ -135,6 +136,11 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
       secVert.addDaughter(*dau);
     }
   }
+  auto sigXYcheck = getDistance(2,secVert,pv);
+  if (sigXYcheck.first/sigXYcheck.second < vtxDecaySigXYCut_) return reco::VertexCompositeCandidate();
+  auto sigXYZcheck = getDistance(3,secVert,pv);
+  if (sigXYZcheck.first/sigXYZcheck.second < vtxDecaySigXYZCut_) return reco::VertexCompositeCandidate();
+
   return secVert;
 }
 
@@ -180,7 +186,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   Handle<reco::CandidateView> pfCandidates;
   iEvent.getByToken(pfCandidates_, pfCandidates);
-  
+
   hadronCandidateCollection hadronCandidates;
 
   vector<reco::Candidate*> chargedHadrons, leptons;  
