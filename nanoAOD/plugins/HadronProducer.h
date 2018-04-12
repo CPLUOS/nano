@@ -63,6 +63,7 @@ public:
     pat::Jet jet;
     int nJet, nDau;
     float diffMass, lxy, lxySig, l3D, l3DSig, dca, angleXY, angleXYZ;
+    float lxyErr, l3DErr;
     int idx;
     int dau1_idx = -1;
     int dau2_idx = -1;
