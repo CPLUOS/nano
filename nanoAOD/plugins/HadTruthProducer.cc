@@ -53,6 +53,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     int nmatched = 0;
     for (int ndau =0; ndau < numberOfDaughters; ++ndau) {
       auto rcCand = dynamic_cast<const reco::RecoChargedCandidate*>(cand.daughter(ndau));
+      if (!rcCand) continue;
       RefToBase<reco::Track> track(rcCand->track());
       if (recotosim.find(track) != recotosim.end()) {
 	
