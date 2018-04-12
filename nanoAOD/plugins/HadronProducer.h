@@ -62,8 +62,7 @@ public:
     reco::VertexCompositeCandidate vcc;
     pat::Jet jet;
     int nJet, nDau;
-    float diffMass, lxy, lxySig, l3D, l3DSig, dca, angleXY, angleXYZ;
-    float lxyErr, l3DErr;
+    float diffMass, lxy, lxyErr, l3D, l3DErr, dca, angleXY, angleXYZ;
     int idx;
     int dau1_idx = -1;
     int dau2_idx = -1;
