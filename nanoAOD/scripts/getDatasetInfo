@@ -77,7 +77,7 @@ titleBabel = {
     "Cross section (pb)":"xsec", "NEvent":"nevt",
     "Avg GenWgt":"avgWgt", "luminosity (fb-1)":"lumi",
     "colour":"colour", "Path":"path",
-    "DataSetName":"DataSetName", "options":"options",
+    "DataSetName":"DataSetName", "LumiMask":"LumiMask",
 }
 titleRule = {
     "xsec":str2float, "nevt":str2int, "avgWgt":str2float,
