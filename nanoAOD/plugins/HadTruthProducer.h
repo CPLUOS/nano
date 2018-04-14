@@ -69,7 +69,7 @@ private:
   edm::EDGetTokenT<edm::View<reco::GenParticle> > genLabel_;
   edm::EDGetTokenT<TrackingVertexCollection> trackingVertexLabel_;
   edm::EDGetTokenT<TrackingParticleCollection> trackingParticleLabel_;
-  
+  edm::EDGetTokenT<std::vector<std::vector<int>>> hadronIndices_;
 };
 
 #endif
