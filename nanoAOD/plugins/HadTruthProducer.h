@@ -66,10 +66,10 @@ private:
   edm::EDGetTokenT<reco::RecoToSimCollection> recoRecoToSim_;
   edm::EDGetTokenT<reco::SimToRecoCollection> recoSimToReco_;
   edm::EDGetTokenT<reco::VertexCompositeCandidateCollection > hadronCands_;
+  edm::EDGetTokenT<std::vector<std::vector<int>>> hadronIndices_;
   edm::EDGetTokenT<edm::View<reco::GenParticle> > genLabel_;
   edm::EDGetTokenT<TrackingVertexCollection> trackingVertexLabel_;
   edm::EDGetTokenT<TrackingParticleCollection> trackingParticleLabel_;
-  edm::EDGetTokenT<std::vector<std::vector<int>>> hadronIndices_;
 };
 
 #endif
