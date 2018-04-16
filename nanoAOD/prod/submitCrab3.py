@@ -22,7 +22,7 @@ def submitjob(requestName, psetName, dataset, submit,lumiMask=None):
     
     sendjob = "crab submit JobType.psetName='%s' General.requestName='%s' Data.outLFNDirBase='%s' Data.outputDatasetTag='%s' Data.inputDataset='%s'"%(psetName,dataRequestName,outLFNDirBase,outputDatasetTag,dataset)
     if not isMC:
-       sendjob+=" Data.splitting='LumiBased' Data.unitsPerJob=20 Data.lumiMask='%s'"%(lumiMask)
+       sendjob+=" Data.splitting='LumiBased' Data.unitsPerJob=10 Data.lumiMask='%s'"%(lumiMask)
        
     print sendjob
     

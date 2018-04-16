@@ -150,7 +150,7 @@ for d in ds:
     ## #pathnames = map( lambda x: x, listxrd(path)[0] )
     ## pathnames = listxrd(path)[0]
     ## sorted(pathnames)
-    print path
+    #print path
     tempVersion = 0
     for ll in listxrd(path)[0]:
         #print ll

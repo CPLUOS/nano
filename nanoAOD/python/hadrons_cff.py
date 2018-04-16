@@ -6,8 +6,6 @@ hadTable = cms.EDProducer("HadronProducer",
   jetLabel = cms.InputTag("slimmedJets"),
   vertexLabel = cms.InputTag("offlineSlimmedPrimaryVertices"),
   pfCandLabel = cms.InputTag("packedPFCandidates"),
-  applySoftLeptonCut = cms.bool(True),
-  doFullMCMatching = cms.bool(False),
   # -- cuts on initial track collection --
   # Track normalized Chi2 <
   tkChi2Cut = cms.double(100),
