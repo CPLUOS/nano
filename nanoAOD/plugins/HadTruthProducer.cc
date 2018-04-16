@@ -48,7 +48,10 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::vector<const reco::GenParticle*> matchedGen;
 
   for (auto& cand : *hadronCands) {
-    if (abs(cand.pdgId()) == 5122) continue;
+    if (abs(cand.pdgId()) == 5122) {
+      matchedGen.push_back(nullptr);
+      continue;
+    }
     int count = 0;
     int hadFromQuark = -99;
     bool hadFromTop = false;
@@ -88,34 +91,27 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   
   for (auto indices : *hadronIndices) {
     if (abs((*hadronCands)[indices[0]].pdgId()) != 5122) continue;
-    
     int nmatched = 0;
     int count=0;
     int hadFromQuark=-99;
     bool hadFromTop=false;
-    
-    std::vector<reco::GenParticleRef> momlist;    
-    
-    for (auto i = 1; i <= 2; i++){
-      auto dau = (*hadronCands)[indices[i]];
+    reco::GenParticleRef trueHad;
+
+    for (auto i = 1; i < (int) indices.size(); i++) {
       auto gen_dau = matchedGen[indices[i]];
       if (gen_dau == nullptr) continue;
 
-      auto mother = gen_dau->motherRefVector();
-      auto im = mother.begin();
-      while (im < mother.end()){
-        if (abs((*im)->pdgId()) == 5122){
-          momlist.push_back(*im);
+      for (auto &im : gen_dau->motherRefVector()) {
+        if (abs((*im).pdgId()) == 5122) {
+          if (trueHad.isNull()) { trueHad = im; }
+          if (trueHad != im) { continue; }
           nmatched ++;
-          break;
         }
-        im++;
       }
     }
 
-    if (nmatched == 2) {
-      if (momlist[0] != momlist[1]) { nmatched = 1; }
-      isHadFrom(momlist[0], 6, count, hadFromQuark, hadFromTop);
+    if (!trueHad.isNull()) {
+      isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
     }
     nmatchedv.push_back(nmatched);
     isHadFromTsb.push_back(hadFromQuark);
