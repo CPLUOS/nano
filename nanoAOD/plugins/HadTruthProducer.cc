@@ -6,13 +6,14 @@ HadTruthProducer::HadTruthProducer(const edm::ParameterSet & iConfig) :
   recoRecoToSim_(consumes<reco::RecoToSimCollection>(iConfig.getParameter<edm::InputTag>("recoRecoToSim"))),
   recoSimToReco_(consumes<reco::SimToRecoCollection>(iConfig.getParameter<edm::InputTag>("recoSimToReco"))),
   hadronCands_(consumes<reco::VertexCompositeCandidateCollection>(iConfig.getParameter<edm::InputTag>("hadronCands"))),
+  hadronIndices_(consumes<std::vector<std::vector<int>>>(iConfig.getParameter<edm::InputTag>("hadronIndices"))),
   genLabel_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genLabel"))),
   trackingVertexLabel_(consumes<TrackingVertexCollection>(iConfig.getParameter<edm::InputTag>("trackingVertexLabel"))),
   trackingParticleLabel_(consumes<TrackingParticleCollection>(iConfig.getParameter<edm::InputTag>("trackingParticleLabel")))
 {
   produces<nanoaod::FlatTable>("hadTruth");
   produces<nanoaod::FlatTable>("genHadron");
-  produces<std::vector<reco::LeafCandidate> >();
+  produces<std::vector<reco::LeafCandidate>>();
 }
 
 void
@@ -35,23 +36,31 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle<edm::View<reco::GenParticle>> genParticles;
   iEvent.getByToken(genLabel_, genParticles);
-
+  
+  edm::Handle<std::vector<std::vector<int>>> hadronIndices;
+  iEvent.getByToken(hadronIndices_, hadronIndices);
+  
   vector<int> nmatchedv;
   vector<int> isHadFromTsb;
   vector<uint8_t> isHadFromTop;
 
   std::map<const reco::GenParticle*, const reco::VertexCompositeCandidate*> matchHad; 
+  std::vector<const reco::GenParticle*> matchedGen;
+
   for (auto& cand : *hadronCands) {
+    if (abs(cand.pdgId()) == 5122) {
+      matchedGen.push_back(nullptr);
+      continue;
+    }
     int count = 0;
     int hadFromQuark = -99;
     bool hadFromTop = false;
-
     // for dstar and lambdaB, need to match with grand mother
     reco::GenParticleRef trueHad;
     
     int numberOfDaughters = cand.numberOfDaughters();
     int nmatched = 0;
-    for (int ndau =0; ndau < numberOfDaughters; ++ndau) {
+    for (int ndau = 0; ndau < numberOfDaughters; ++ndau) {
       auto rcCand = dynamic_cast<const reco::RecoChargedCandidate*>(cand.daughter(ndau));
       if (!rcCand) continue;
       RefToBase<reco::Track> track(rcCand->track());
@@ -73,12 +82,42 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (nmatched == 2) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
       matchHad.insert({trueHad.get(), &cand});
-    }
+      matchedGen.push_back(trueHad.get());
+    } else { matchedGen.push_back(nullptr); }
 
     isHadFromTsb.push_back(hadFromQuark);
     isHadFromTop.push_back(hadFromTop);
   }
   
+  for (auto indices : *hadronIndices) {
+    if (abs((*hadronCands)[indices[0]].pdgId()) != 5122) continue;
+    int nmatched = 0;
+    int count=0;
+    int hadFromQuark=-99;
+    bool hadFromTop=false;
+    reco::GenParticleRef trueHad;
+
+    for (auto i = 1; i < (int) indices.size(); i++) {
+      auto gen_dau = matchedGen[indices[i]];
+      if (gen_dau == nullptr) continue;
+
+      for (auto &im : gen_dau->motherRefVector()) {
+        if (abs(im->pdgId()) == 5122) {
+          if (trueHad.isNull()) { trueHad = im; }
+          if (trueHad != im) { continue; }
+          nmatched ++;
+        }
+      }
+    }
+
+    if (!trueHad.isNull()) {
+      isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
+    }
+    nmatchedv.push_back(nmatched);
+    isHadFromTsb.push_back(hadFromQuark);
+    isHadFromTop.push_back(hadFromTop);   
+  }
+
   auto hadTruthTable = make_unique<nanoaod::FlatTable>(hadronCands->size(),"hadTruth",false);
   hadTruthTable->addColumn<int>("nMatched",nmatchedv,"no. of dau match",nanoaod::FlatTable::IntColumn);
   hadTruthTable->addColumn<int>("isHadFromTsb",isHadFromTsb,"Hadron from t->s/b",nanoaod::FlatTable::IntColumn);
@@ -102,7 +141,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     int count=0;
     int GenHadFromQuark=0;
     bool GenHadFromTop=false;
-        
+    
     // mother tracking
     isGenHadFrom( &gen, 6, count, GenHadFromQuark, GenHadFromTop);
         
@@ -198,7 +237,6 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
     }
   }
-
   auto genHadTable = make_unique<nanoaod::FlatTable>(candidates->size(),"genHadron",false);
   genHadTable->addColumn<int>("isGenHadFromTsb",isGenHadFromTsb,"KS/Lam from t->s/b",nanoaod::FlatTable::IntColumn);
   genHadTable->addColumn<uint8_t>("isGenHadFromTop",isGenHadFromTop,"KS/Lam from top",nanoaod::FlatTable::UInt8Column);
@@ -324,7 +362,6 @@ const reco::GenParticle* HadTruthProducer::genChecking(int PID, const TrackingPa
   }
   return nullptr;
 }
-
 
 void HadTruthProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
 {

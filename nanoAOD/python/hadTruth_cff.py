@@ -6,6 +6,7 @@ hadTruthTable = cms.EDProducer("HadTruthProducer",
   recoRecoToSim = cms.InputTag("trackingParticleRecoTrackAsssociation"),
   recoSimToReco = cms.InputTag("trackingParticleRecoTrackAsssociation"),
   hadronCands = cms.InputTag("hadTable"),
+  hadronIndices = cms.InputTag("hadTable","index"),
   genLabel  = cms.InputTag("genParticles"),
   trackingVertexLabel = cms.InputTag("mix", "MergedTrackTruth"),
   trackingParticleLabel = cms.InputTag("mix", "MergedTrackTruth")

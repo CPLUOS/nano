@@ -81,10 +81,15 @@ if inputFile is None:
     datasets = json.load(open("%s/src/nano/nanoAOD/data/dataset/dataset.json"%os.environ['CMSSW_BASE']))
     for d in datasets:
         dataset = d['DataSetName']
+        lumiMask = d['LumiMask']
         if len( dataset ) == 0: continue
 
-        if 'MC' in psetName:
+        isMC = False
+        if d['type'] == 'Data':
             isMC = True
+
+        # skip wrong input file
+        if 'MC' in psetName:
             if d['type'] == 'Data':
                 continue
         else :

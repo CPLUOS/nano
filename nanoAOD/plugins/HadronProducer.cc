@@ -26,6 +26,7 @@ HadronProducer::HadronProducer(const edm::ParameterSet & iConfig) :
   produces<nanoaod::FlatTable>("had");
   produces<reco::VertexCompositeCandidateCollection>();
   produces<vector<pat::Jet>>("jet");
+  produces<vector<vector<int>>>("index");
 }
 
 reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& cands,
@@ -276,13 +277,14 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   // saving all variables
   auto had_cands = make_unique<reco::VertexCompositeCandidateCollection>();
   auto had_jets = make_unique<vector<pat::Jet>>();
+  auto had_indices = make_unique<vector<vector<int>>>();
   vector<int> had_nJet, had_nDau;
   vector<float> had_jetDR, had_legDR, had_diffMass;
   vector<float> had_lxy, had_lxyErr, had_l3D, had_l3DErr, had_dca, had_angleXY, had_angleXYZ;
   vector<float> had_dau1_chi2, had_dau1_nHits, had_dau1_pt, had_dau1_ipsigZ, had_dau1_ipsigXY;
   vector<float> had_dau2_chi2, had_dau2_nHits, had_dau2_pt, had_dau2_ipsigZ, had_dau2_ipsigXY;
   vector<int> had_idx, had_dau1_idx, had_dau2_idx;
-  
+
   for (auto cand: hadronCandidates){
     had_cands->push_back(cand.vcc);
     had_jets->push_back(cand.jet);
@@ -351,6 +353,12 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     had_idx.push_back(cand.idx);
     had_dau1_idx.push_back(cand.dau1_idx);
     had_dau2_idx.push_back(cand.dau2_idx);
+    
+    vector<int> had_index;
+    had_index.push_back(cand.idx);
+    had_index.push_back(cand.dau1_idx);
+    had_index.push_back(cand.dau2_idx);
+    had_indices->push_back(had_index);
   }
   
   auto had_table = make_unique<nanoaod::FlatTable>(had_cands->size(),"had",false);
@@ -388,6 +396,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(move(had_table),"had");
   iEvent.put(move(had_cands));
   iEvent.put(move(had_jets),"jet");
+  iEvent.put(move(had_indices),"index");
 }
 
 vector<HadronProducer::hadronCandidate> HadronProducer::findJPsiCands(vector<reco::Candidate*> &leptons, reco::Vertex& pv, int nJet, const pat::Jet & aPatJet)
