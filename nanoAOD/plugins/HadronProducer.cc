@@ -26,6 +26,7 @@ HadronProducer::HadronProducer(const edm::ParameterSet & iConfig) :
   produces<nanoaod::FlatTable>("had");
   produces<reco::VertexCompositeCandidateCollection>();
   produces<vector<pat::Jet>>("jet");
+  produces<vector<vector<int>>>("index");
 }
 
 reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& cands,
@@ -104,6 +105,7 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
     tlv += lv;
     ++i;
   }
+
   math::XYZPoint referencePos = pv.position();
 
   // 2D pointing angle
@@ -112,13 +114,13 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
   double px = totalP.x();
   double py = totalP.y();
   angleXY = (dx*px+dy*py)/(sqrt(dx*dx+dy*dy)*sqrt(px*px+py*py));
-  if (angleXY > cosThetaXYCut_) return reco::VertexCompositeCandidate();
+  if (angleXY < cosThetaXYCut_) return reco::VertexCompositeCandidate();
   
   // 3D pointing angle
   double dz = theVtx.z()-referencePos.z();
   double pz = totalP.z();
   angleXYZ = (dx*px+dy*py+dz*pz)/(sqrt(dx*dx+dy*dy+dz*dz)*sqrt(px*px+py*py+pz*pz));
-  if (angleXYZ > cosThetaXYZCut_) return reco::VertexCompositeCandidate();
+  if (angleXYZ < cosThetaXYZCut_) return reco::VertexCompositeCandidate();
 
   reco::Particle::Point vtx(theVtx.x(), theVtx.y(), theVtx.z());
   const reco::Vertex::CovarianceMatrix vtxCov(theVtx.covariance());
@@ -135,6 +137,11 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
       secVert.addDaughter(*dau);
     }
   }
+  auto sigXYcheck = getDistance(2,secVert,pv);
+  if (sigXYcheck.first/sigXYcheck.second < vtxDecaySigXYCut_) return reco::VertexCompositeCandidate();
+  auto sigXYZcheck = getDistance(3,secVert,pv);
+  if (sigXYZcheck.first/sigXYZcheck.second < vtxDecaySigXYZCut_) return reco::VertexCompositeCandidate();
+
   return secVert;
 }
 
@@ -180,7 +187,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   Handle<reco::CandidateView> pfCandidates;
   iEvent.getByToken(pfCandidates_, pfCandidates);
-  
+
   hadronCandidateCollection hadronCandidates;
 
   vector<reco::Candidate*> chargedHadrons, leptons;  
@@ -272,13 +279,14 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   // saving all variables
   auto had_cands = make_unique<reco::VertexCompositeCandidateCollection>();
   auto had_jets = make_unique<vector<pat::Jet>>();
+  auto had_indices = make_unique<vector<vector<int>>>();
   vector<int> had_nJet, had_nDau;
   vector<float> had_jetDR, had_legDR, had_diffMass;
   vector<float> had_lxy, had_lxyErr, had_l3D, had_l3DErr, had_dca, had_angleXY, had_angleXYZ;
   vector<float> had_dau1_chi2, had_dau1_nHits, had_dau1_pt, had_dau1_ipsigZ, had_dau1_ipsigXY;
   vector<float> had_dau2_chi2, had_dau2_nHits, had_dau2_pt, had_dau2_ipsigZ, had_dau2_ipsigXY;
   vector<int> had_idx, had_dau1_idx, had_dau2_idx;
-  
+
   for (auto cand: hadronCandidates){
     had_cands->push_back(cand.vcc);
     had_jets->push_back(cand.jet);
@@ -347,6 +355,12 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     had_idx.push_back(cand.idx);
     had_dau1_idx.push_back(cand.dau1_idx);
     had_dau2_idx.push_back(cand.dau2_idx);
+    
+    vector<int> had_index;
+    had_index.push_back(cand.idx);
+    had_index.push_back(cand.dau1_idx);
+    had_index.push_back(cand.dau2_idx);
+    had_indices->push_back(had_index);
   }
   
   auto had_table = make_unique<nanoaod::FlatTable>(had_cands->size(),"had",false);
@@ -384,6 +398,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(move(had_table),"had");
   iEvent.put(move(had_cands));
   iEvent.put(move(had_jets),"jet");
+  iEvent.put(move(had_indices),"index");
 }
 
 vector<HadronProducer::hadronCandidate> HadronProducer::findJPsiCands(vector<reco::Candidate*> &leptons, reco::Vertex& pv, int nJet, const pat::Jet & aPatJet)
@@ -602,7 +617,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
                                                 hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - lambda_m_) > 0.2) continue;
+      if (abs(cand.mass() - lambda_m_) > 0.15) continue;
 
       hc.vcc = cand;
       hc.jet = pat::Jet();
