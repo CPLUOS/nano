@@ -120,23 +120,37 @@ nanoAnalysis::~nanoAnalysis()
 }
 #endif
 
-
 #ifdef vtsAnalysis_cxx
 class vtsAnalysis : public Events {
-private: 
+private:
       TFile* outFile; TTree* outTree;
-      TH1D* h_nEvents;
 
-      Int_t b_nMuon;
-      TLorentzVector b_Muon_tlv;
+      TH1D* h_cutFlow;
+      TParticle recolep1, recolep2;
+      TLorentzVector recolep1_tlv, recolep2_tlv;
+      std::vector<TLorentzVector> recoleps;
+      //std::vector<TLorentzVector> recoleps[recolep1_tlv,recolep2_tlv];
+      //std::vector<TLorentzVector> recoleps(2);
+
+      int b_channel;
+      int b_njet;
+      float b_met;
+      TLorentzVector b_dilep_tlv;
+      enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
+
+      float b_had_mass, b_hadTruth_mass;
 
       //functions
-      void Analysis();
+      void KshortAnalysis();
+      void EventSelection();
       void ResetBranch();
-      TTree* MakeTree();
+      TParticle GetTParticle(int pdgId, int idx);
+      std::vector<TParticle> muonSelection();
+      std::vector<TParticle> elecSelection();
+      std::vector<TParticle> jetSelection();
 
 public:
-      void out(std::string outputName);
+      void MakeTree(std::string outputName);
       vtsAnalysis(TTree *tree=0);
       ~vtsAnalysis();
       virtual void     Loop();
