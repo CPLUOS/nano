@@ -212,6 +212,8 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto LambdaCands = findLambdaCands(chargedHadrons, pv, -1);
   hadronCandidates.insert(hadronCandidates.end(), LambdaCands.begin(), LambdaCands.end());
 
+  for (auto lep : leptons) delete lep;
+  for (auto pion : chargedHadrons) delete pion;
   
   int njet = 0;
   for (const pat::Jet & aPatJet : *jetHandle){
