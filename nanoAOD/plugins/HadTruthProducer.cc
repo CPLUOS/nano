@@ -102,7 +102,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       if (gen_dau == nullptr) continue;
 
       for (auto &im : gen_dau->motherRefVector()) {
-        if (abs((*im).pdgId()) == 5122) {
+        if (abs(im->pdgId()) == 5122) {
           if (trueHad.isNull()) { trueHad = im; }
           if (trueHad != im) { continue; }
           nmatched ++;
