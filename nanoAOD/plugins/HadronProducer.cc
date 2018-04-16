@@ -571,7 +571,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<r
                                                 hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - kshort_m_) > 0.15) continue;
+      if (abs(cand.mass() - kshort_m_) > 0.2) continue;
 
       hc.vcc = cand;
       hc.jet = pat::Jet();
@@ -615,7 +615,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
                                                 hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - lambda_m_) > 0.2) continue;
+      if (abs(cand.mass() - lambda_m_) > 0.15) continue;
 
       hc.vcc = cand;
       hc.jet = pat::Jet();
