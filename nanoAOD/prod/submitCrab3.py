@@ -81,7 +81,6 @@ if inputFile is None:
     datasets = json.load(open("%s/src/nano/nanoAOD/data/dataset/dataset.json"%os.environ['CMSSW_BASE']))
     for d in datasets:
         dataset = d['DataSetName']
-        lumiMask = d['LumiMask']
         if len( dataset ) == 0: continue
 
         isMC = False
