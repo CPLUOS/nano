@@ -31,7 +31,7 @@ hadTable = cms.EDProducer("HadronProducer",
   # cos(angleXY) between x and p of V0 candidate >
   cosThetaXYCut = cms.double(0.9),
   # cos(angleXYZ) between x and p of V0 candidate >
-  cosThetaXYZCut = cms.double(100),
+  cosThetaXYZCut = cms.double(-1),
 )
 
 hadCandidateTable =  cms.EDProducer("SimpleCandidateFlatTableProducer",

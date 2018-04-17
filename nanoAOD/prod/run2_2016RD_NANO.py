@@ -21,12 +21,12 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(1000)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:06376BC4-273C-E711-8B48-001EC94BF0EF.root'),
+    fileNames = cms.untracked.vstring('file:/cms/scratch/jlee/SingleMuon/Run2016B-18Apr2017_ver2-v1/MINIAOD/00DDEE4D-9E3B-E711-B4EA-90B11C4437F5.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
