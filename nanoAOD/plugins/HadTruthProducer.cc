@@ -69,6 +69,14 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 	TrackingParticleRef tpref = recotosim[track].begin()->first;
 	if (rcCand->pdgId() == tpref->pdgId()) {
 	  auto mother = getMother(tpref);
+
+	  while (!mother.isNull() && (mother->pdgId() == rcCand->pdgId())) {
+	    if (mother->numberOfMothers() > 0) {
+	      mother = mother->motherRef(0);
+	    } else {
+	      break;
+	    }
+	  }
 	  if (mother.isNull()) { continue; }
 	  
 	  if (trueHad.isNull()) { trueHad = mother; }
