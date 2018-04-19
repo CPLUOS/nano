@@ -41,6 +41,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByToken(hadronIndices_, hadronIndices);
   
   vector<int> nmatchedv;
+  vector<int> ntruedau;
   vector<int> isHadFromTsb;
   vector<uint8_t> isHadFromTop;
 
@@ -98,6 +99,10 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     nmatchedv.push_back(nmatched);
 
+    if (not trueHad.isNull()) { ntruedau.push_back(trueHad->numberOfDaughters()); }
+    else { ntruedau.push_back(0); }
+
+
     if (nmatched == 2) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
       matchHad.insert({trueHad.get(), &cand});
@@ -139,6 +144,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   auto hadTruthTable = make_unique<nanoaod::FlatTable>(hadronCands->size(),"hadTruth",false);
   hadTruthTable->addColumn<int>("nMatched",nmatchedv,"no. of dau match",nanoaod::FlatTable::IntColumn);
+  hadTruthTable->addColumn<int>("nTrueDau",ntruedau,"no. of true dau",nanoaod::FlatTable::IntColumn);
   hadTruthTable->addColumn<int>("isHadFromTsb",isHadFromTsb,"Hadron from t->s/b",nanoaod::FlatTable::IntColumn);
   hadTruthTable->addColumn<uint8_t>("isHadFromTop",isHadFromTop,"Hadron from Top",nanoaod::FlatTable::UInt8Column);  
   iEvent.put(move(hadTruthTable),"hadTruth");
