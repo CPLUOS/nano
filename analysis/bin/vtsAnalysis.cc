@@ -163,7 +163,8 @@ void vtsAnalysis::KshortAnalysis(){
     if (had_lxy[k]/had_lxyErr[k]>3 && had_angleXY[k]>0.95 && had_chi2[k]<5 &&had_dca[k]<2){ 
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
-      if (abs(had_pdgId[k]) != 310 && abs(had_pdgId[k]) != 3122) continue;
+      if (abs(had_pdgId[k]) != 310) continue;
+      //if (abs(had_pdgId[k]) != 310 && abs(had_pdgId[k]) != 3122) continue;
       auto dr = had_tlv.DeltaR(qj_tlv);
       auto drb = had_tlv.DeltaR(qbj_tlv);
       if(dr < 0.3 && (had_pt[k]/Jet_pt[qj_]) > 0.15){
@@ -176,8 +177,8 @@ void vtsAnalysis::KshortAnalysis(){
       else if(drb < 0.3 && (had_pt[k]/Jet_pt[qbj_]) > 0.15){
         Stat.idx = k;
         Stat.pdgId = had_pdgId[k];
-        Stat.x = had_pt[k]/Jet_pt[qj_];
-        Stat.label = abs(GenPart_pdgId[q_]);
+        Stat.x = had_pt[k]/Jet_pt[qbj_];
+        Stat.label = abs(GenPart_pdgId[qb_]);
         HadInJet.push_back(Stat);
       }
     }
