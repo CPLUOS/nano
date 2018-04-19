@@ -49,10 +49,10 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::vector<const reco::GenParticle*> matchedGen;
 
   for (auto& cand : *hadronCands) {
-    if (abs(cand.pdgId()) == 5122) {
-      matchedGen.push_back(nullptr);
-      continue;
-    }
+    // if (abs(cand.pdgId()) == 5122) {
+    //   matchedGen.push_back(nullptr);
+    //   continue;
+    // }
     int count = 0;
     int hadFromQuark = -99;
     bool hadFromTop = false;
@@ -99,9 +99,12 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     nmatchedv.push_back(nmatched);
 
-    if (not trueHad.isNull()) { ntruedau.push_back(trueHad->numberOfDaughters()); }
-    else { ntruedau.push_back(0); }
-
+    if (trueHad.isNull()){
+      ntruedau.push_back(0);
+    }
+    else {
+      ntruedau.push_back(trueHad->numberOfDaughters());
+    }
 
     if (nmatched == 2) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
@@ -137,9 +140,9 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (!trueHad.isNull()) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
     }
-    nmatchedv.push_back(nmatched);
-    isHadFromTsb.push_back(hadFromQuark);
-    isHadFromTop.push_back(hadFromTop);   
+    nmatchedv[indices[0]] = nmatched;
+    isHadFromTsb[indices[0]] = hadFromQuark;
+    isHadFromTop[indices[0]] = hadFromTop;   
   }
 
   auto hadTruthTable = make_unique<nanoaod::FlatTable>(hadronCands->size(),"hadTruth",false);
