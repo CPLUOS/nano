@@ -14,6 +14,8 @@
 #include "TopTriggerSF.h"
 #include "TTbarModeDefs.h"
 
+void Events::Loop(){}
+
 void makeEventsClass(const char* filedir){
   TFile *f = TFile::Open(filedir);
   TTree *t = (TTree*) f->Get("Events");
