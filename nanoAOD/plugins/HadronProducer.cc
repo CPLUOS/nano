@@ -78,17 +78,6 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
   reco::Vertex theVtx = tv;
   // loose cut on chi2
   if (theVtx.normalizedChi2() > vtxChi2Cut_) return reco::VertexCompositeCandidate();
-
-  // if (theVtx.normalizedChi2() < 0)
-  //   std::cout << "-ve vtx: " << theVtx.normalizedChi2() << " chi2/ndof" << theVtx.chi2() << " / " << theVtx.ndof()
-  // 	      << ". trknc2 " << tt1.normalizedChi2() << " " << tt2.normalizedChi2() << " dca:" << dca << " " << tv.trackWeight(tt1) << " " << tv.trackWeight(tt2)
-  // 	      << ". (x,y,z) " << cxPt.x() << ", " << cxPt.y() << ", " << cxPt.z() << " " << theVtx.x() << ", " << theVtx.y() << ", " << theVtx.z()
-  // 	      << std::endl;
-  // else
-  //   std::cout << "+ve vtx: " << theVtx.normalizedChi2() << " chi2/ndof" << theVtx.chi2() << " / " << theVtx.ndof()
-  // 	      << ". trknc2 " << tt1.normalizedChi2() << " " << tt2.normalizedChi2() << " dca:" << dca << " " << tv.trackWeight(tt1) << " " << tv.trackWeight(tt2)
-  // 	      << ". (x,y,z) " << cxPt.x() << ", " << cxPt.y() << ", " << cxPt.z() << " " << theVtx.x() << ", " << theVtx.y() << ", " << theVtx.z()
-  // 	      << std::endl;    
   
   GlobalPoint vtxPos(theVtx.x(), theVtx.y(), theVtx.z());
 
@@ -204,6 +193,10 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     else
       chargedHadrons.push_back(recoDau);        
   }
+
+  // float old_XY = cosThetaXYCut_;
+  // cosThetaXYCut_ = 0.9;
+  
   // find KShort Cands
   auto KShortCands = findKShortCands(chargedHadrons, pv, -1);
   hadronCandidates.insert(hadronCandidates.end(), KShortCands.begin(), KShortCands.end());
@@ -212,11 +205,13 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto LambdaCands = findLambdaCands(chargedHadrons, pv, -1);
   hadronCandidates.insert(hadronCandidates.end(), LambdaCands.begin(), LambdaCands.end());
 
+  // cosThetaXYCut_ = old_XY;
+  
   for (auto lep : leptons) delete lep;
   for (auto pion : chargedHadrons) delete pion;
   
   int njet = 0;
-  for (const pat::Jet & aPatJet : *jetHandle){
+  for (const pat::Jet & aPatJet : *jetHandle) {
     if (aPatJet.pt() < 30 or abs(aPatJet.eta()) > 3 ) continue;
 
     chargedHadrons.clear(); leptons.clear();
@@ -262,7 +257,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     hadronCandidates.insert(hadronCandidates.end(), d0Cands.begin(), d0Cands.end());
 
     // find dstar cands
-    if (d0Cands.size()){
+    if (d0Cands.size()) {
       auto dStarCands = findDStarCands(d0Cands, chargedHadrons, pv, njet, aPatJet);
       hadronCandidates.insert(hadronCandidates.end(), dStarCands.begin(), dStarCands.end());	
     }
@@ -285,7 +280,7 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<float> had_lxy, had_lxyErr, had_l3D, had_l3DErr, had_dca, had_angleXY, had_angleXYZ;
   vector<float> had_dau1_chi2, had_dau1_nHits, had_dau1_pt, had_dau1_ipsigZ, had_dau1_ipsigXY;
   vector<float> had_dau2_chi2, had_dau2_nHits, had_dau2_pt, had_dau2_ipsigZ, had_dau2_ipsigXY;
-  vector<int> had_idx, had_dau1_idx, had_dau2_idx;
+  vector<int> had_idx, had_dau1_idx, had_dau2_idx, had_dau1_charge, had_dau2_charge;
 
   for (auto cand: hadronCandidates){
     had_cands->push_back(cand.vcc);
@@ -298,12 +293,14 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 	had_dau1_pt.push_back(dau1->pt());
 	had_dau1_ipsigZ.push_back(std::abs(dau1->dz(primaryVertexPoint)/dau1->dzError()));
 	had_dau1_ipsigXY.push_back(std::abs(dau1->dxy(primaryVertexPoint)/dau1->dxyError()));
+	had_dau1_charge.push_back(dau1->charge());
       } else {
 	had_dau1_chi2.push_back(0);
 	had_dau1_nHits.push_back(0);
 	had_dau1_pt.push_back(0);
 	had_dau1_ipsigZ.push_back(0);
 	had_dau1_ipsigXY.push_back(0);
+	had_dau1_charge.push_back(0);
       }
       
       const reco::Track* dau2 = cand.vcc.daughter(1)->bestTrack();
@@ -313,12 +310,14 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 	had_dau2_pt.push_back(dau2->pt());
 	had_dau2_ipsigZ.push_back(std::abs(dau2->dz(primaryVertexPoint)/dau2->dzError()));
 	had_dau2_ipsigXY.push_back(std::abs(dau2->dxy(primaryVertexPoint)/dau2->dxyError()));
+	had_dau2_charge.push_back(dau2->charge());
       } else {
 	had_dau2_chi2.push_back(0);
 	had_dau2_nHits.push_back(0);
 	had_dau2_pt.push_back(0);
 	had_dau2_ipsigZ.push_back(0);
 	had_dau2_ipsigXY.push_back(0);
+	had_dau2_charge.push_back(0);
       }
       if (dau1 && dau2) {
 	had_legDR.push_back(reco::deltaR(*dau1, *dau2));
@@ -331,11 +330,13 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 	had_dau1_pt.push_back(0);
 	had_dau1_ipsigZ.push_back(0);
 	had_dau1_ipsigXY.push_back(0);
+	had_dau1_charge.push_back(0);
 	had_dau2_chi2.push_back(0);
 	had_dau2_nHits.push_back(0);
 	had_dau2_pt.push_back(0);
 	had_dau2_ipsigZ.push_back(0);
 	had_dau2_ipsigXY.push_back(0);
+	had_dau2_charge.push_back(0);
 	had_legDR.push_back(0.0);
     }
     
@@ -384,12 +385,14 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   had_table->addColumn<float>("dau1_pt",had_dau1_pt,"dau1 Pt",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau1_ipsigXY",had_dau1_ipsigXY,"dau1 ipsigXY",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau1_ipsigZ",had_dau1_ipsigZ,"dau1 ipsigZ",nanoaod::FlatTable::FloatColumn);
+  had_table->addColumn<int>("dau1_charge",had_dau1_charge,"dau1 charge",nanoaod::FlatTable::IntColumn);
 
   had_table->addColumn<float>("dau2_chi2",had_dau2_chi2,"dau2 chi2/ndof",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau2_nHits",had_dau2_nHits,"dau2 nHits",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau2_pt",had_dau2_pt,"dau2 Pt",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau2_ipsigXY",had_dau2_ipsigXY,"dau2 ipsigXY",nanoaod::FlatTable::FloatColumn);
   had_table->addColumn<float>("dau2_ipsigZ",had_dau2_ipsigZ,"dau2 ipsigZ",nanoaod::FlatTable::FloatColumn);
+  had_table->addColumn<int>("dau2_charge",had_dau2_charge,"dau2 charge",nanoaod::FlatTable::IntColumn);
 
   had_table->addColumn<int>("idx",had_idx,"index of itself",nanoaod::FlatTable::IntColumn);
   had_table->addColumn<int>("dau1_idx",had_dau1_idx,"index of dau1",nanoaod::FlatTable::IntColumn);
@@ -448,21 +451,18 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco:
   hadronCandidateCollection hadrons;
   // find jpsi to mumu or ee
   for (auto pion : chargedHads){
-    //cout <<"pion pt = "<< pion->pt() << ", eta = "<< pion->eta() << ", pid = "<< pion->pdgId()<<endl;
     for (auto kaon : chargedHads){
-      //cout <<"kaon pt = "<< kaon->pt() << ", eta = "<< kaon->eta() << ", pid = "<< kaon->pdgId()<<endl;
       if ( pion->charge() * kaon->charge() != -1 ) continue;
 
       pion->setMass(pion_m_);
-      pion->setPdgId(pion->charge()*pion_pdgId_);
       kaon->setMass(kaon_m_);
-      kaon->setPdgId(kaon->charge()*kaon_pdgId_);
 
       vector<reco::Candidate*> cands{pion, kaon};
 
       hadronCandidate hc;
 
-      reco::VertexCompositeCandidate cand = fit(cands, pv, d0_pdgId_,
+      // D0 -> K-pi+, D0bar -> K+pi-
+      reco::VertexCompositeCandidate cand = fit(cands, pv, -kaon->charge()*d0_pdgId_,
 						hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
@@ -493,9 +493,8 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
 {
   hadronCandidateCollection hadrons;
   // find jpsi to mumu or ee
-  for (auto d0 : d0cands){
-    
-    for (auto pion : chargedHads){
+  for (auto d0 : d0cands) {
+    for (auto pion : chargedHads) {
 
       const reco::Track* dau1 = d0.vcc.daughter(0)->bestTrack();
       if (dau1 == pion->bestTrack()) continue;
@@ -504,15 +503,14 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
       if (dau2 == pion->bestTrack()) continue;
 
       pion->setMass(pion_m_);
-      pion->setPdgId(pion->charge()*pion_pdgId_);
       
       // d0 first daughter should always be pion from findD0Cands
-      if (abs(d0.vcc.daughter(0)->pdgId()) != pion_pdgId_){
-	cout <<"HadronProducer::findDStarCands first daughter is not pion "<< d0.vcc.daughter(0)->pdgId() <<endl;
+      if (fabs(d0.vcc.daughter(0)->mass() - pion_m_) > 0.0001) {
+	cout <<"HadronProducer::findDStarCands first daughter is not pion "<< d0.vcc.daughter(0)->mass() << " " << pion_m_ << endl;
       }
       // D*+ -> [K- pi+]D0 pi+ (opposite signed kaon is suppressed by 2 OoM)
-      // i.e. pions should be opposite charge
-      if (!(d0.vcc.daughter(0)->pdgId() + pion->pdgId() == 0)) continue;
+      // i.e. pions should be same charge
+      if (d0.vcc.daughter(0)->pdgId() != pion->pdgId()) continue;
       
 
       hadronCandidate hc;
@@ -521,7 +519,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
 	  dynamic_cast<reco::Candidate*>(d0.vcc.daughter(0)),
 	  dynamic_cast<reco::Candidate*>(d0.vcc.daughter(1))};
       //vector<reco::Candidate*> cands{pion, &d0.vcc};
-      reco::VertexCompositeCandidate cand = fit(cands, pv, dstar_pdgId_,
+      reco::VertexCompositeCandidate cand = fit(cands, pv, pion->charge()*dstar_pdgId_,
 						hc.dca, hc.angleXY, hc.angleXYZ);
       
       if (cand.numberOfDaughters() < 2) continue;
@@ -561,9 +559,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<r
       if (pion2->charge() != -1) continue;
 
       pion1->setMass(pion_m_);
-      pion1->setPdgId(pion1->charge()*pion_pdgId_);
       pion2->setMass(pion_m_);
-      pion2->setPdgId(pion2->charge()*pion_pdgId_);
 
       vector<reco::Candidate*> cands{pion1, pion2};
 
@@ -604,16 +600,14 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
       if ( proton->charge() * pion->charge() != -1 ) continue;
 
       proton->setMass(proton_m_);
-      proton->setPdgId(proton->charge()*proton_pdgId_);
       pion->setMass(pion_m_);
-      pion->setPdgId(pion->charge()*pion_pdgId_);
 
       vector<reco::Candidate*> cands{proton, pion};
 
       hadronCandidate hc;
 
       reco::VertexCompositeCandidate cand = fit(cands, pv,
-						(proton->charge() > 0) ? lambda_pdgId_ : -lambda_pdgId_,
+						proton->charge()*lambda_pdgId_,
                                                 hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;

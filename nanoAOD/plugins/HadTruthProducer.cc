@@ -63,14 +63,25 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     for (int ndau = 0; ndau < numberOfDaughters; ++ndau) {
       auto rcCand = dynamic_cast<const reco::RecoChargedCandidate*>(cand.daughter(ndau));
       if (!rcCand) continue;
+      int rcCandPdgId = rcCand->pdgId();
+
+      if (fabs(rcCand->mass() - HadronProducer::pion_m_) < 0.001)
+	rcCandPdgId = rcCand->charge()*HadronProducer::pion_pdgId_;
+      else if (fabs(rcCand->mass() - HadronProducer::kaon_m_) < 0.001)
+	rcCandPdgId = rcCand->charge()*HadronProducer::kaon_pdgId_;
+      else if (fabs(rcCand->mass() - HadronProducer::proton_m_) < 0.001)
+	rcCandPdgId = rcCand->charge()*HadronProducer::proton_pdgId_;
+      else if (abs(rcCand->pdgId()) == HadronProducer::pion_pdgId_)
+	cout << "[ HadTruthProducer ] >>>> COULD NOT SET PDG OF RCCAND! <<<< " << rcCand->mass() << endl;
+      
       RefToBase<reco::Track> track(rcCand->track());
       if (recotosim.find(track) != recotosim.end()) {
 	
 	TrackingParticleRef tpref = recotosim[track].begin()->first;
-	if (rcCand->pdgId() == tpref->pdgId()) {
+	if (rcCandPdgId == tpref->pdgId()) {
 	  auto mother = getMother(tpref);
 
-	  while (!mother.isNull() && (mother->pdgId() == rcCand->pdgId())) {
+	  while (!mother.isNull() && (mother->pdgId() == rcCandPdgId)) {
 	    if (mother->numberOfMothers() > 0) {
 	      mother = mother->motherRef(0);
 	    } else {
