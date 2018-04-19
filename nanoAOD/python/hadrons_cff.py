@@ -29,9 +29,9 @@ hadTable = cms.EDProducer("HadronProducer",
   # POCA distance between tracks <
   tkDCACut = cms.double(2),
   # cos(angleXY) between x and p of V0 candidate >
-  cosThetaXYCut = cms.double(0.9),
+  cosThetaXYCut = cms.double(-2),
   # cos(angleXYZ) between x and p of V0 candidate >
-  cosThetaXYZCut = cms.double(-1),
+  cosThetaXYZCut = cms.double(-2),
 )
 
 hadCandidateTable =  cms.EDProducer("SimpleCandidateFlatTableProducer",

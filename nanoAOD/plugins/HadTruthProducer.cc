@@ -41,6 +41,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByToken(hadronIndices_, hadronIndices);
   
   vector<int> nmatchedv;
+  vector<int> ntruedau;
   vector<int> isHadFromTsb;
   vector<uint8_t> isHadFromTop;
 
@@ -63,12 +64,31 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     for (int ndau = 0; ndau < numberOfDaughters; ++ndau) {
       auto rcCand = dynamic_cast<const reco::RecoChargedCandidate*>(cand.daughter(ndau));
       if (!rcCand) continue;
+      int rcCandPdgId = rcCand->pdgId();
+
+      if (fabs(rcCand->mass() - HadronProducer::pion_m_) < 0.001)
+	rcCandPdgId = rcCand->charge()*HadronProducer::pion_pdgId_;
+      else if (fabs(rcCand->mass() - HadronProducer::kaon_m_) < 0.001)
+	rcCandPdgId = rcCand->charge()*HadronProducer::kaon_pdgId_;
+      else if (fabs(rcCand->mass() - HadronProducer::proton_m_) < 0.001)
+	rcCandPdgId = rcCand->charge()*HadronProducer::proton_pdgId_;
+      else if (abs(rcCand->pdgId()) == HadronProducer::pion_pdgId_)
+	cout << "[ HadTruthProducer ] >>>> COULD NOT SET PDG OF RCCAND! <<<< " << rcCand->mass() << endl;
+      
       RefToBase<reco::Track> track(rcCand->track());
       if (recotosim.find(track) != recotosim.end()) {
 	
 	TrackingParticleRef tpref = recotosim[track].begin()->first;
-	if (rcCand->pdgId() == tpref->pdgId()) {
+	if (rcCandPdgId == tpref->pdgId()) {
 	  auto mother = getMother(tpref);
+
+	  while (!mother.isNull() && (mother->pdgId() == rcCandPdgId)) {
+	    if (mother->numberOfMothers() > 0) {
+	      mother = mother->motherRef(0);
+	    } else {
+	      break;
+	    }
+	  }
 	  if (mother.isNull()) { continue; }
 	  
 	  if (trueHad.isNull()) { trueHad = mother; }
@@ -78,6 +98,10 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
     }
     nmatchedv.push_back(nmatched);
+
+    if (not trueHad.isNull()) { ntruedau.push_back(trueHad->numberOfDaughters()); }
+    else { ntruedau.push_back(0); }
+
 
     if (nmatched == 2) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
@@ -120,6 +144,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   auto hadTruthTable = make_unique<nanoaod::FlatTable>(hadronCands->size(),"hadTruth",false);
   hadTruthTable->addColumn<int>("nMatched",nmatchedv,"no. of dau match",nanoaod::FlatTable::IntColumn);
+  hadTruthTable->addColumn<int>("nTrueDau",ntruedau,"no. of true dau",nanoaod::FlatTable::IntColumn);
   hadTruthTable->addColumn<int>("isHadFromTsb",isHadFromTsb,"Hadron from t->s/b",nanoaod::FlatTable::IntColumn);
   hadTruthTable->addColumn<uint8_t>("isHadFromTop",isHadFromTop,"Hadron from Top",nanoaod::FlatTable::UInt8Column);  
   iEvent.put(move(hadTruthTable),"hadTruth");
