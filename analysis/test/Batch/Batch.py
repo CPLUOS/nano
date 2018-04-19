@@ -29,11 +29,13 @@ if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "
 elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalysis";
 elif analysis == 'vts'    : RunFiles = mcFiles_vts     + dataFiles; analyser = "vtsAnalysis";
 else: print "put right name of analysis (h2mumu/topMass/vts)"
-RunFiles = ['tsW']#'DYJets'] # for test
+#RunFiles = ['tsW'] # for test
+RunFiles = ['DYJets'] # for test
 
-maxFiles = 230
+maxFiles = 10
 SetDir = "test"
-datadir = '{}/src/nano/nanoAOD/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
+datadir = '{}/src/nano/analysis/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
+#datadir = '{}/src/nano/nanoAOD/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
 
 for datasetName in RunFiles:
     fileList = datadir + datasetName + '.txt'
