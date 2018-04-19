@@ -18,20 +18,22 @@ mcFiles_topmass = ["TTJets_DiLept", "TTJets_DiLept_Tune4", 'TTJets_aMC',
                    "SingleTop_tW", "SingleTbar_tW",
                    'DYJets', 'DYJets_MG_10to50',
                    'DYJets_MG2', 'DYJets_2J', 'DYJets_1J', 'DYJets_0J', 'DYJets_10to50']
-dataFiles = [#'SingleMuon_Run2016', 'SingleEG_Run2016',
-             #'DoubleMuon_Run2016', 'DoubleEG_Run2016'
-	     ]
-dataFiles = [data+period for period in ["B","Bv2","C","D","E","F","G","H"] for data in dataFiles]
+mcFiles_vts = ["TT_powheg", 'DYJets', 'DYJets_MG_10to50']
+
+dataFiles = ['SingleMuon_Run2016', 'SingleEG_Run2016',
+             'DoubleMuon_Run2016', 'DoubleEG_Run2016',
+             'MuonEG_Run2016', 'MuonEG_Run2016']
+dataFiles = [data+period for period in ["B","Bv1","C","D","E","F","G","H"] for data in dataFiles]
 
 if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "nanoAnalysis";
 elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalysis";
-elif analysis == 'Vts'    : RunFiles = []; analyser = "vtsAnalysis";
+elif analysis == 'vts'    : RunFiles = mcFiles_vts     + dataFiles; analyser = "vtsAnalysis";
 else: print "put right name of analysis (h2mumu/topMass/vts)"
 #RunFiles = ['WW'] # for test
 
 maxFiles = 10
 SetDir = "test"
-datadir = '{}/src/nano/analysis/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
+datadir = '{}/src/nano/nanoAOD/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
 
 for datasetName in RunFiles:
     fileList = datadir + datasetName + '.txt'

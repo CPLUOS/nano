@@ -295,6 +295,7 @@ void topAnalysis::Loop()
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry); nbytes += nb;
     bool keep = analysis();
+    cout << keep << endl;
     if (keep){
       m_tree->Fill();
     }
@@ -348,7 +349,8 @@ int main(int argc, char* argv[])
   }
   else
   {
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v2/DoubleMuon/Run2016B-18Apr2017_ver1-v1/171219_063744/0000/nanoAOD_23.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "read");
+    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v2/DoubleMuon/Run2016B-18Apr2017_ver1-v1/171219_063744/0000/nanoAOD_23.root", "read");
 
     TTree *tree;
     f->GetObject("Events", tree);
@@ -422,34 +424,33 @@ void topAnalysis::MakeBranch(TTree* t)
   t->Branch("trig_em", &b_trig_em, "trig_em/O");
   t->Branch("trig_ee", &b_trig_ee, "trig_ee/O");
   
-  t->Branch("ncmeson", &ncmeson, "ncmeson/I");
-  t->Branch("cmeson_dca", &cmeson_dca, "cmeson_dca/F");
-  t->Branch("cmeson_angleXY", &cmeson_angleXY, "cmeson_angleXY/F");
-  t->Branch("cmeson_angleXYZ", &cmeson_angleXYZ, "cmeson_angleXYZ/F");
-  t->Branch("cmeson_trk_normalizedChi2", &cmeson_trk_normalizedChi2, "cmeson_trk_normalizedChi2/F");
-  t->Branch("cmeson_trk_nHits", &cmeson_trk_nHits, "cmeson_trk_nHits/F");
-  t->Branch("cmeson_trk_pt", &cmeson_trk_pt, "cmeson_trk_pt/F");
-  t->Branch("cmeson_trk_ipsigXY", &cmeson_trk_ipsigXY, "cmeson_trk_ipsigXY/F");
-  t->Branch("cmeson_trk_ipsigZ", &cmeson_trk_ipsigZ, "cmeson_trk_ipsigZ/F");
-  t->Branch("cmeson_lxy", &cmeson_lxy, "cmeson_lxy/F");
-  t->Branch("cmeson_lxySig", &cmeson_lxySig, "cmeson_lxySig/F");
-  t->Branch("cmeson_l3D", &cmeson_l3D, "cmeson_l3D/F");
-  t->Branch("cmeson_l3DSig", &cmeson_l3DSig, "cmeson_l3DSig/F");
-  t->Branch("cmeson_jetDR", &cmeson_jetDR, "cmeson_jetDR/F");
-  t->Branch("cmeson_legDR", &cmeson_legDR, "cmeson_legDR/F");
-  t->Branch("cmeson_diffMass", &cmeson_diffMass, "cmeson_diffMass/F");
-  t->Branch("cmeson_nJet", &cmeson_nJet, "cmeson_nJet/I");
-  t->Branch("cmeson_mcMatch", &cmeson_mcMatch, "cmeson_mcMatch/I");
-  t->Branch("cmeson_chi2", &cmeson_chi2, "cmeson_chi2/F");
-  t->Branch("cmeson_eta", &cmeson_eta, "cmeson_eta/F");
-  t->Branch("cmeson_mass", &cmeson_mass, "cmeson_mass/F");
-  t->Branch("cmeson_phi", &cmeson_phi, "cmeson_phi/F");
-  t->Branch("cmeson_pt", &cmeson_pt, "cmeson_pt/F");
-  t->Branch("cmeson_x", &cmeson_x, "cmeson_x/F");
-  t->Branch("cmeson_y", &cmeson_y, "cmeson_y/F");
-  t->Branch("cmeson_z", &cmeson_z, "cmeson_z/F");
-  t->Branch("cmeson_ndof", &cmeson_ndof, "cmeson_ndof/I");
-  t->Branch("cmeson_pdgId", &cmeson_pdgId, "cmeson_pdgId/I");
+  t->Branch("nhad", &nhad, "nhad/I");
+  t->Branch("had_dca", &had_dca, "had_dca/F");
+  t->Branch("had_angleXY", &had_angleXY, "had_angleXY/F");
+  t->Branch("had_angleXYZ", &had_angleXYZ, "had_angleXYZ/F");
+  t->Branch("had_dau1_chi2", &had_dau1_chi2, "had_dau1_chi2/F");
+  t->Branch("had_dau1_nHits", &had_dau1_nHits, "had_dau1_nHits/F");
+  t->Branch("had_dau1_pt", &had_dau1_pt, "had_dau1_pt/F");
+  t->Branch("had_dau1_ipsigXY", &had_dau1_ipsigXY, "had_dau1_ipsigXY/F");
+  t->Branch("had_dau1_ipsigZ", &had_dau1_ipsigZ, "had_dau1_ipsigZ/F");
+  t->Branch("had_lxy", &had_lxy, "had_lxy/F");
+  t->Branch("had_lxyErr", &had_lxyErr, "had_lxyErr/F");
+  t->Branch("had_l3D", &had_l3D, "had_l3D/F");
+  t->Branch("had_l3DErr", &had_l3DErr, "had_l3DErr/F");
+  t->Branch("had_jetDR", &had_jetDR, "had_jetDR/F");
+  t->Branch("had_legDR", &had_legDR, "had_legDR/F");
+  t->Branch("had_diffMass", &had_diffMass, "had_diffMass/F");
+  t->Branch("had_nJet", &had_nJet, "had_nJet/I");
+  t->Branch("had_chi2", &had_chi2, "had_chi2/F");
+  t->Branch("had_eta", &had_eta, "had_eta/F");
+  t->Branch("had_mass", &had_mass, "had_mass/F");
+  t->Branch("had_phi", &had_phi, "had_phi/F");
+  t->Branch("had_pt", &had_pt, "had_pt/F");
+  t->Branch("had_x", &had_x, "had_x/F");
+  t->Branch("had_y", &had_y, "had_y/F");
+  t->Branch("had_z", &had_z, "had_z/F");
+  t->Branch("had_ndof", &had_ndof, "had_ndof/I");
+  t->Branch("had_pdgId", &had_pdgId, "had_pdgId/I");
 }
 
 
