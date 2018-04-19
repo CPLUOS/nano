@@ -313,8 +313,11 @@ void vtsAnalysis::HadronAnalysis() {
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]); 
     for (unsigned int k=0; k<nhad; ++k) {
       if (abs(had_pdgId[k]) != 310 && abs(had_pdgId[k]) != 3122) continue;
-      if ( (had_lxy[k]/had_lxyErr[k]) > 3 && had_angleXY[k] > 0.95 && had_chi2[k] < 5 && had_dca[k] < 2 ) continue;
-      //if ( (had_lxy[k]/had_lxyErr[k]) > 15 && had_angleXY[k] > 0.98 && had_chi2[k] < 3 && had_dca[k] < 1 ) continue; // tight cut
+      if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
+      if ( had_angleXY[k] < 0.95 ) continue;
+      if ( had_chi2[k] > 5 ) continue;
+      if ( had_dca[k] > 2 ) continue;
+      //if ( !((had_lxy[k]/had_lxyErr[k]) > 15 && had_angleXY[k] > 0.98 && had_chi2[k] < 3 && had_dca[k] < 1) ) continue; // tight cut
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
       if (jet_tlv.DeltaR(had_tlv) < 0.3 && (had_pt[k]/Jet_pt[j]) > 0.15) {
