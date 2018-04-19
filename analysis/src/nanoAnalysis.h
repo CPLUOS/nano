@@ -138,12 +138,14 @@ private:
   TLorentzVector b_dilep_tlv;
   enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
 
-  float b_had_mass, b_hadTruth_mass;
-
-  TLorentzVector b_KS_tlv;
-  int b_isFrom_KS;
-  float b_d_KS, b_x_KS;
-  float b_lxy_KS, b_lxySig_KS, b_angleXY_KS, b_chi2_KS, b_dca_KS;
+  TLorentzVector b_had_tlv;
+  int b_isFrom_had;
+  float b_d_had, b_x_had;
+  float b_lxy_had, b_lxySig_had, b_angleXY_had, b_angleXYZ_had, b_chi2_had, b_dca_had;
+  float b_pt_had, b_eta_had, b_l3D_had, b_l3DSig_had, b_legDR_had, b_mass_had; 
+  int b_pdgId_had; 
+  float b_dau1_chi2_had, b_dau1_ipsigXY_had, b_dau1_ipsigZ_had, b_dau1_pt_had;
+  float b_dau2_chi2_had, b_dau2_ipsigXY_had, b_dau2_ipsigZ_had, b_dau2_pt_had;
 
   std::map<unsigned int, int> qjMapForMC_;
   std::vector<int> qMC_;
@@ -155,7 +157,7 @@ private:
   void ResetBranch();
 
   void MatchingForMC();
-  void KshortAnalysis();
+  void HadronAnalysis();
 
   TParticle GetTParticle(int pdgId, int idx);
 

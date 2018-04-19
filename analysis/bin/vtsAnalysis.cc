@@ -88,7 +88,7 @@ void vtsAnalysis::Loop() {
     ResetBranch();
     EventSelection();
     MatchingForMC();
-    KshortAnalysis();
+    HadronAnalysis();
     outTree->Fill();
   }
 //  for (int i =1; i<10; i++) { cout << h_cutFlow->GetBinContent(i) << "  "; }
@@ -106,16 +106,34 @@ void vtsAnalysis::MakeTree(std::string outFileName) {
   outTree->Branch("met", &b_met, "met/F");
   outTree->Branch("dilep_tlv", "TLorentzVector", &b_dilep_tlv);
 
-  outTree->Branch("KS_tlv", "TLorentzVector", &b_KS_tlv);
-  outTree->Branch("isFrom_KS", &b_isFrom_KS, "isFrom_KS/I");
-  outTree->Branch("d_KS", &b_d_KS , "d_KS/F" );
-  outTree->Branch("x_KS", &b_x_KS, "x_KS/F");
-  outTree->Branch("lxy_KS", &b_lxy_KS, "lxy_KS/F");
-  outTree->Branch("lxySig_KS", &b_lxySig_KS, "lxySig_KS/F");
-  outTree->Branch("angleXY_KS", &b_angleXY_KS, "angleXY_KS/F");
-  outTree->Branch("chi2_KS", &b_chi2_KS, "chi2_KS/F");
-  outTree->Branch("dca_KS", &b_dca_KS, "dca_KS/F");
+  outTree->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
+  outTree->Branch("isFrom_had", &b_isFrom_had, "isFrom_had/I");
+  outTree->Branch("d_had", &b_d_had , "d_had/F" );
+  outTree->Branch("x_had", &b_x_had, "x_had/F");
+  outTree->Branch("lxy_had", &b_lxy_had, "lxy_had/F");
+  outTree->Branch("lxySig_had", &b_lxySig_had, "lxySig_had/F");
+  outTree->Branch("angleXY_had", &b_angleXY_had, "angleXY_had/F");
+  outTree->Branch("angleXYZ_had", &b_angleXYZ_had, "angleXYZ_had/F");
+  outTree->Branch("chi2_had", &b_chi2_had, "chi2_had/F");
+  outTree->Branch("dca_had", &b_dca_had, "dca_had/F");
 
+  outTree->Branch("pt_had", &b_pt_had, "pt_had_had/F");
+  outTree->Branch("eta_had", &b_eta_had, "eta_had/F");
+  outTree->Branch("l3D_had", &b_l3D_had, "l3D_had/F");
+  outTree->Branch("l3DSig_had", &b_l3DSig_had, "l3DSig_had/F");
+  outTree->Branch("legDR_had", &b_legDR_had, "legDR_had/F");
+  outTree->Branch("mass_had", &b_mass_had, "mass_had/F");
+  outTree->Branch("pdgId_had", &b_pdgId_had, "pdgId_had/I");
+
+  outTree->Branch("dau1_chi2_had", &b_dau1_chi2_had, "dau1_chi2_had/F");
+  outTree->Branch("dau1_ipsigXY_had", &b_dau1_ipsigXY_had, "dau1_ipsigXY_had/F");
+  outTree->Branch("dau1_ipsigZ_had", &b_dau1_ipsigZ_had, "dau1_ipsigZ_had/F");
+  outTree->Branch("dau1_pt_had", &b_dau1_pt_had, "dau1_pt_had/F");
+
+  outTree->Branch("dau2_chi2_had", &b_dau2_chi2_had, "dau2_chi2_had/F");
+  outTree->Branch("dau2_ipsigXY_had", &b_dau2_ipsigXY_had, "dau2_ipsigXY_had/F");
+  outTree->Branch("dau2_ipsigZ_had", &b_dau2_ipsigZ_had, "dau2_ipsigZ_had/F");
+  outTree->Branch("dau2_pt_had", &b_dau2_pt_had, "dau2_pt_had/F");
 }
 
 void vtsAnalysis::ResetBranch() {
@@ -124,10 +142,14 @@ void vtsAnalysis::ResetBranch() {
   b_dilep_tlv.SetPtEtaPhiM(0,0,0,0);
   recoleps.clear();
 
-  b_KS_tlv.SetPtEtaPhiM(0,0,0,0);
-  b_isFrom_KS = -9;
-  b_d_KS = -1; b_x_KS = -1;
-  b_lxy_KS = -1; b_lxySig_KS = -1; b_angleXY_KS = -1; b_chi2_KS = -1; b_dca_KS = -1;
+  b_had_tlv.SetPtEtaPhiM(0,0,0,0);
+  b_isFrom_had = -9;
+  b_d_had = -1; b_x_had = -1;
+  b_lxy_had = -1; b_lxySig_had = -1; b_angleXY_had = -1; b_angleXYZ_had = -1; b_chi2_had = -1; b_dca_had = -1;
+  b_pt_had = -1; b_eta_had = -99; b_l3D_had = -1; b_l3DSig_had = -1; b_legDR_had = -1; b_mass_had = -99; b_pdgId_had = -99;
+  b_dau1_chi2_had = -1; b_dau1_ipsigXY_had = -1; b_dau1_ipsigZ_had = -1; b_dau1_pt_had = -1;
+  b_dau2_chi2_had = -1; b_dau2_ipsigXY_had = -1; b_dau2_ipsigZ_had = -1; b_dau2_pt_had = -1;
+
 
   qjMapForMC_.clear(); qMC_.clear(); genJet_.clear(); recoJet_.clear();
 }
@@ -276,7 +298,8 @@ void vtsAnalysis::MatchingForMC() {
   isMC_ = true;
 }
 
-void vtsAnalysis::KshortAnalysis() {
+void vtsAnalysis::HadronAnalysis() {
+  std::vector<std::vector<struct HadStat>> JetCollection;
   std::vector<struct HadStat> HadInJet;
   struct HadStat Stat;
   unsigned int njets;
@@ -284,13 +307,14 @@ void vtsAnalysis::KshortAnalysis() {
   else njets = nJet;
   //Reco Jet & Reco KS matching 
   for (unsigned int j=0; j<njets; ++j){
+    HadInJet.clear();
     if(isMC_) j = recoJet_[j];
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]); 
     for (unsigned int k=0; k<nhad; ++k) {
-      if (abs(had_pdgId[k]) != 310) continue;
-      //if ( (had_lxy[k]/had_lxyErr[k]) > 3 && had_angleXY[k] > 0.95 && had_chi2[k] < 5 && had_dca[k] < 2 ) continue;
-      if ( (had_lxy[k]/had_lxyErr[k]) > 15 && had_angleXY[k] > 0.98 && had_chi2[k] < 3 && had_dca[k] < 1 ) continue; // tight cut
+      if (abs(had_pdgId[k]) != 310 && abs(had_pdgId[k]) != 3122) continue;
+      if ( (had_lxy[k]/had_lxyErr[k]) > 3 && had_angleXY[k] > 0.95 && had_chi2[k] < 5 && had_dca[k] < 2 ) continue;
+      //if ( (had_lxy[k]/had_lxyErr[k]) > 15 && had_angleXY[k] > 0.98 && had_chi2[k] < 3 && had_dca[k] < 1 ) continue; // tight cut
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
       if (jet_tlv.DeltaR(had_tlv) < 0.3 && (had_pt[k]/Jet_pt[j]) > 0.15) {
@@ -301,20 +325,44 @@ void vtsAnalysis::KshortAnalysis() {
         HadInJet.push_back(Stat);
       }
     }
+    if (HadInJet.size() != 0 ) {
+      if (HadInJet.size() > 1) sort(HadInJet.begin(), HadInJet.end(), [](struct HadStat a, struct HadStat b) {return a.x > b.x;}); // pick hadron with highest x in the jet
+      JetCollection.push_back(HadInJet);
+    }
   }
-  if (HadInJet.size() != 0 ) {
-    if (HadInJet.size() > 1) sort(HadInJet.begin(), HadInJet.end(), [](struct HadStat a, struct HadStat b) {return a.x > b.x;}); // pick KS with biggest x
-    auto idx = HadInJet[0].idx;
-    b_KS_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
+  if (JetCollection.size() != 0 ) {
+    if (JetCollection.size() > 1) sort(JetCollection.begin(), JetCollection.end(), [](std::vector<struct HadStat> a, std::vector<struct HadStat> b) {return a[0].x > b[0].x;}); // pick jet-hadron pair with highest x
+    auto idx = JetCollection[0][0].idx;
+    b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
-    b_x_KS = HadInJet[0].x;
-    b_isFrom_KS = HadInJet[0].label;
-    b_d_KS = GetD(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx], had_x[idx], had_y[idx], had_z[idx]);
-    b_lxy_KS = had_lxy[idx];
-    b_lxySig_KS = had_lxy[idx]/had_lxyErr[idx];
-    b_angleXY_KS = had_angleXY[idx];
-    b_chi2_KS = had_chi2[idx];
-    b_dca_KS = had_dca[idx];
+    for (unsigned int i = 0; i < JetCollection.size(); ++i) {
+      std::cout << i << " th x : " << JetCollection[i][0].x << " th pdgId : " << JetCollection[i][0].pdgId << " , " << had_pdgId[idx] << std::endl;
+    }
+    std::cout << "###############################" << std::endl;
+    b_x_had = JetCollection[0][0].x;
+    b_isFrom_had = JetCollection[0][0].label;
+    b_d_had = GetD(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx], had_x[idx], had_y[idx], had_z[idx]);
+    b_lxy_had = had_lxy[idx];
+    b_lxySig_had = had_lxy[idx]/had_lxyErr[idx];
+    b_angleXY_had = had_angleXY[idx];
+    b_angleXYZ_had = had_angleXY[idx];
+    b_chi2_had = had_chi2[idx];
+    b_dca_had = had_dca[idx];
+    b_pt_had = had_pt[idx];
+    b_eta_had = had_eta[idx];
+    b_l3D_had = had_l3D[idx];
+    b_l3DSig_had = had_l3D[idx]/had_l3DErr[idx];
+    b_legDR_had = had_legDR[idx];
+    b_mass_had = had_mass[idx];
+    b_pdgId_had = had_pdgId[idx];
+    b_dau1_chi2_had = had_dau1_chi2[idx]; 
+    b_dau1_ipsigXY_had = had_dau1_ipsigXY[idx]; 
+    b_dau1_ipsigZ_had = had_dau1_ipsigZ[idx]; 
+    b_dau1_pt_had = had_dau1_pt[idx];
+    b_dau2_chi2_had = had_dau2_chi2[idx]; 
+    b_dau2_ipsigXY_had = had_dau1_ipsigXY[idx]; 
+    b_dau2_ipsigZ_had = had_dau1_ipsigZ[idx]; 
+    b_dau2_pt_had = had_dau1_pt[idx];
   }
 }
 
