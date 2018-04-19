@@ -138,16 +138,37 @@ private:
       TLorentzVector b_dilep_tlv;
       enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
 
-      float b_had_mass, b_hadTruth_mass;
+      TLorentzVector b_KS_tlv;
+      int b_isFrom_KS;
+      float b_d_KS, b_x_KS;
+      float b_angleXY_KS, b_lxySig_KS, b_chi2_KS, b_dca_KS;
+
+      bool isS_;
+      int q_, qb_;
+      int qj_, qbj_;
 
       //functions
-      void KshortAnalysis();
-      void EventSelection();
       void ResetBranch();
+
+      void KshortAnalysis();
+      void FindQuark();
+      void Gen();
+      Double_t DeltaR(Double_t deta, Double_t dphi);
+      Double_t DeltaPhi(Double_t phi1, Double_t phi2);
+      Double_t GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz);
+
+      void EventSelection();
       TParticle GetTParticle(int pdgId, int idx);
       std::vector<TParticle> muonSelection();
       std::vector<TParticle> elecSelection();
       std::vector<TParticle> jetSelection();
+
+      struct HadStat {
+        int idx = -1;
+        int pdgId = -99;
+        float x = -1;
+        int label = -9;
+      };
 
 public:
       void MakeTree(std::string outputName);
@@ -155,8 +176,7 @@ public:
       ~vtsAnalysis();
       virtual void     Loop();
 };
-vtsAnalysis::vtsAnalysis(TTree *tree) : Events(tree)
-{ }
+vtsAnalysis::vtsAnalysis(TTree *tree) : Events(tree){}
 vtsAnalysis::~vtsAnalysis(){ }
 #endif
 
