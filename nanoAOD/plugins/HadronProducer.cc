@@ -193,6 +193,10 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     else
       chargedHadrons.push_back(recoDau);        
   }
+
+  // float old_XY = cosThetaXYCut_;
+  // cosThetaXYCut_ = 0.9;
+  
   // find KShort Cands
   auto KShortCands = findKShortCands(chargedHadrons, pv, -1);
   hadronCandidates.insert(hadronCandidates.end(), KShortCands.begin(), KShortCands.end());
@@ -201,6 +205,8 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto LambdaCands = findLambdaCands(chargedHadrons, pv, -1);
   hadronCandidates.insert(hadronCandidates.end(), LambdaCands.begin(), LambdaCands.end());
 
+  // cosThetaXYCut_ = old_XY;
+  
   for (auto lep : leptons) delete lep;
   for (auto pion : chargedHadrons) delete pion;
   
@@ -455,7 +461,8 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco:
 
       hadronCandidate hc;
 
-      reco::VertexCompositeCandidate cand = fit(cands, pv, d0_pdgId_,
+      // D0 -> K-pi+, D0bar -> K+pi-
+      reco::VertexCompositeCandidate cand = fit(cands, pv, -kaon->charge()*d0_pdgId_,
 						hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
@@ -512,7 +519,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
 	  dynamic_cast<reco::Candidate*>(d0.vcc.daughter(0)),
 	  dynamic_cast<reco::Candidate*>(d0.vcc.daughter(1))};
       //vector<reco::Candidate*> cands{pion, &d0.vcc};
-      reco::VertexCompositeCandidate cand = fit(cands, pv, dstar_pdgId_,
+      reco::VertexCompositeCandidate cand = fit(cands, pv, pion->charge()*dstar_pdgId_,
 						hc.dca, hc.angleXY, hc.angleXYZ);
       
       if (cand.numberOfDaughters() < 2) continue;
@@ -600,7 +607,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
       hadronCandidate hc;
 
       reco::VertexCompositeCandidate cand = fit(cands, pv,
-						(proton->charge() > 0) ? lambda_pdgId_ : -lambda_pdgId_,
+						proton->charge()*lambda_pdgId_,
                                                 hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
