@@ -335,10 +335,6 @@ void vtsAnalysis::HadronAnalysis() {
     auto idx = JetCollection[0][0].idx;
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
-    for (unsigned int i = 0; i < JetCollection.size(); ++i) {
-      std::cout << i << " th x : " << JetCollection[i][0].x << " th pdgId : " << JetCollection[i][0].pdgId << " , " << had_pdgId[idx] << std::endl;
-    }
-    std::cout << "###############################" << std::endl;
     b_x_had = JetCollection[0][0].x;
     b_isFrom_had = JetCollection[0][0].label;
     b_d_had = GetD(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx], had_x[idx], had_y[idx], had_z[idx]);
