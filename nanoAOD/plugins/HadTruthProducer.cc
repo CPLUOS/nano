@@ -136,6 +136,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if (!trueHad.isNull()) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
+      ntruedau[indices[0]] = trueHad->numberOfDaughters();
     }
     nmatchedv[indices[0]] = nmatched;
     isHadFromTsb[indices[0]] = hadFromQuark;
