@@ -1,14 +1,14 @@
 import ROOT, math
 
 
-h = ROOT.THStack("h","d0 mass")
+h = ROOT.THStack("h","d0 mass with tmva")
 
 hs = ROOT.TH1D("sig", "sig", 60, 1.7, 2.)
 hb = ROOT.TH1D("bkg", "bkg", 60, 1.7, 2.)
-hw = ROOT.TH1D("bkg", "bkg", 60, 1.7, 2.)
+#hw = ROOT.TH1D("bkg", "bkg", 60, 1.7, 2.)
 
 
-inFile = ROOT.TFile("/cms/scratch/seulgi/nanonow/src/nano/analysis/test/topMass/cut/batch/Results/results_merged/copt_tmva.root")
+inFile = ROOT.TFile("/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/batch/Results/results_merged/copt_2tmva.root")
 d0s = inFile.Get("D0cand")
 
 
@@ -16,7 +16,9 @@ d0s = inFile.Get("D0cand")
 numsig = 0
 numbkg = 0
 for id0, d in enumerate(d0s):
-    #if d.tmva_bdtg < 0.5: continue
+    if d.cmeTruth_nTrueDau != 2: continue
+    #if d.cme_mass < 1.86483-0.05 or d.cme_mass > 1.86483+0.05: continue
+    if d.tmva_bdtg < 0.8855: continue
     if d.cmeTruth_nMatched == 2:
         numsig = numsig+1
         hs.Fill(d.cme_mass)
@@ -47,8 +49,8 @@ c = ROOT.TCanvas()
 #hs.Draw("same") 
 hb.SetFillColor(4)
 hb.SetLineColor(4)
-hw.SetFillColor(5)
-hw.SetLineColor(5)
+#hw.SetFillColor(5)
+#hw.SetLineColor(5)
 #hb.SetFillStyle(3004)
 #hb.SetFillStyle(3004)
 h.Add(hb)

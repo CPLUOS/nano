@@ -3,7 +3,7 @@ from array import array
 
 
 #plotvar = ['cme_jetDR']
-#plotvar = ['cme_lxy / cme_lxySig', 'cme_l3D', 'cme_angleXY', 'cme_dca', 'cme_chi2', 'cme_jetDR']
+#plotvar = ['cme_lxyE', 'cme_l3D', 'cme_angleXY', 'cme_dca', 'cme_chi2', 'cme_jetDR']
 plotvar = ['cme_jet_btagCSVV2', 'cme_dau1_ipsigXY', 'cme_dau2_pt', 'cme_dau1_nHits', 'cme_dau2_chi2']
 
 #binnings = ['(5000, 0, 100)', '(5000, 0, 100)', '(5000, -2.5, 2.5)', '(5000, 0, 5)', '(5000, 0, 20)', '(5000, 0, 0.5)'] 
@@ -12,15 +12,15 @@ binnings = ['(5000, 0, 2)', '(5000, 0, 20)', '(5000, 0, 50)', '(5000, 0, 50)', '
 
 l = len(plotvar)
 
-inFile = ROOT.TFile("/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/batch/Results/results_merged/copt_cutbased.root")
+inFile = ROOT.TFile("/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/batch/Results/results_merged/copt_2acb.root")
 d0s = inFile.Get("D0cand")
 
 mg = ROOT.TMultiGraph()
 legend = ROOT.TLegend(.65, .15, .85, .35)
 
 for i in xrange(l):
-    d0s.Draw(plotvar[i]+">>true"+binnings[i], "cmeTruth_nMatched == 2")
-    d0s.Draw(plotvar[i]+">>fake"+binnings[i], "cmeTruth_nMatched == 0")
+    d0s.Draw(plotvar[i]+">>true"+binnings[i], "cmeTruth_nMatched == 2 && cmeTruth_nTrueDau == 2")
+    d0s.Draw(plotvar[i]+">>fake"+binnings[i], "cmeTruth_nMatched == 0 && cmeTruth_nTrueDau == 2")
     h_true = ROOT.gROOT.FindObject("true")
     h_fake = ROOT.gROOT.FindObject("fake")
     t = h_true.Integral()

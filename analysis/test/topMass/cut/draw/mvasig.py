@@ -4,11 +4,11 @@ import ROOT, math, array
 plotvar = 'tmva_bdtg'
 binnings = '(2000, -1, 1)'
 
-inFile = ROOT.TFile("/cms/scratch/seulgi/nanonow/src/nano/analysis/test/topMass/cut/batch/Results/results_merged/copt_tmva.root")
+inFile = ROOT.TFile("/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/batch/Results/results_merged/copt_2tmva.root")
 d0s = inFile.Get("D0cand")
 print plotvar
-d0s.Draw(plotvar+">>true"+binnings, "cmeTruth_nMatched == 2 && cme_mass > 1.81483 && cme_mass < 1.91483")
-d0s.Draw(plotvar+">>fake"+binnings, "cmeTruth_nMatched == 0 && cme_mass > 1.81483 && cme_mass < 1.91483")
+d0s.Draw(plotvar+">>true"+binnings, "cmeTruth_nMatched == 2 && cmeTruth_nTrueDau == 2 && cme_mass > 1.81483 && cme_mass < 1.91483")
+d0s.Draw(plotvar+">>fake"+binnings, "cmeTruth_nMatched == 0 && cmeTruth_nTrueDau == 2 && cme_mass > 1.81483 && cme_mass < 1.91483")
 
 
 h_true = ROOT.gROOT.FindObject("true")
