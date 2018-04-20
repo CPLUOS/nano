@@ -49,14 +49,11 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::vector<const reco::GenParticle*> matchedGen;
 
   for (auto& cand : *hadronCands) {
-    // if (abs(cand.pdgId()) == 5122) {
-    //   matchedGen.push_back(nullptr);
-    //   continue;
-    // }
     int count = 0;
     int hadFromQuark = -99;
     bool hadFromTop = false;
     // for dstar and lambdaB, need to match with grand mother
+    // setup output arrays here and check the matching below
     reco::GenParticleRef trueHad;
     
     int numberOfDaughters = cand.numberOfDaughters();
