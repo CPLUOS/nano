@@ -14,6 +14,12 @@
 #include "TopTriggerSF.h"
 #include "TTbarModeDefs.h"
 
+#include "TMVA/Tools.h"
+#include "TMVA/Reader.h"
+#include "TMVA/DataLoader.h"
+#include "TMVA/MethodCuts.h"
+
+
 void Events::Loop(){}
 
 void makeEventsClass(const char* filedir){
@@ -217,6 +223,19 @@ private:
   float b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
         b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
   float b_tri, b_tri_up, b_tri_dn;
+  float b_cme_dca, b_cme_angleXY, b_cme_angleXYZ, b_cme_jetDR, b_cme_legDR;
+  float b_cme_lxy, b_cme_lxyE, b_cme_l3D, b_cme_l3DE;
+  float b_cme_x, b_cme_y, b_cme_z, b_cme_pt, b_cme_chi2, b_cme_eta, b_cme_phi;
+  float b_cme_dau1_chi2, b_cme_dau1_nHits, b_cme_dau1_pt, b_cme_dau1_ipsigXY, b_cme_dau1_ipsigZ;
+  float b_cme_dau2_chi2, b_cme_dau2_nHits, b_cme_dau2_pt, b_cme_dau2_ipsigXY, b_cme_dau2_ipsigZ;
+  float b_cme_jet_btagCMVA, b_cme_jet_btagCSVV2, b_cme_jet_btagDeepB, b_cme_jet_btagDeepC;
+  float b_cme_mass;
+  float b_cme_tmva_bdtg;
+  float b_cme_pdgId;
+  int b_cme_nMatched;
+  float b_bdtg;
+  int b_maxbIdx;
+  
 
   //Triggers
   Bool_t b_trig_m, b_trig_m2,  b_trig_e, b_trig_mm, b_trig_em, b_trig_ee;
@@ -241,12 +260,16 @@ private:
   std::vector<TParticle> jetSelection();
   std::vector<TParticle> bjetSelection();
 
+  //TMVA
+  TMVA::Reader* bdtg;
+
 public :
   Bool_t m_isMC, m_isDL, m_isSL_e, m_isSL_m;
 
   //set output file
   void setOutput(std::string outputName);
   void LoadModules(pileUpTool* pileUp, lumiTool* lumi);
+  void collectTMVAvalues();
   topAnalysis(TTree *tree=0, Bool_t flag = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~topAnalysis();
   virtual void     Loop();

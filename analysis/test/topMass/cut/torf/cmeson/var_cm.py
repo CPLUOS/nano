@@ -8,7 +8,7 @@ def TORF(event):
     Tcmesons_var=[]
     Fcmesons_var=[]
     for i in range(event.nhad):
-        if event.had_pdgId[i] == 421:
+        if event.had_pdgId[i] == number:
             if event.hadTruth_nMatched[i] == 2 and event.hadTruth_nTrueDau[i] : 
                 Tcmeson_var = event.had_var[i]
                 Tcmesons_var.append(Tcmeson_var)
@@ -53,8 +53,8 @@ for j, sampledir in enumerate(samples):
         
         inFile.Close()
     
-    hF.SetTitle("TorF_var_d0")
-    hT.SetTitle("TorF_var_d0")
+    hF.SetTitle("TorF_var_whatcm")
+    hT.SetTitle("TorF_var_whatcm")
     
     scale1 = 1/hF.Integral(-100,10000)
     scale2 = 1/hT.Integral(-100,10000)
@@ -89,5 +89,5 @@ if Fmax < Tmax:
 legend.Draw("same")
 hF.GetXaxis().SetTitle("var")
 hF.GetYaxis().SetTitle("Normalized Entries")
-canv.Print("TF_var_d0.png")
+canv.Print("TF_var_whatcm.png")
     
