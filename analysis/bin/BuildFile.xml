@@ -11,6 +11,7 @@
   <lib name="Eve"/>
   <lib name="EG"/>
   <use name="nano/analysis"/>
+  <flags CXXFLAGS="-lTMVA"/>
 </bin>
 <bin name="vtsAnalysis" file="vtsAnalysis.cc">
   <use name="root"/>

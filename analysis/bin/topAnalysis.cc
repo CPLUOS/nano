@@ -295,8 +295,9 @@ void topAnalysis::Loop()
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry); nbytes += nb;
     bool keep = analysis();
-    cout << keep << endl;
+    //cout << keep << endl;
     if (keep){
+      collectTMVAvalues();
       m_tree->Fill();
     }
   }
@@ -349,7 +350,7 @@ int main(int argc, char* argv[])
   }
   else
   {
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180417_162254/0000/nanoAOD_581.root", "read");
     //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v2/DoubleMuon/Run2016B-18Apr2017_ver1-v1/171219_063744/0000/nanoAOD_23.root", "read");
 
     TTree *tree;
@@ -363,6 +364,60 @@ int main(int argc, char* argv[])
   return 0;
 }
 
+void topAnalysis::collectTMVAvalues()
+{
+  for(UInt_t i=0; i < nhad; ++i){
+    //if(had_pdgId[i] != 421) continue;
+    b_cme_lxy = had_lxy[i];
+    b_cme_lxyE = had_lxy[i] / had_lxyErr[i];
+    b_cme_l3D = had_l3D[i];
+    b_cme_l3DE = had_l3D[i] / had_l3DErr[i];
+    b_cme_jetDR = had_jetDR[i];
+    b_cme_legDR = had_legDR[i];
+    b_cme_dca = had_dca[i];
+    b_cme_angleXY = had_angleXY[i];
+    b_cme_angleXYZ = had_angleXYZ[i];
+    b_cme_x = had_x[i];
+    b_cme_y = had_y[i];
+    b_cme_z = had_z[i];
+    b_cme_pt = had_pt[i];
+    b_cme_chi2 = had_chi2[i];
+    b_cme_eta = had_eta[i];
+    b_cme_phi = had_phi[i];
+    b_cme_jet_btagCMVA = had_jet_btagCMVA[i];
+    b_cme_jet_btagCSVV2 = had_jet_btagCSVV2[i];
+    b_cme_jet_btagDeepB = had_jet_btagDeepB[i];
+    b_cme_jet_btagDeepC = had_jet_btagDeepC[i];
+    b_cme_dau1_chi2 = had_dau1_chi2[i];
+    b_cme_dau1_ipsigXY = had_dau1_ipsigXY[i];
+    b_cme_dau1_ipsigZ = had_dau1_ipsigZ[i];
+    b_cme_dau1_nHits = had_dau1_nHits[i];
+    b_cme_dau1_pt = had_dau1_pt[i];
+    b_cme_dau2_chi2 = had_dau2_chi2[i];
+    b_cme_dau2_ipsigXY = had_dau2_ipsigXY[i];
+    b_cme_dau2_ipsigZ = had_dau2_ipsigZ[i];
+    b_cme_dau2_nHits = had_dau2_nHits[i];
+    b_cme_dau2_pt = had_dau2_pt[i];
+    b_cme_mass = had_mass[i];
+    b_cme_tmva_bdtg = bdtg->EvaluateMVA("BDTG");
+    //b_cme_nMatched = hadTruth_nMatched[i];
+    if (b_cme_tmva_bdtg > b_bdtg)
+    {
+        b_maxbIdx = i;
+        b_bdtg = b_cme_tmva_bdtg;
+    }
+  }
+      ////printf("i %d",b_maxbIdx);
+  if (b_maxbIdx != -1 && b_bdtg != -1)
+  {
+    b_cme_mass = had_mass[b_maxbIdx];
+    b_cme_tmva_bdtg = b_bdtg;
+    b_cme_pdgId = had_pdgId[b_maxbIdx];
+    m_tree->Fill();
+  }
+
+}
+
 
 void topAnalysis::setOutput(std::string outputName)
 {
@@ -371,6 +426,39 @@ void topAnalysis::setOutput(std::string outputName)
   m_tree = new TTree("event", "event");
   MakeBranch(m_tree);
 
+  bdtg = new TMVA::Reader();
+  bdtg->AddVariable( "cme_lxy", &b_cme_lxy );
+  bdtg->AddVariable( "cme_lxyE", &b_cme_lxyE );
+  bdtg->AddVariable( "cme_l3D", &b_cme_l3D );
+  bdtg->AddVariable( "cme_l3DE", &b_cme_l3DE );
+  bdtg->AddVariable( "cme_jetDR", &b_cme_jetDR );
+  bdtg->AddVariable( "cme_legDR", &b_cme_legDR );
+  bdtg->AddVariable( "cme_dca", &b_cme_dca );
+  bdtg->AddVariable( "cme_angleXY", &b_cme_angleXY );
+  bdtg->AddVariable( "cme_angleXYZ", &b_cme_angleXYZ );
+  bdtg->AddVariable( "cme_x", &b_cme_x );
+  bdtg->AddVariable( "cme_y", &b_cme_y );
+  bdtg->AddVariable( "cme_z", &b_cme_z );
+  bdtg->AddVariable( "cme_pt", &b_cme_pt );
+  bdtg->AddVariable( "cme_chi2", &b_cme_chi2 );
+  bdtg->AddVariable( "cme_eta", &b_cme_eta );
+  bdtg->AddVariable( "cme_phi", &b_cme_phi );
+  bdtg->AddVariable( "cme_jet_btagCMVA", &b_cme_jet_btagCMVA );
+  bdtg->AddVariable( "cme_jet_btagCSVV2", &b_cme_jet_btagCSVV2 );
+  bdtg->AddVariable( "cme_jet_btagDeepB", &b_cme_jet_btagDeepB );
+  bdtg->AddVariable( "cme_jet_btagDeepC", &b_cme_jet_btagDeepC );
+  bdtg->AddVariable( "cme_dau1_chi2", &b_cme_dau1_chi2 );
+  bdtg->AddVariable( "cme_dau1_ipsigXY", &b_cme_dau1_ipsigXY );
+  bdtg->AddVariable( "cme_dau1_ipsigZ", &b_cme_dau1_ipsigZ );
+  bdtg->AddVariable( "cme_dau1_nHits", &b_cme_dau1_nHits );
+  bdtg->AddVariable( "cme_dau1_pt", &b_cme_dau1_pt );
+  bdtg->AddVariable( "cme_dau2_chi2", &b_cme_dau2_chi2 );
+  bdtg->AddVariable( "cme_dau2_ipsigXY", &b_cme_dau2_ipsigXY );
+  bdtg->AddVariable( "cme_dau2_ipsigZ", &b_cme_dau2_ipsigZ );
+  bdtg->AddVariable( "cme_dau2_nHits", &b_cme_dau2_nHits );
+  bdtg->AddVariable( "cme_dau2_pt", &b_cme_dau2_pt );
+  bdtg->AddSpectator( "cme_mass", &b_cme_mass );
+  bdtg->BookMVA("BDTG", "/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/xml/TMVAClassification_BDTG.weights.xml");
   
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
@@ -424,33 +512,36 @@ void topAnalysis::MakeBranch(TTree* t)
   t->Branch("trig_em", &b_trig_em, "trig_em/O");
   t->Branch("trig_ee", &b_trig_ee, "trig_ee/O");
   
-  t->Branch("nhad", &nhad, "nhad/I");
-  t->Branch("had_dca", &had_dca, "had_dca/F");
-  t->Branch("had_angleXY", &had_angleXY, "had_angleXY/F");
-  t->Branch("had_angleXYZ", &had_angleXYZ, "had_angleXYZ/F");
-  t->Branch("had_dau1_chi2", &had_dau1_chi2, "had_dau1_chi2/F");
-  t->Branch("had_dau1_nHits", &had_dau1_nHits, "had_dau1_nHits/F");
-  t->Branch("had_dau1_pt", &had_dau1_pt, "had_dau1_pt/F");
-  t->Branch("had_dau1_ipsigXY", &had_dau1_ipsigXY, "had_dau1_ipsigXY/F");
-  t->Branch("had_dau1_ipsigZ", &had_dau1_ipsigZ, "had_dau1_ipsigZ/F");
-  t->Branch("had_lxy", &had_lxy, "had_lxy/F");
-  t->Branch("had_lxyErr", &had_lxyErr, "had_lxyErr/F");
-  t->Branch("had_l3D", &had_l3D, "had_l3D/F");
-  t->Branch("had_l3DErr", &had_l3DErr, "had_l3DErr/F");
-  t->Branch("had_jetDR", &had_jetDR, "had_jetDR/F");
-  t->Branch("had_legDR", &had_legDR, "had_legDR/F");
-  t->Branch("had_diffMass", &had_diffMass, "had_diffMass/F");
-  t->Branch("had_nJet", &had_nJet, "had_nJet/I");
-  t->Branch("had_chi2", &had_chi2, "had_chi2/F");
-  t->Branch("had_eta", &had_eta, "had_eta/F");
-  t->Branch("had_mass", &had_mass, "had_mass/F");
-  t->Branch("had_phi", &had_phi, "had_phi/F");
-  t->Branch("had_pt", &had_pt, "had_pt/F");
-  t->Branch("had_x", &had_x, "had_x/F");
-  t->Branch("had_y", &had_y, "had_y/F");
-  t->Branch("had_z", &had_z, "had_z/F");
-  t->Branch("had_ndof", &had_ndof, "had_ndof/I");
-  t->Branch("had_pdgId", &had_pdgId, "had_pdgId/I");
+  t->Branch("cme_tmva_bdtg", &b_cme_tmva_bdtg, "cme_tmva_bdtg/F");
+  t->Branch("cme_mass", &b_cme_mass, "cme_mass/F");
+  t->Branch("cme_pdgId", &b_cme_pdgId, "cme_pdgId/I");
+  //t->Branch("nhad", &nhad, "nhad/I");
+  //t->Branch("had_dca", &had_dca, "had_dca/F");
+  //t->Branch("had_angleXY", &had_angleXY, "had_angleXY/F");
+  //t->Branch("had_angleXYZ", &had_angleXYZ, "had_angleXYZ/F");
+  //t->Branch("had_dau1_chi2", &had_dau1_chi2, "had_dau1_chi2/F");
+  //t->Branch("had_dau1_nHits", &had_dau1_nHits, "had_dau1_nHits/F");
+  //t->Branch("had_dau1_pt", &had_dau1_pt, "had_dau1_pt/F");
+  //t->Branch("had_dau1_ipsigXY", &had_dau1_ipsigXY, "had_dau1_ipsigXY/F");
+  //t->Branch("had_dau1_ipsigZ", &had_dau1_ipsigZ, "had_dau1_ipsigZ/F");
+  //t->Branch("had_lxy", &had_lxy, "had_lxy/F");
+  //t->Branch("had_lxyErr", &had_lxyErr, "had_lxyErr/F");
+  //t->Branch("had_l3D", &had_l3D, "had_l3D/F");
+  //t->Branch("had_l3DErr", &had_l3DErr, "had_l3DErr/F");
+  //t->Branch("had_jetDR", &had_jetDR, "had_jetDR/F");
+  //t->Branch("had_legDR", &had_legDR, "had_legDR/F");
+  //t->Branch("had_diffMass", &had_diffMass, "had_diffMass/F");
+  //t->Branch("had_nJet", &had_nJet, "had_nJet/I");
+  //t->Branch("had_chi2", &had_chi2, "had_chi2/F");
+  //t->Branch("had_eta", &had_eta, "had_eta/F");
+  //t->Branch("had_mass", &had_mass, "had_mass/F");
+  //t->Branch("had_phi", &had_phi, "had_phi/F");
+  //t->Branch("had_pt", &had_pt, "had_pt/F");
+  //t->Branch("had_x", &had_x, "had_x/F");
+  //t->Branch("had_y", &had_y, "had_y/F");
+  //t->Branch("had_z", &had_z, "had_z/F");
+  //t->Branch("had_ndof", &had_ndof, "had_ndof/I");
+  //t->Branch("had_pdgId", &had_pdgId, "had_pdgId/I");
 }
 
 
@@ -473,4 +564,10 @@ void topAnalysis::resetBranch()
   b_tri = 0;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
+
+  b_cme_mass = -999;
+  b_cme_tmva_bdtg = -999;
+  b_cme_pdgId = 0;
+  b_bdtg = -1; b_maxbIdx = -1;
+
 }
