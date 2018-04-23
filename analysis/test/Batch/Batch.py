@@ -35,12 +35,12 @@ dataFiles = [data+period for period in ["B","Bv1","C","D","E","F","G","H"] for d
 if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "nanoAnalysis";
 elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalysis";
 elif analysis == 'vts'    : RunFiles = mcFiles_vts     + dataFiles; analyser = "vtsAnalysis";
-lif analysis == 'cutbased': RunFiles = mcFiles_topmass; analyser = "cutbased";
+elif analysis == 'cutbased': RunFiles = mcFiles_topmass; analyser = "cutbased";
 else: print "put right name of analysis (h2mumu/topMass/hadron/vts/cutbased)"
 #RunFiles = ['WW'] # for test
-#RunFiles = ['tsw'] # for test
+RunFiles = ['tsw'] # for test
 
-maxFiles = 10
+maxFiles = 300
 SetDir = "test"
 datadir = '{}/src/nano/nanoAOD/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
 
