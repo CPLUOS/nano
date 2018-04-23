@@ -134,6 +134,18 @@ void vtsAnalysis::MakeTree(std::string outFileName) {
   outTree->Branch("dau2_ipsigXY_had", &b_dau2_ipsigXY_had, "dau2_ipsigXY_had/F");
   outTree->Branch("dau2_ipsigZ_had", &b_dau2_ipsigZ_had, "dau2_ipsigZ_had/F");
   outTree->Branch("dau2_pt_had", &b_dau2_pt_had, "dau2_pt_had/F");
+
+  outTree->Branch("btagCSVV2_Jet", &b_btagCSVV2_Jet, "btagCSVV2_Jet/F");
+  outTree->Branch("btagDeepB_Jet", &b_btagDeepB_Jet, "btagDeepB_Jet/F");
+  outTree->Branch("btagDeepC_Jet", &b_btagDeepC_Jet, "btagDeepC_Jet/F");
+  outTree->Branch("btagCMVA_Jet", &b_btagCMVA_Jet, "btagCMVA_Jet/F");
+
+  outTree->Branch("area_Jet", &b_area_Jet, "are_Jet/F");
+  outTree->Branch("pt_Jet", &b_pt_Jet, "pt_Jet/F");
+  outTree->Branch("nConstituents_Jet", &b_nConstituents_Jet, "nConstituents_Jet/I");
+  outTree->Branch("nElectrons_Jet", &b_nElectrons_Jet, "nElectrons_Jet/I");
+  outTree->Branch("nMuons_Jet", &b_nMuons_Jet, "nMuons_Jet/I");
+
 }
 
 void vtsAnalysis::ResetBranch() {
@@ -150,6 +162,8 @@ void vtsAnalysis::ResetBranch() {
   b_dau1_chi2_had = -1; b_dau1_ipsigXY_had = -1; b_dau1_ipsigZ_had = -1; b_dau1_pt_had = -1;
   b_dau2_chi2_had = -1; b_dau2_ipsigXY_had = -1; b_dau2_ipsigZ_had = -1; b_dau2_pt_had = -1;
 
+  b_btagCSVV2_Jet = -99; b_btagCMVA_Jet = -99; b_btagDeepB_Jet = -99; b_btagDeepC_Jet = -99;
+  b_area_Jet = -1; b_pt_Jet = -1; b_nConstituents_Jet = -1; b_nElectrons_Jet = -1; b_nMuons_Jet = -1;
 
   qjMapForMC_.clear(); qMC_.clear(); genJet_.clear(); recoJet_.clear();
 }
@@ -312,12 +326,12 @@ void vtsAnalysis::HadronAnalysis() {
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]); 
     for (unsigned int k=0; k<nhad; ++k) {
-      if (abs(had_pdgId[k]) != 310 && abs(had_pdgId[k]) != 3122) continue;
-      if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
-      if ( had_angleXY[k] < 0.95 ) continue;
-      if ( had_chi2[k] > 5 ) continue;
-      if ( had_dca[k] > 2 ) continue;
-      //if ( !((had_lxy[k]/had_lxyErr[k]) > 15 && had_angleXY[k] > 0.98 && had_chi2[k] < 3 && had_dca[k] < 1) ) continue; // tight cut
+      if (abs(had_pdgId[k]) != 310) continue;// && abs(had_pdgId[k]) != 3122) continue;
+//      if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
+//      if ( had_angleXY[k] < 0.95 ) continue;
+//      if ( had_chi2[k] > 5 ) continue;
+//      if ( had_dca[k] > 2 ) continue;
+      //if ( !((had_lxy[k]/had_lxyErr[k]) > 15 && had_angleXY[k] > 0.98 && had_chi2[k] < 3 && had_dca[k] < 1) ) continue; // tight KS cut
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
       if (jet_tlv.DeltaR(had_tlv) < 0.3 && (had_pt[k]/Jet_pt[j]) > 0.15) {
@@ -325,6 +339,7 @@ void vtsAnalysis::HadronAnalysis() {
         Stat.pdgId = had_pdgId[k];
         Stat.x = had_pt[k]/Jet_pt[j];
         if (isMC_) Stat.label = qjMapForMC_[j];
+        Stat.jetIdx = j;
         HadInJet.push_back(Stat);
       }
     }
@@ -336,6 +351,7 @@ void vtsAnalysis::HadronAnalysis() {
   if (JetCollection.size() != 0 ) {
     if (JetCollection.size() > 1) sort(JetCollection.begin(), JetCollection.end(), [](std::vector<struct HadStat> a, std::vector<struct HadStat> b) {return a[0].x > b[0].x;}); // pick jet-hadron pair with highest x
     auto idx = JetCollection[0][0].idx;
+    auto jidx = JetCollection[0][0].jetIdx;
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
     b_x_had = JetCollection[0][0].x;
@@ -362,6 +378,16 @@ void vtsAnalysis::HadronAnalysis() {
     b_dau2_ipsigXY_had = had_dau1_ipsigXY[idx]; 
     b_dau2_ipsigZ_had = had_dau1_ipsigZ[idx]; 
     b_dau2_pt_had = had_dau1_pt[idx];
+
+    b_btagCSVV2_Jet = Jet_btagCSVV2[jidx];
+    b_btagCMVA_Jet = Jet_btagCMVA[jidx]; 
+    b_btagDeepB_Jet = Jet_btagDeepB[jidx];
+    b_btagDeepC_Jet = Jet_btagDeepC[jidx];
+    b_area_Jet = Jet_area[jidx]; 
+    b_pt_Jet = Jet_pt[jidx];
+    b_nConstituents_Jet = Jet_nConstituents[jidx]; 
+    b_nElectrons_Jet = Jet_nElectrons[jidx];
+    b_nMuons_Jet = Jet_nMuons[jidx];
   }
 }
 
