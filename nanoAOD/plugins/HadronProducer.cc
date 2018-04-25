@@ -35,14 +35,14 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
 {
   int charge = 0;
   vector<reco::TransientTrack> transientTracks;
-  for (auto dau : cands){
+  for (auto &dau : cands) {
     const reco::TransientTrack transientTrack = trackBuilder_->build(dau->bestTrack());
     transientTracks.emplace_back(transientTrack);
     //cout <<"no track ref "<<endl;
     charge += dau->charge();
   }
 
-  if (transientTracks.size() < 2){
+  if (transientTracks.size() < 2) {
     //cout <<"no tracks... something is wrong"<<endl;
     return reco::VertexCompositeCandidate();
   }
@@ -70,7 +70,7 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
   if (!posTSCP.isValid() || !negTSCP.isValid()) return reco::VertexCompositeCandidate();
   if (posTSCP.momentum().dot(negTSCP.momentum()) < 0) return reco::VertexCompositeCandidate();
   
-  KalmanVertexFitter m_kvf(true);
+  static KalmanVertexFitter m_kvf(true);
   
   TransientVertex tv = m_kvf.vertex(transientTracks);
   if (!tv.isValid()) return reco::VertexCompositeCandidate();
@@ -84,7 +84,7 @@ reco::VertexCompositeCandidate HadronProducer::fit(vector<reco::Candidate*>& can
   math::XYZTLorentzVector tlv;
   GlobalVector totalP;
   int i = 0;
-  for (auto trk : tv.refittedTracks()){
+  for (auto trk : tv.refittedTracks()) {
     TrajectoryStateClosestToPoint const & tscp = trk.trajectoryStateClosestToPoint(vtxPos);
     GlobalVector mom = tscp.momentum();
     double mass = cands[i]->mass();
@@ -182,13 +182,13 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<reco::Candidate*> chargedHadrons, leptons;  
   for (auto & pfcand : *pfCandidates){
     
-    if ( pfcand.charge() == 0 ) continue;
+    if (pfcand.charge() == 0) continue;
     //if ( pfcand.pt() < tkPtCut_ ) continue;
     if (pfcand.bestTrack() == nullptr) continue;
     
     reco::Candidate* recoDau = pfcand.clone();
     
-    if ( abs(recoDau->pdgId()) == 11  || abs(recoDau->pdgId())==13)
+    if (abs(recoDau->pdgId()) == 11 || abs(recoDau->pdgId()) == 13)
       leptons.push_back(recoDau);
     else
       chargedHadrons.push_back(recoDau);        
@@ -450,9 +450,9 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco:
 {
   hadronCandidateCollection hadrons;
   // find jpsi to mumu or ee
-  for (auto pion : chargedHads){
-    for (auto kaon : chargedHads){
-      if ( pion->charge() * kaon->charge() != -1 ) continue;
+  for (auto &pion : chargedHads) {
+    for (auto &kaon : chargedHads) {
+      if (pion->charge() * kaon->charge() != -1) continue;
 
       pion->setMass(pion_m_);
       kaon->setMass(kaon_m_);
@@ -493,8 +493,8 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
 {
   hadronCandidateCollection hadrons;
   // find jpsi to mumu or ee
-  for (auto d0 : d0cands) {
-    for (auto pion : chargedHads) {
+  for (auto &d0 : d0cands) {
+    for (auto &pion : chargedHads) {
 
       const reco::Track* dau1 = d0.vcc.daughter(0)->bestTrack();
       if (dau1 == pion->bestTrack()) continue;
@@ -552,14 +552,16 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<r
 									reco::Vertex& pv, int nJet)
 {
   hadronCandidateCollection hadrons;
-  for (auto pion1 : chargedHads){
+  for (auto &pion1 : chargedHads) {
     // avoid double counting pions by explicit charge finding
     if (pion1->charge() != +1) continue;
-    for (auto pion2 : chargedHads){
+    for (auto &pion2 : chargedHads) {
       if (pion2->charge() != -1) continue;
 
       pion1->setMass(pion_m_);
       pion2->setMass(pion_m_);
+
+      if (fabs(kshort_m_ - (pion1->p4() + pion2->p4()).M()) > 1.0) continue;
 
       vector<reco::Candidate*> cands{pion1, pion2};
 
@@ -569,7 +571,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findKShortCands(vector<r
                                                 hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - kshort_m_) > 0.2) continue;
+      if (fabs(cand.mass() - kshort_m_) > 0.2) continue;
 
       hc.vcc = cand;
       hc.jet = pat::Jet();
@@ -595,13 +597,18 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
 									reco::Vertex& pv, int nJet)
 {
   hadronCandidateCollection hadrons;
-  for (auto proton : chargedHads){
-    for (auto pion : chargedHads){
+  for (auto proton : chargedHads) {
+
+    proton->setMass(proton_m_);
+    if (!proton->bestTrack() || proton->bestTrack()->pt() < 0.4) continue;
+
+    for (auto pion : chargedHads) {
       if ( proton->charge() * pion->charge() != -1 ) continue;
 
-      proton->setMass(proton_m_);
       pion->setMass(pion_m_);
 
+      if (fabs(lambda_m_ - (proton->p4() + pion->p4()).M()) > 0.8) continue;
+      
       vector<reco::Candidate*> cands{proton, pion};
 
       hadronCandidate hc;
@@ -611,7 +618,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaCands(vector<r
                                                 hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - lambda_m_) > 0.15) continue;
+      if (fabs(cand.mass() - lambda_m_) > 0.1) continue;
 
       hc.vcc = cand;
       hc.jet = pat::Jet();
