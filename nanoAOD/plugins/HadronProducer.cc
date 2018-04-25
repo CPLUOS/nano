@@ -424,7 +424,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findJPsiCands(vector<rec
 						hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - jpsi_m_) > 0.2) continue;
+      if (fabs(cand.mass() - jpsi_m_) > 0.3) continue;
       
       hc.vcc = cand;
       hc.jet = aPatJet;
@@ -466,7 +466,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findD0Cands(vector<reco:
 						hc.dca, hc.angleXY, hc.angleXYZ);
 
       if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - d0_m_) > 0.2) continue;
+      if (fabs(cand.mass() - d0_m_) > 0.2) continue;
       
       hc.vcc = cand;
       hc.jet = aPatJet;
@@ -525,7 +525,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findDStarCands(vector<Ha
       if (cand.numberOfDaughters() < 2) continue;
       
       float diffMass_Dstar = cand.mass() - d0.vcc.mass();      
-      if (abs(diffMass_Dstar - (dstar_m_ - d0_m_)) > 0.2) continue;
+      if (fabs(diffMass_Dstar - (dstar_m_ - d0_m_)) > 0.2) continue;
       
       hc.vcc = cand;
       hc.jet = aPatJet;
@@ -670,7 +670,7 @@ vector<HadronProducer::hadronCandidate> HadronProducer::findLambdaBCands(vector<
       reco::VertexCompositeCandidate cand(0, tlv, jpsi.vcc.vertex(), jpsi.vcc.vertexCovariance(), jpsi.vcc.vertexChi2(), jpsi.vcc.vertexNdof(), (lambda.vcc.pdgId() > 0) ? lambdab_pdgId_ : -lambdab_pdgId_);
 
       // if (cand.numberOfDaughters() < 2) continue;
-      if (abs(cand.mass() - lambdab_m_) > 0.4) continue;
+      if (fabs(cand.mass() - lambdab_m_) > 0.4) continue;
      
       cand.addDaughter(lambda.vcc);
       cand.addDaughter(jpsi.vcc);          
