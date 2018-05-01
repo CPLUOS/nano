@@ -22,7 +22,7 @@ def submitjob(requestName, psetName, dataset, submit,lumiMask=None):
     
     sendjob = "crab submit JobType.psetName='%s' General.requestName='%s' Data.outLFNDirBase='%s' Data.outputDatasetTag='%s' Data.inputDataset='%s'"%(psetName,dataRequestName,outLFNDirBase,outputDatasetTag,dataset)
     if not isMC:
-       sendjob+=" Data.splitting='LumiBased' Data.unitsPerJob=20 Data.lumiMask='%s'"%(lumiMask)
+       sendjob+=" Data.splitting='LumiBased' Data.unitsPerJob=10 Data.lumiMask='%s'"%(lumiMask)
        
     print sendjob
     
@@ -83,8 +83,12 @@ if inputFile is None:
         dataset = d['DataSetName']
         if len( dataset ) == 0: continue
 
-        if 'MC' in psetName:
+        isMC = False
+        if d['type'] == 'Data':
             isMC = True
+
+        # skip wrong input file
+        if 'MC' in psetName:
             if d['type'] == 'Data':
                 continue
         else :

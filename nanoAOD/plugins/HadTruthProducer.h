@@ -49,7 +49,7 @@ public:
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-private:
+private: 
   void produce( edm::Event&, const edm::EventSetup& ) override;
 
   reco::LeafCandidate getCandidate(const TrackingParticle* tp) {
@@ -58,6 +58,7 @@ private:
   bool isGenHadFrom(const reco::GenParticle* particle, int pdgId, int count,int & GenHadFromQuark, bool & GenHadFromTop);
   bool isHadFrom(const reco::GenParticleRef &particle, int pdgId, int count, int & hadFromQuark, bool & hadFromTop);
   void motherTracking(int PID, const TrackingVertex trackVertex, const TrackingParticle *decayTrk, int count, int & GenHadFromQuark, bool & GenHadFromTop);
+  const reco::GenParticle* genChecking(int PID, const TrackingParticle *decayTrk);
 
   int trackingVertex_pdgId(const TrackingVertex* tv);
   const reco::GenParticleRef getMother(const TrackingParticleRef& tp);
@@ -65,10 +66,10 @@ private:
   edm::EDGetTokenT<reco::RecoToSimCollection> recoRecoToSim_;
   edm::EDGetTokenT<reco::SimToRecoCollection> recoSimToReco_;
   edm::EDGetTokenT<reco::VertexCompositeCandidateCollection > hadronCands_;
+  edm::EDGetTokenT<std::vector<std::vector<int>>> hadronIndices_;
   edm::EDGetTokenT<edm::View<reco::GenParticle> > genLabel_;
   edm::EDGetTokenT<TrackingVertexCollection> trackingVertexLabel_;
   edm::EDGetTokenT<TrackingParticleCollection> trackingParticleLabel_;
 };
 
-DEFINE_FWK_MODULE(HadTruthProducer);
 #endif

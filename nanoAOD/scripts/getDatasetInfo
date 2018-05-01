@@ -77,7 +77,7 @@ titleBabel = {
     "Cross section (pb)":"xsec", "NEvent":"nevt",
     "Avg GenWgt":"avgWgt", "luminosity (fb-1)":"lumi",
     "colour":"colour", "Path":"path",
-    "DataSetName":"DataSetName", "options":"options",
+    "DataSetName":"DataSetName", "LumiMask":"LumiMask",
 }
 titleRule = {
     "xsec":str2float, "nevt":str2int, "avgWgt":str2float,
@@ -150,7 +150,7 @@ for d in ds:
     ## #pathnames = map( lambda x: x, listxrd(path)[0] )
     ## pathnames = listxrd(path)[0]
     ## sorted(pathnames)
-    print path
+    #print path
     tempVersion = 0
     for ll in listxrd(path)[0]:
         #print ll
