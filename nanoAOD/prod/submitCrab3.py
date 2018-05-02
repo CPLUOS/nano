@@ -21,7 +21,7 @@ def submitjob(requestName, psetName, dataset, submit,lumiMask=None):
     outLFNDirBase = '/store/group/nanoAOD/%s/'%(requestName)
     
     sendjob = "crab submit JobType.psetName='%s' General.requestName='%s' Data.outLFNDirBase='%s' Data.outputDatasetTag='%s' Data.inputDataset='%s'"%(psetName,dataRequestName,outLFNDirBase,outputDatasetTag,dataset)
-    if not isMC:
+    if not isMC and lumiMask:
        sendjob+=" Data.splitting='LumiBased' Data.unitsPerJob=10 Data.lumiMask='%s'"%(lumiMask)
        
     print sendjob
