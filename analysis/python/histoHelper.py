@@ -182,6 +182,8 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         hratio.Draw("e")
         hratio.SetMaximum(1.+ratioRange)
         hratio.SetMinimum(1.-ratioRange)
+       # hratio.SetMaximum(2)
+       # hratio.SetMinimum(0)
 
     for p in pads:
         p.RedrawAxis()

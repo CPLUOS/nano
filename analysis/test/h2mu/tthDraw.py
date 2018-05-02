@@ -4,6 +4,7 @@ from nano.analysis.histoHelper import *
 from ROOT import TLorentzVector
 #import DYestimation
 ROOT.gROOT.SetBatch(True)
+
 '''
 h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [200,0,200] -p ll_m -x 'mass [GeV]' &
@@ -24,7 +25,7 @@ version = os.environ['CMSSW_VERSION']
 user = os.environ['USER']
 
 
-rootfileDir = "/xrootd/store/user/{}/nanoAOD/b_tagFix2/results_merged/tth2mu_".format(user)
+rootfileDir = "/xrootd/store/user/{}/nanoAOD/post_Run3/results_merged/tth2mu_".format(user)
 
 #rootfileDir = "%s/src/nano/analysis/topMass/Results/results_merged/topmass_"% os.environ['CMSSW_BASE']
 #rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-3/h2muAnalyzer_"
@@ -33,51 +34,51 @@ rootfileDir = "/xrootd/store/user/{}/nanoAOD/b_tagFix2/results_merged/tth2mu_".f
 
 CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV 25ns "%(float(datalumi)/1000)
 mcfilelist = [
-#              'WMinusH_HToMuMu',
-#              'WPlusH_HToMuMu',
-#              'ZH_HToMuMu',
-#              'VBF_HToMuMu',
-#              'GG_HToMuMu',
                'ttH',
-             # 'GluGluToZZTo2mu2tau',
-             # 'GluGluToZZTo2e2mu',
-             # 'GluGluToZZTo4mu',
-             # 'ZZTo4L_powheg',
-             # 'ZZTo2L2Nu_powheg',
+               'WMinusH_HToMuMu',
+               'WPlusH_HToMuMu',
+               'ZH_HToMuMu',
+               'VBF_HToMuMu',
+              'GG_HToMuMu',
+##            # 'GluGluToZZTo2mu2tau',
+##            # 'GluGluToZZTo2e2mu',
+##            # 'GluGluToZZTo4mu',
+##            # 'ZZTo4L_powheg',
+##            # 'ZZTo2L2Nu_powheg',
+               'TTZToLLNuNu',
                "WWW",
                "WWZ",
                "WZZ",
                "ZZZ",
              # 'ZZ',
              # 'WWTo2L2Nu',
-             # 'WW',
-#              'WZTo2LQQ',
+               'WW',
+             #  'WZTo2LQQ',
              # 'WZTo3LNu_powheg',
              # 'WZ',
 #              "WWTo2L2Nu",
                "WZTo3LNu_amcatnlo",
-             # "WZTo2L2Q",
+            # "WZTo2L2Q",
 #              "ZZTo2L2Nu",
                "ZZTo2L2Q",
                "ZZTo4L_powheg",
              # "ttWToLNu",
              # "SingleTop_tW_noHadron",
              # "SingleTbar_tW_noHadron",
-               "SingleTop_tW",
-               "SingleTbar_tW",
-               'TTWJetsToLNu', 
-               'TTZToLLNuNu',
                'WJets',
              # "TTJets_aMC",
-              "TTJets_DiLept",
+               'TTWJetsToLNu', 
+               "SingleTop_tW",
+               "SingleTbar_tW",
+               "TTJets_DiLept",
              # "TTJets_DiLept_Tune4",
              # 'TT_powheg',
                'DYJets',
              # 'DYJets_MG_10to50',
              # 'DYJets_MG2',
              # 'DYJets_2J',
-             # 'DYJets_1J',
-             # 'DYJets_0J',
+            # 'DYJets_1J',
+            # 'DYJets_0J',
              # 'DYJets_10to50',
              ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
 #mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
@@ -93,7 +94,7 @@ datasets = json.load(open("%s/src/nano/analysis/data/dataset/dataset.json" % os.
 #cut_step = "(step>=5)"
 #cut = 'lep1.Pt()>60&&lep2.Pt()>60&&dilep.M()>60&&step>=5'
 #cut = 'dilep.M()>60&&step>4&&filtered&&MVA_BDT>-0.0246'
-cut = 'Dilep.M()>60'
+cut = 'Dilep.M()>=120&&Dilep.M()<=130&&nonB==1'
 #cut = 'filtered==1&&%s&&%s'%(cut_step,emu_pid)
 #cut = 'channel==2'
 print cut
@@ -102,16 +103,15 @@ print cut
 #weight = 'genweight*puweight'
 weight = 'weight*mueffweight*btagweight'
 #weight = 'weight'
-#plotvar = 'met'
-plotvar = 'Dilep.M()'
-binning = [150, 50, 200]#[150, 50, 200]
+#plotvar = 'njet'
+plotvar = 'MVA_BDTnoB'
+binning = [50, -0.3, 0.3]#[150, 50, 200]
+#binning = [50, 0, 1]#[150, 50, 200]
 #x_name = 'Invariant Mass[GeV]'
-x_name = 'Invariant Mass'
+x_name = 'mass'
 y_name = 'Events'
 dolog = True
-f_name = 'Dilep_Test'
-minp = 0.05
-maxp = 1000000000
+f_name = 'MVAFnon120'
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:f:j:",["cut","weight","binning","plotvar","x_name","y_name","f_name","json_used","dolog"])
 except getopt.GetoptError:          
@@ -140,15 +140,6 @@ for opt, arg in opts:
     elif opt in ("-d", "--dolog"):
         dolog = True
 print plotvar, x_name, f_name
-if "FL" in f_name:
-   maxp = 100
-   minp = 0.0005
-if "FH" in f_name:
-   maxp = 1000000000
-   minp = 0.005
-if "SL" in f_name:
-   maxp = 1000000
-   minp = 0.005
    
 tname = "events"
 
@@ -164,7 +155,7 @@ bg=[0,0,0,0,0,0]
 lumilist= [datalumi,300*1000,900*1000,3000*1000] 
 """
 
-sysNameList = ["mueffweight"] 
+sysNameList = ["mueffweight", "puweight"] 
 sysErr_up = []
 sysErr_dn = []
 
@@ -179,7 +170,8 @@ TTW = 0
 TTJets = 0
 SingleTop = 0
 SingleTbar = 0 
-
+TTH = 0
+cout = 0 
 #if plotvar == 'Dilep.M()':
 #    f2_txt = open("significance_%s.txt"%(f_name),"w")
 for imc,mcname in enumerate(mcfilelist):
@@ -210,13 +202,33 @@ for imc,mcname in enumerate(mcfilelist):
    
     mchist.SetFillColor(colour)
     mchist.SetLineColor(colour)
+
     mchistList.append(mchist)
 
     remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
     if "ttH" in mcname:
       sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
+      TTH = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
+      print "TTH"
+    elif "WMinusH_HToMuMu" in mcname:
+      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
+      print "WMinus"
+    elif "WPlusH_HToMuMu" in mcname:
+      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
+      print "WPlus"
+    elif "ZH_HToMuMu" in mcname:
+      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
+      print "ZH"
+    elif "VBF_HToMuMu" in mcname:
+      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
+      print "VBF"
+    elif "GG_HToMuMu" in mcname:
+      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
+      print "GG"
     else: 
       bg += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
+      cout += 1
+      print mcname
     if 'TTWJetsToLNu' in mcname:  
       TTW = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
     if 'TTZToLLNuNu' in mcname:
@@ -255,7 +267,8 @@ for imc,mcname in enumerate(mcfilelist):
             sig[5]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
         else:
             bg[5]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
-"""   
+""" 
+print "TTH          = {}".format(TTH)          
 print "TTW          = {}".format(TTW)          
 print "TTZ          = {}".format(TTZ)          
 print "TTJet        = {}".format(TTJets)          
@@ -264,14 +277,25 @@ print "SingleTbar   = {}".format(SingleTbar)
 print "signal       = {}".format(sig) 
 print "background   = {}".format(bg)
 print "significance = {}".format(sig/math.sqrt(sig+bg))
- 
+print cout
 if plotvar == "Dilep.M()": cut = cut+'&&(Dilep.M()<120||Dilep.M()>130)'            
 print "rdfname: %s\n tname: %s\n binning: %s\n plotvar: %s\n cut: %s\n"%(rdfname, tname, binning, plotvar, cut)
-#rdhist = makeTH1(rdfname, tname, 'data', binning, plotvar, tcut+'&&(Dilep.M()<120||Dilep.M()>130)')
 rdhist = makeTH1(rdfname, tname, 'data', binning, plotvar, cut)
 nbins = rdhist.GetNbinsX()
-rdhist.SetMinimum(minp)  
-rdhist.SetMaximum(maxp)
+if dolog == True: 
+   minp = 0.005
+   maxp = 1000000000
+   if "FL" in f_name:
+      maxp = 100
+      minp = 0.0005
+   if "FH" in f_name:
+      maxp = 1000000000
+      minp = 0.005
+   if "XL" in f_name:
+      maxp = 1000000
+      minp = 0.005
+   rdhist.SetMinimum(minp)  
+   rdhist.SetMaximum(maxp)
 
 ### Error Band ###
 errorBand = copy.deepcopy(rdhist)
@@ -306,7 +330,7 @@ sysErrRatio.Draw("e2same")
 ratioPad.GetPrimitive("hratio").Draw("esame")
 canv.Update()
 
-canv.SaveAs(f_name+".png")            
+canv.SaveAs("./KPS/"+f_name+".png")            
 """
 print "="*50
 print rfname

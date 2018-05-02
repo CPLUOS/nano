@@ -8,38 +8,64 @@ from math import ceil
 
 analysis = sys.argv[1]
 
-mcFiles_h2mumu = [#'ttH',
-#                  "WWTo2L2Nu", "WZTo3LNu_amcatnlo", "WZTo2LQQ", "ZZTo2L2Nu", "ZZTo2L2Q",
-#                  "TTZToLLNuNu", "ZZTo4L_powheg", "ttWToLNu",
-#                  "WWW", "WWZ", "WZZ", "ZZZ",
-                  "ZZ", "WZ", "WW"
-]
+mcFiles_h2mumu = [
+#                "GG_HToMuMu",
+#                 "VBF_HToMuMu",
+#                "WPlusH_HToMuMu",
+#                "WMinusH_HToMuMu",
+#                "ZH_HToMuMu",
+               'ttH',
+#           #  "WWTo2L2Nu",
+#                 "WZTo3LNu_amcatnlo",
+#           #  "WZTo2LQQ", 
+#           #  "ZZTo2L2Nu", 
+#           #  "ZZTo2L2Q",
+#           #  "TTZToLLNuNu",
+#                 "ZZTo2L2Q",  
+#                 "ZZTo4L_powheg",
+#                 "WWW",
+#                 "WWZ",
+#                 "WZZ",
+#                 "ZZZ",
+#    #           "ZZ",
+#    #           "WZ",
+#                 "WW",
+#                 "WJets",
+#                "SingleTop_tW",
+#               "SingleTbar_tW",
+#                 "TTJets_aMC",
+#                 "TTJets_DiLept_MG",
+#                 "TTJets_DiLept",
+#                 "TTWJetsToLNu",
+#                 "TTZToLLNuNu",
+#                 "DYJets",
+             ]
 mcFiles_topmass = ["TTJets_DiLept", "TTJets_DiLept_Tune4", 'TTJets_aMC', 
                    "SingleTop_tW", "SingleTbar_tW",
                    'DYJets', 'DYJets_MG_10to50',
                    'DYJets_MG2', 'DYJets_2J', 'DYJets_1J', 'DYJets_0J', 'DYJets_10to50']
-dataFiles = [#'SingleMuon_Run2016', 'SingleEG_Run2016',
-             #'DoubleMuon_Run2016', 'DoubleEG_Run2016'
-	     ]
+dataFiles = ['SingleMuon_Run2016', 'SingleEG_Run2016',
+             'DoubleMuon_Run2016', 'DoubleEG_Run2016']
+dataFilesH = ['SingleMuon_Run2016']
 dataFiles = [data+period for period in ["B","Bv2","C","D","E","F","G","H"] for data in dataFiles]
 dataFilesH = [data+period for period in [
-#                                         "B",
-#                                         "Bv1",
-#                                         "C",
-#                                         "D",
-#                                         "E",
-#                                         "F",
-#                                         "G",
-#                                         "H"
+                                         "B",
+                                         "Bv1",
+                                         "C",
+                                         "D",
+                                         "E",
+                                         "F",
+                                         "G",
+                                         "H"
                               ] for data in dataFilesH]
 if   analysis == 'TTH' : RunFiles = mcFiles_h2mumu  + dataFilesH; analyser = "nanoAnalysis";
-elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalysis";
+##elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalysis";
 elif analysis == 'Vts'    : RunFiles = []; analyser = "vtsAnalysis";
 else: print "put right name of analysis (TTH/topMass/vts)"
 #RunFiles = ['WW'] # for test
 
 maxFiles = 10
-SetDir = "test"
+SetDir = sys.argv[2]
 datadir = '{}/src/nano/analysis/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
 
 for datasetName in RunFiles:
