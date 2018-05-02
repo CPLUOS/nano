@@ -35,7 +35,7 @@ int TMVAClassification( TString myMethodList = "" )
 
    // Cut optimisation
    Use["Cuts"]            = 0;
-   Use["CutsD"]           = 1;
+   Use["CutsD"]           = 0;
    Use["CutsPCA"]         = 0;
    Use["CutsGA"]          = 0;
    Use["CutsSA"]          = 0;
@@ -137,8 +137,8 @@ int TMVAClassification( TString myMethodList = "" )
 
    // Register the training and test trees
 
-   TTree *signalTree     = (TTree*)input->Get("TreeS0");
-   TTree *background     = (TTree*)input->Get("TreeB0");
+   TTree *signalTree     = (TTree*)input->Get("Jpsisig");
+   TTree *background     = (TTree*)input->Get("Jpsibkg");
 
    // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
    TString outfileName( "TMVA.root" );
@@ -169,8 +169,10 @@ int TMVAClassification( TString myMethodList = "" )
    // [all types of expressions that can also be parsed by TTree::Draw( "expression" )]
    
    dataloader->AddVariable( "cme_lxy", 'F' );
+   dataloader->AddVariable( "cme_lxyE", 'F' );
    //dataloader->AddVariable( "cme_lxySig", 'F' );
    dataloader->AddVariable( "cme_l3D", 'F' );
+   dataloader->AddVariable( "cme_l3DE", 'F' );
    //dataloader->AddVariable( "cme_l3DSig", 'F' );
    dataloader->AddVariable( "cme_jetDR", 'F' );
    dataloader->AddVariable( "cme_legDR", 'F' );
@@ -178,16 +180,33 @@ int TMVAClassification( TString myMethodList = "" )
    dataloader->AddVariable( "cme_dca", 'F' );
    dataloader->AddVariable( "cme_angleXY", 'F' );
    dataloader->AddVariable( "cme_angleXYZ", 'F' );
-   dataloader->AddVariable( "cme_trk_normalizedChi2", 'F' );
-   dataloader->AddVariable( "cme_trk_pt", 'F' );
-   dataloader->AddVariable( "cme_trk_ipsigXY", 'F' );
-   dataloader->AddVariable( "cme_trk_ipsigZ", 'F' );
-   dataloader->AddVariable( "cme_trk_nHits", 'I' );
    dataloader->AddVariable( "cme_x", 'F' );
    dataloader->AddVariable( "cme_y", 'F' );
    dataloader->AddVariable( "cme_z", 'F' );
    dataloader->AddVariable( "cme_pt", 'F' );
    dataloader->AddVariable( "cme_chi2", 'F' );
+   dataloader->AddVariable( "cme_eta", 'F' );
+   dataloader->AddVariable( "cme_phi", 'F' );
+   
+   dataloader->AddVariable( "cme_jet_btagCMVA", 'F' );
+   dataloader->AddVariable( "cme_jet_btagCSVV2", 'F' );
+   dataloader->AddVariable( "cme_jet_btagDeepB", 'F' );
+   dataloader->AddVariable( "cme_jet_btagDeepC", 'F' );
+   dataloader->AddVariable( "cme_dau1_chi2", 'F' );
+   dataloader->AddVariable( "cme_dau1_ipsigXY", 'F' );
+   dataloader->AddVariable( "cme_dau1_ipsigZ", 'F' );
+   dataloader->AddVariable( "cme_dau1_nHits", 'F' );
+   dataloader->AddVariable( "cme_dau1_pt", 'F' );
+   dataloader->AddVariable( "cme_dau2_chi2", 'F' );
+   dataloader->AddVariable( "cme_dau2_ipsigXY", 'F' );
+   dataloader->AddVariable( "cme_dau2_ipsigZ", 'F' );
+   dataloader->AddVariable( "cme_dau2_nHits", 'F' );
+   dataloader->AddVariable( "cme_dau2_pt", 'F' );
+
+   dataloader->AddSpectator( "cme_mass", 'F' );
+   // dataloader->AddSpectator( "cme_diffMass", 'F' );
+   
+   
    // dataloader->AddVariable( "cme_ndof", 'I' );
    
    // dataloader->AddVariable( "cme_lx := cme_dca/cme_lxy", 'F' );
@@ -252,8 +271,8 @@ int TMVAClassification( TString myMethodList = "" )
    //dataloader->SetBackgroundWeightExpression( "weight" );
 
    // Apply additional cuts on the signal and background samples (can be different)
-   TCut mycuts = "cme_pdgId==421"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
-   TCut mycutb = "cme_pdgId==421"; // for example: TCut mycutb = "abs(var1)<0.5";
+   TCut mycuts = ""; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   TCut mycutb = ""; // for example: TCut mycutb = "abs(var1)<0.5";
 
    // Tell the dataloader how to use the training and testing events
    //
@@ -267,7 +286,7 @@ int TMVAClassification( TString myMethodList = "" )
    //    dataloader->PrepareTrainingAndTestTree( mycut,
    //         "NSigTrain=3000:NBkgTrain=3000:NSigTest=3000:NBkgTest=3000:SplitMode=Random:!V" );
    dataloader->PrepareTrainingAndTestTree( mycuts, mycutb,
-                                       "nTrain_Signal=4000:nTrain_Background=4000:nTest_Signal=4000:nTest_Background=4000:SplitMode=Random:NormMode=NumEvents:!V" );
+                                       "nTrain_Signal=100:nTrain_Background=30:SplitMode=Random:NormMode=NumEvents:!V" );
 
    // ### Book MVA methods
    //
@@ -283,7 +302,7 @@ int TMVAClassification( TString myMethodList = "" )
 
    if (Use["CutsD"])
       factory->BookMethod( dataloader, TMVA::Types::kCuts, "CutsD",
-                           "!H:!V:FitMethod=MC:EffSel:SampleSize=200000:VarProp=FSmart:VarTransform=Decorrelate" );
+                           "!H:!V:FitMethod=MC:EffSel:SampleSize=4000:VarProp=FSmart:VarTransform=Decorrelate" );
 
    if (Use["CutsPCA"])
       factory->BookMethod( dataloader, TMVA::Types::kCuts, "CutsPCA",

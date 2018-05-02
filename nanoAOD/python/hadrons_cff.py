@@ -6,8 +6,6 @@ hadTable = cms.EDProducer("HadronProducer",
   jetLabel = cms.InputTag("slimmedJets"),
   vertexLabel = cms.InputTag("offlineSlimmedPrimaryVertices"),
   pfCandLabel = cms.InputTag("packedPFCandidates"),
-  applySoftLeptonCut = cms.bool(True),
-  doFullMCMatching = cms.bool(False),
   # -- cuts on initial track collection --
   # Track normalized Chi2 <
   tkChi2Cut = cms.double(100),
@@ -23,17 +21,17 @@ hadTable = cms.EDProducer("HadronProducer",
   # Vertex chi2 <
   vtxChi2Cut = cms.double(10),
   # XY decay distance significance >
-  vtxDecaySigXYCut = cms.double(-1),
+  vtxDecaySigXYCut = cms.double(1),
   # XYZ decay distance significance >
-  vtxDecaySigXYZCut = cms.double(-1.),
+  vtxDecaySigXYZCut = cms.double(-1),
   
   # -- miscellaneous cuts --
   # POCA distance between tracks <
-  tkDCACut = cms.double(100),
+  tkDCACut = cms.double(2),
   # cos(angleXY) between x and p of V0 candidate >
-  cosThetaXYCut = cms.double(100),
+  cosThetaXYCut = cms.double(-2),
   # cos(angleXYZ) between x and p of V0 candidate >
-  cosThetaXYZCut = cms.double(100),
+  cosThetaXYZCut = cms.double(-2),
 )
 
 hadCandidateTable =  cms.EDProducer("SimpleCandidateFlatTableProducer",

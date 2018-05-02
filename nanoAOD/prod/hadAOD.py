@@ -28,7 +28,8 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("PoolSource",
 #fileNames = cms.untracked.vstring('/store/user/jlee/tsW_13TeV_PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v4_reco/reco_234.root'),
-fileNames = cms.untracked.vstring('file:/cms/ldap_home/jlee/run2Prod/src/reco.root'),
+fileNames = cms.untracked.vstring('/store/user/jlee/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RECO/reco_052.root'),
+#fileNames = cms.untracked.vstring('file:/cms/ldap_home/jlee/run2Prod/src/reco.root'),
 secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -70,6 +71,18 @@ process.hadTable.jetLabel = cms.InputTag("patJets")
 process.hadTable.vertexLabel = cms.InputTag("offlinePrimaryVertices")
 process.hadTable.pfCandLabel = cms.InputTag("particleFlow")
 
+process.pvTable =  cms.EDProducer("VertexTableProducer",
+    pvSrc = cms.InputTag("offlinePrimaryVertices"),
+    goodPvCut = cms.string("!isFake && ndof > 4 && abs(z) <= 24 && position.Rho <= 2"),
+    svSrc = cms.InputTag("inclusiveCandidateSecondaryVertices"),
+    svCut = cms.string(""),
+    dlenMin = cms.double(0),
+    dlenSigMin = cms.double(3),
+    pvName = cms.string("PV"),
+    svName = cms.string("SV"),
+    svDoc  = cms.string("secondary vertices from IVF algorithm"),
+)
+
 process.load("Validation.RecoTrack.TrackValidation_cff")
 #process.load('SimTracker.TrackerHitAssociation.tpClusterProducer_cfi')
 #process.load('SimTracker.TrackAssociatorProducers.quickTrackAssociatorByHits_cfi')
@@ -80,7 +93,9 @@ process.p = cms.Path(process.makePatJets+process.hadTables+process.genParticleTa
                          +process.mix+process.tracksValidationTruth
                          #+process.tpClusterProducer+process.quickTrackAssociatorByHits
                          #+process.trackingParticleRecoTrackAsssociation
-                         +process.hadTruthTables)
+                         +process.hadTruthTables
+	                 +process.pvTable
+		    )
 
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
