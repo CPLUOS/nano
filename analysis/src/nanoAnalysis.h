@@ -140,6 +140,24 @@ private:
   //std::vector<TLorentzVector> recoleps[recolep1_tlv,recolep2_tlv];
   //std::vector<TLorentzVector> recoleps(2);
 
+  struct HadStat {
+    int idx = -1;
+    int pdgId = -99;
+    float x = -1;
+    float dr = -1;
+    int label = -99;
+    int jetIdx = -99;
+    bool isHadJetMatched = false;
+  };
+
+  struct JetStat {
+    int idx = -1;
+    float dr = -1;
+    int matchedQuark = -99;
+  };
+
+  int b_chk = 0;
+
   int b_channel;
   int b_njet;
   float b_met;
@@ -148,7 +166,8 @@ private:
 
   TLorentzVector b_had_tlv;
   int b_isFrom_had;
-  float b_d_had, b_x_had;
+  bool b_isHadJetMatched_had;
+  float b_d_had, b_x_had, b_dr_had;
   float b_lxy_had, b_lxySig_had, b_angleXY_had, b_angleXYZ_had, b_chi2_had, b_dca_had;
   float b_pt_had, b_eta_had, b_l3D_had, b_l3DSig_had, b_legDR_had, b_mass_had; 
   int b_pdgId_had; 
@@ -162,7 +181,7 @@ private:
   std::map<unsigned int, int> qjMapForMC_;
   std::vector<int> qMC_;
   std::vector<int> genJet_;           
-  std::vector<int> recoJet_;
+  std::vector<struct JetStat> recoJet_;
 
   //functions
   void EventSelection();
@@ -170,6 +189,8 @@ private:
 
   void MatchingForMC();
   void HadronAnalysis();
+
+  void JetAnalysis();
 
   TParticle GetTParticle(int pdgId, int idx);
 
@@ -180,14 +201,6 @@ private:
   std::vector<TParticle> muonSelection();
   std::vector<TParticle> elecSelection();
   std::vector<TParticle> jetSelection();
-
-  struct HadStat {
-    int idx = -1;
-    int pdgId = -99;
-    float x = -1;
-    int label = -9;
-    int jetIdx = -99;
-  };
 
 public:
   Bool_t isMC_ = false;

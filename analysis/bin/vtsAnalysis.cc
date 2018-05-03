@@ -85,6 +85,8 @@ void vtsAnalysis::Loop() {
     fChain->GetEntry(entry);
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
 
+//    std::cout << iev << " th event" << std::endl;
+
     ResetBranch();
     EventSelection();
     MatchingForMC();
@@ -108,8 +110,10 @@ void vtsAnalysis::MakeTree(std::string outFileName) {
 
   outTree->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
   outTree->Branch("isFrom_had", &b_isFrom_had, "isFrom_had/I");
+  outTree->Branch("isHadJetMatched_had", &b_isHadJetMatched_had, "isHadJetMatched_had/O");
   outTree->Branch("d_had", &b_d_had , "d_had/F" );
   outTree->Branch("x_had", &b_x_had, "x_had/F");
+  outTree->Branch("dr_had", &b_dr_had, "dr_had/F"); // distance between hadron and jet-center
   outTree->Branch("lxy_had", &b_lxy_had, "lxy_had/F");
   outTree->Branch("lxySig_had", &b_lxySig_had, "lxySig_had/F");
   outTree->Branch("angleXY_had", &b_angleXY_had, "angleXY_had/F");
@@ -149,14 +153,17 @@ void vtsAnalysis::MakeTree(std::string outFileName) {
 }
 
 void vtsAnalysis::ResetBranch() {
+  isMC_ = false;
+
   b_channel = -9; b_njet = -9;
   b_met = -99;
   b_dilep_tlv.SetPtEtaPhiM(0,0,0,0);
   recoleps.clear();
 
   b_had_tlv.SetPtEtaPhiM(0,0,0,0);
-  b_isFrom_had = -9;
-  b_d_had = -1; b_x_had = -1;
+  b_isFrom_had = -99;
+  b_isHadJetMatched_had = false;
+  b_d_had = -1; b_x_had = -1; b_dr_had = -1;
   b_lxy_had = -1; b_lxySig_had = -1; b_angleXY_had = -1; b_angleXYZ_had = -1; b_chi2_had = -1; b_dca_had = -1;
   b_pt_had = -1; b_eta_had = -99; b_l3D_had = -1; b_l3DSig_had = -1; b_legDR_had = -1; b_mass_had = -99; b_pdgId_had = -99;
   b_dau1_chi2_had = -1; b_dau1_ipsigXY_had = -1; b_dau1_ipsigZ_had = -1; b_dau1_pt_had = -1;
@@ -256,82 +263,89 @@ vector<TParticle> vtsAnalysis::jetSelection() {
 }
 
 void vtsAnalysis::MatchingForMC() {
-  //Find s/b quark from Gen Info.  
+  isMC_ = true;
+  //Find s quark from Gen Info.  
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 3) {
       qMC_.push_back(i);
     }
-    if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 5) {
-      qMC_.push_back(i);
-    }
   }
-  if (qMC_.size() != 2) return;//(std::find(qMC_.begin(), qMC_.end(), -1) != qMC_.end()) return;
+  if (qMC_.size() == 0) {
+    ++b_chk;
+    return;
+  }
 
   auto q1 = qMC_[0];
-  auto q2 = qMC_[1];
   TLorentzVector q1_tlv; 
   q1_tlv.SetPtEtaPhiM(GenPart_pt[q1], GenPart_eta[q1], GenPart_phi[q1], GenPart_mass[q1]);
-  TLorentzVector q2_tlv; 
-  q2_tlv.SetPtEtaPhiM(GenPart_pt[q2], GenPart_eta[q2], GenPart_phi[q2], GenPart_mass[q2]);
 
-/*
-  //Gen Particle & Gen Jet matching
-  for (unsigned int j=0; j<nGenJet; ++j) {
-    TLorentzVector gjet_tlv;
-    gjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
-    if (q1_tlv.DeltaR(gjet_tlv) < 0.3) { 
-      if (abs(GenJet_partonFlavour[j] == 3) genJet_.push_back(j);
-      if (abs(GenJet_partonFlavour[j] == 5) genJet_.push_back(j);
-    }
-    else if (q2_tlv.DeltaR(gjet_tlv) < 0.3) {
-      if (abs(GenJet_partonFlavour[j] == 3) genJet_.push_back(j);
-      if (abs(GenJet_partonFlavour[j] == 5) genJet_.push_back(j);
-    }
+  unsigned int q2;
+  TLorentzVector q2_tlv; 
+  if (qMC_.size() == 2) {
+    q2 = qMC_[1];
+    q2_tlv.SetPtEtaPhiM(GenPart_pt[q2], GenPart_eta[q2], GenPart_phi[q2], GenPart_mass[q2]);
   }
-  if (genJet_.size() == 0) return;
-*/
 
   //Gen Particle & Reco Jet matching
   for (unsigned int j=0; j<nJet;++j) {
+    struct JetStat Stat;
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
+
     if (q1_tlv.DeltaR(jet_tlv) < 0.3) {
-      recoJet_.push_back(j);
       qjMapForMC_.insert({j, GenPart_pdgId[q1]});
+      Stat.idx = j;
+      Stat.dr = q1_tlv.DeltaR(jet_tlv);
+      Stat.matchedQuark = qjMapForMC_[j];
+      recoJet_.push_back(Stat);
     }
-    else if (q2_tlv.DeltaR(jet_tlv) < 0.3) {
-      recoJet_.push_back(j);
-      qjMapForMC_.insert({j, GenPart_pdgId[q2]});
+    else {
+      if (qMC_.size() == 1) qjMapForMC_.insert({j, -9});
+      else if (qMC_.size() == 2) {
+        if (q2_tlv.DeltaR(jet_tlv) < 0.3) {
+          qjMapForMC_.insert({j, GenPart_pdgId[q2]});
+          Stat.idx = j;
+          Stat.dr = q2_tlv.DeltaR(jet_tlv);
+          Stat.matchedQuark = qjMapForMC_[j];
+          recoJet_.push_back(Stat);
+        }
+        else qjMapForMC_.insert({j, -9});
+      }
     }
   }
+
   if (recoJet_.size() == 0) return;
-
-//  if (qMC_.size() != 2) std::cout << "qMC_ : " << qMC_.size() << " , idx : [ " << qMC_[0] << " , " << qMC_[1] << " ] " << std::endl;
-//  if (recoJet_.size() != 2)std::cout << "reoJet_ : " << recoJet_.size() << " , idx : [ " << recoJet_[0] << " , " << recoJet_[1] << " ] " << std::endl;
-
-  isMC_ = true;
+  else if (recoJet_.size() > 1) {
+    if ( recoJet_[0].matchedQuark == recoJet_[1].matchedQuark ) {
+      sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) {return a.dr < b.dr;}); // pick the closest matched recojet
+      qjMapForMC_[recoJet_[1].idx] = -9;
+    }
+  }
 }
 
 void vtsAnalysis::HadronAnalysis() {
   std::vector<std::vector<struct HadStat>> JetCollection;
-  std::vector<struct HadStat> HadInJet;
+  std::vector<struct HadStat> Had;
   struct HadStat Stat;
-  unsigned int njets;
-  if (isMC_) njets = recoJet_.size();
-  else njets = nJet;
   //Reco Jet & Reco KS matching 
-  for (unsigned int j=0; j<njets; ++j){
-    HadInJet.clear();
-    if(isMC_) j = recoJet_[j];
+  for (unsigned int j=0; j<nJet; ++j){
+    Had.clear();
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]); 
     for (unsigned int k=0; k<nhad; ++k) {
-      if (abs(had_pdgId[k]) != 310) continue;// && abs(had_pdgId[k]) != 3122) continue;
-//      if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
-//      if ( had_angleXY[k] < 0.95 ) continue;
-//      if ( had_chi2[k] > 5 ) continue;
-//      if ( had_dca[k] > 2 ) continue;
-      //if ( !((had_lxy[k]/had_lxyErr[k]) > 15 && had_angleXY[k] > 0.98 && had_chi2[k] < 3 && had_dca[k] < 1) ) continue; // tight KS cut
+      if (abs(had_pdgId[k]) == 310) {
+        if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
+        if ( had_angleXY[k] < 0.98 ) continue;
+        if ( had_chi2[k] > 3 ) continue;
+        if ( had_dca[k] > 1 ) continue;
+      }
+      else if (abs(had_pdgId[k]) == 3122) {
+        if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
+        if ( had_angleXY[k] < 0.98 ) continue;
+        if ( had_chi2[k] > 3 ) continue;
+        if ( had_dca[k] > 1 ) continue;
+      }
+      else continue;
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
       if (jet_tlv.DeltaR(had_tlv) < 0.3 && (had_pt[k]/Jet_pt[j]) > 0.15) {
@@ -339,13 +353,15 @@ void vtsAnalysis::HadronAnalysis() {
         Stat.pdgId = had_pdgId[k];
         Stat.x = had_pt[k]/Jet_pt[j];
         if (isMC_) Stat.label = qjMapForMC_[j];
+        Stat.isHadJetMatched = true;
+        Stat.dr = jet_tlv.DeltaR(had_tlv);
         Stat.jetIdx = j;
-        HadInJet.push_back(Stat);
+        Had.push_back(Stat);
       }
     }
-    if (HadInJet.size() != 0 ) {
-      if (HadInJet.size() > 1) sort(HadInJet.begin(), HadInJet.end(), [](struct HadStat a, struct HadStat b) {return a.x > b.x;}); // pick hadron with highest x in the jet
-      JetCollection.push_back(HadInJet);
+    if (Had.size() != 0 ) {
+      if (Had.size() > 1) sort(Had.begin(), Had.end(), [](struct HadStat a, struct HadStat b) {return a.x > b.x;}); // pick hadron with highest x in the jet
+      JetCollection.push_back(Had);
     }
   }
   if (JetCollection.size() != 0 ) {
@@ -355,7 +371,9 @@ void vtsAnalysis::HadronAnalysis() {
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
     b_x_had = JetCollection[0][0].x;
-    b_isFrom_had = JetCollection[0][0].label;
+    b_isFrom_had = JetCollection[0][0].label;  // -99 : there is no matching between had and jet, -9 : there is t->s in the event,but not matched to jet, 0 : there is no t->s in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->s
+    b_isHadJetMatched_had = JetCollection[0][0].isHadJetMatched;
+    b_dr_had = JetCollection[0][0].dr;
     b_d_had = GetD(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx], had_x[idx], had_y[idx], had_z[idx]);
     b_lxy_had = had_lxy[idx];
     b_lxySig_had = had_lxy[idx]/had_lxyErr[idx];
@@ -389,5 +407,11 @@ void vtsAnalysis::HadronAnalysis() {
     b_nElectrons_Jet = Jet_nElectrons[jidx];
     b_nMuons_Jet = Jet_nMuons[jidx];
   }
+/*
+  std::cout <<" b_chk : " << b_chk << std::endl;
+  std::cout <<"JetCol : " << JetCollection.size() << std::endl;
+  std::cout <<"isFrom : " << b_isFrom_had << std::endl;
+  std::cout <<"isMatc : " << b_isHadJetMatched_had << std::endl;
+*/
 }
 
