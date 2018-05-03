@@ -462,10 +462,10 @@ bool nanoAnalysis::Analysis()
   b_mueffweight_dn = m_muonSF.getScaleFactor(mu1, 13, -1)*m_muonSF.getScaleFactor(mu2, 13, -1);
 
   b_Event_No = 1;
-//  b_MVA_BDTXL = bdt_XL->EvaluateMVA("BDT");
-//  b_MVA_BDTFH = bdt_FH->EvaluateMVA("BDT");
-//  b_MVA_BDTnoB = bdt_noB->EvaluateMVA("BDT");
-//  b_MVA_BDTOut = bdt_Out->EvaluateMVA("BDT");
+  b_MVA_BDTXL = bdt_XL->EvaluateMVA("BDT");
+  b_MVA_BDTFH = bdt_FH->EvaluateMVA("BDT");
+  b_MVA_BDTnoB = bdt_noB->EvaluateMVA("BDT");
+  b_MVA_BDTOut = bdt_Out->EvaluateMVA("BDT");
 
   return true;
 }
