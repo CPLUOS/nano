@@ -12,22 +12,24 @@ def customiseMuons(process):
 
     return(process)
     
-def customise(process):
+def customise(process, doHadron=True):
     customiseMuons(process)
     
     process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
-    process.load('nano.nanoAOD.hadrons_cff')
-    process.nanoAOD_step += process.hadTables
+    if doHadron:
+        process.load('nano.nanoAOD.hadrons_cff')
+        process.nanoAOD_step += process.hadTables
 
-    process.load('nano.nanoAOD.v0_cff')
-    process.nanoAOD_step += process.v0GenParticles + process.v0Tables
-    from Configuration.Eras.Modifier_run2_miniAOD_80XLegacy_cff import run2_miniAOD_80XLegacy
-    run2_miniAOD_80XLegacy.toReplaceWith(process.nanoAOD_step, process.nanoAOD_step.copyAndExclude([process.v0GenParticles,process.v0Tables]))
+        process.load('nano.nanoAOD.v0_cff')
+        process.nanoAOD_step += process.v0GenParticles + process.v0Tables
+        
+        from Configuration.Eras.Modifier_run2_miniAOD_80XLegacy_cff import run2_miniAOD_80XLegacy
+        run2_miniAOD_80XLegacy.toReplaceWith(process.nanoAOD_step, process.nanoAOD_step.copyAndExclude([process.v0GenParticles,process.v0Tables]))
 
     process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
     process.MessageLogger.cerr.FwkSummary.reportEvery = cms.untracked.int32(1000)
-    fileName = cms.untracked.string('nanoAOD.root')
 
+    fileName = cms.untracked.string('nanoAOD.root')
     if hasattr(process, 'NANOAODSIMoutput'):          
         process.NANOAODSIMoutput.fileName = fileName
     else:
