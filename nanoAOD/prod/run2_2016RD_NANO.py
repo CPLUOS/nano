@@ -82,7 +82,11 @@ process = nanoAOD_customizeData(process)
 from nano.nanoAOD.nano_cff import customise 
 
 #call to customisation function customise imported from nano.nanoAOD.nano_cff
-process = customise(process)
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing ('python')
+options.register('doHadron', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "doHadron: 1  default")
+options.parseArguments()
+process = customise(process, options.doHadron)
 
 # End of customisation functions
 
