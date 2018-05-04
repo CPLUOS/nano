@@ -86,15 +86,23 @@ for d in datasets:
     config.General.requestName = dataRequestName
     config.Data.outputDatasetTag = outputDatasetTag
     config.JobType.pyCfgParams = ['doHadron=%s'%(doHadron)]
+
+    if os.path.exists('crab_'+dataRequestName):
+        continue
         
-    print config
+    print config,
     if submit:
         print 'submitting!'
-        crabCommand('submit', config = config)        
+        try:
+            crabCommand('submit', config = config)
+        except:
+            print 'already done'
         #from multiprocessing import Process
         #p = Process(target=submit, args=(config,))
         #p.start()
         #p.join()
+        time.sleep(10)
+
     print '^'*80
 
 
