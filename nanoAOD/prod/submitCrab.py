@@ -59,6 +59,8 @@ for d in datasets:
     dataset = d['DataSetName']
     if len( dataset ) == 0: continue
 
+    if d['path']: continue
+    
     doHadron = d['doHadron']
         
     isMC = True
