@@ -12,7 +12,7 @@ def customiseMuons(process):
 
     return(process)
     
-def customise(process, doHadron=True):
+def customise(process, doHadron=True, fastSim=False):
     customiseMuons(process)
     
     process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
@@ -26,6 +26,10 @@ def customise(process, doHadron=True):
         from Configuration.Eras.Modifier_run2_miniAOD_80XLegacy_cff import run2_miniAOD_80XLegacy
         run2_miniAOD_80XLegacy.toReplaceWith(process.nanoAOD_step, process.nanoAOD_step.copyAndExclude([process.v0GenParticles,process.v0Tables]))
 
+    if fastSim:
+        process.nanoAOD_step.remove(process.triggerObjectTable)
+        process.nanoAOD_step.remove(process.l1bits)
+    
     process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
     process.MessageLogger.cerr.FwkSummary.reportEvery = cms.untracked.int32(1000)
 
