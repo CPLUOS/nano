@@ -1,5 +1,5 @@
 #define Events_cxx
-#include "nano/analysis/src/Events.h"
+#include "nano/analysis/src/Events_2016v3.h"
 
 #include <TH1D.h>
 #include <TLorentzVector.h>
@@ -21,7 +21,7 @@
 #include "TMVA/MethodCuts.h"
 
 
-void Events::Loop(){}
+//void Events::Loop(){}
 
 void makeEventsClass(const char* filedir){
   TFile *f = TFile::Open(filedir);
@@ -141,95 +141,6 @@ public:
 
 nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC)
 {
-  // TMVA Booking //
-  weightXL = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/split/XL_50/weights/TMVAClassification_BDT.weights.xml";
-  weightFH = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/split/nFH4_50/weights/TMVAClassification_BDT.weights.xml";
-  weightOut = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/split/Out_100/weights/TMVAClassification_BDT.weights.xml";
-  weightnoB = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/nonB_120/weights/TMVAClassification_BDT.weights.xml";
-
-  bdt_XL = new TMVA::Reader();
-  bdt_XL->AddVariable( "Met", &b_Met );
-  bdt_XL->AddVariable( "all_muEtaDiff", &b_all_muEtaDiff );
-  bdt_XL->AddVariable( "all_muPtDiff", &b_all_muPhiDiff );
-  bdt_XL->AddVariable( "all_muPhiDiff", &b_all_muPhiDiff );
-  bdt_XL->AddVariable( "all_muDR", &b_all_muDR );
-  bdt_XL->AddVariable( "all_Dilep_Pt", &b_all_Dilep_Pt );
-  bdt_XL->AddVariable( "all_Dilep_Eta", &b_all_Dilep_Eta );
-  bdt_XL->AddVariable( "nelec", &b_nelec );
-  bdt_XL->AddVariable( "nmuon", &b_nmuon );
-  bdt_XL->AddVariable( "nnonbjet", &b_nnonbjet );
-  bdt_XL->AddVariable( "nbjet", &b_nbjet );
-  bdt_XL->AddVariable( "Central_Jets", &b_Central_Jets );
-  bdt_XL->AddVariable( "Forward_Jets", &b_Forward_Jets );
-  bdt_XL->AddVariable( "minDR", &b_minDR );
-  bdt_XL->AddVariable( "XlepPt", &b_XlepPt );
-  bdt_XL->AddVariable( "mT2", &b_mT2 );
-  bdt_XL->AddVariable( "mT", &b_mT );
-  bdt_XL->AddVariable( "DiJetM12", &b_DiJetM12 );
-  bdt_XL->BookMVA("BDT", weightXL); 
-  
-  bdt_FH = new TMVA::Reader();
-  bdt_FH->AddVariable( "Met", &b_Met );
-  bdt_FH->AddVariable( "all_muEtaDiff", &b_all_muEtaDiff );
-  bdt_FH->AddVariable( "all_muPtDiff", &b_all_muPhiDiff );
-  bdt_FH->AddVariable( "all_muPhiDiff", &b_all_muPhiDiff );
-  bdt_FH->AddVariable( "all_muDR", &b_all_muDR );
-  bdt_FH->AddVariable( "all_Dilep_Pt", &b_all_Dilep_Pt );
-  bdt_FH->AddVariable( "all_Dilep_Eta", &b_all_Dilep_Eta );
-  bdt_FH->AddVariable( "nnonbjet", &b_nnonbjet );
-  bdt_FH->AddVariable( "nbjet", &b_nbjet );
-  bdt_FH->AddVariable( "Central_Jets", &b_Central_Jets );
-  bdt_FH->AddVariable( "Forward_Jets", &b_Forward_Jets );
-  bdt_FH->AddVariable( "minDR1", &b_minDR1 );
-  bdt_FH->AddVariable( "minDR2", &b_minDR2 );
-  bdt_FH->AddVariable( "mT2", &b_mT2 );
-  bdt_FH->AddVariable( "mT", &b_mT );
-  bdt_FH->AddVariable( "DiJetM12", &b_DiJetM12 );
-  bdt_FH->AddVariable( "DiJetM13", &b_DiJetM13 );
-  bdt_FH->AddVariable( "DiJetM14", &b_DiJetM14 );
-  bdt_FH->AddVariable( "DiJetM23", &b_DiJetM23 );
-  bdt_FH->AddVariable( "DiJetM24", &b_DiJetM24 );
-  bdt_FH->AddVariable( "DiJetM34", &b_DiJetM34 );
-  bdt_FH->BookMVA("BDT", weightFH); 
-  
-  bdt_Out = new TMVA::Reader();
-  bdt_Out->AddVariable( "Met", &b_Met );
-  bdt_Out->AddVariable( "all_muEtaDiff", &b_all_muEtaDiff );
-  bdt_Out->AddVariable( "all_muPtDiff", &b_all_muPhiDiff );
-  bdt_Out->AddVariable( "all_muPhiDiff", &b_all_muPhiDiff );
-  bdt_Out->AddVariable( "all_muDR", &b_all_muDR );
-  bdt_Out->AddVariable( "all_Dilep_Pt", &b_all_Dilep_Pt );
-  bdt_Out->AddVariable( "all_Dilep_Eta", &b_all_Dilep_Eta );
-  bdt_Out->AddVariable( "nnonbjet", &b_nnonbjet );
-  bdt_Out->AddVariable( "nbjet", &b_nbjet );
-  bdt_Out->AddVariable( "Central_Jets", &b_Central_Jets );
-  bdt_Out->AddVariable( "Forward_Jets", &b_Forward_Jets );
-  bdt_Out->AddVariable( "mT2", &b_mT2 );
-  bdt_Out->AddVariable( "mT", &b_mT );
-  bdt_Out->AddVariable( "DiJetM12", &b_DiJetM12 );
-  bdt_Out->BookMVA("BDT", weightOut);
-
-  bdt_noB = new TMVA::Reader();
-  bdt_noB->AddVariable( "Met", &b_Met );
-//  bdt_noB->AddVariable( "all_muEtaDiff", &b_all_muEtaDiff );
-//  bdt_noB->AddVariable( "all_muPtDiff", &b_all_muPhiDiff );
-//  bdt_noB->AddVariable( "all_muPhiDiff", &b_all_muPhiDiff );
-//  bdt_noB->AddVariable( "all_muDR", &b_all_muDR );
-  bdt_noB->AddVariable( "all_Dilep_Pt", &b_all_Dilep_Pt );
-  bdt_noB->AddVariable( "all_Dilep_Eta", &b_all_Dilep_Eta );
- // bdt_noB->AddVariable( "nelec", &b_nelec );
- // bdt_noB->AddVariable( "nexLep", &b_nexLep );
- // bdt_noB->AddVariable( "nmuon", &b_nmuon );
-  bdt_noB->AddVariable( "Central_Jets", &b_Central_Jets );
-  bdt_noB->AddVariable( "Forward_Jets", &b_Forward_Jets );
-  bdt_noB->AddVariable( "etaJ1", &b_etaJ1 );
-  bdt_noB->AddVariable( "etaJ2", &b_etaJ2 );
-  bdt_noB->AddVariable( "DijetM1", &b_DijetM1 );
-  bdt_noB->AddVariable( "DijetM2", &b_DijetM2 );
-  bdt_noB->AddVariable( "DijetEta1", &b_DijetEta1 );
-  bdt_noB->AddVariable( "DijetEta2", &b_DijetEta2 );
-  bdt_noB->BookMVA("BDT", weightnoB);
-
 }
 
 nanoAnalysis::~nanoAnalysis()
@@ -311,7 +222,7 @@ vtsAnalysis::vtsAnalysis(TTree *tree) : Events(tree)
 { }
 vtsAnalysis::~vtsAnalysis(){ }
 #endif
-
+/*
 #ifdef topAnalysis_cxx
 class topAnalysis : public Events {
 private: 
@@ -403,4 +314,4 @@ topAnalysis::~topAnalysis()
   m_output->Close();
 }
 #endif
-
+*/
