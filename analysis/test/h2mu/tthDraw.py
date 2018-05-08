@@ -4,7 +4,6 @@ from nano.analysis.histoHelper import *
 from ROOT import TLorentzVector
 #import DYestimation
 ROOT.gROOT.SetBatch(True)
-
 '''
 h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [200,0,200] -p ll_m -x 'mass [GeV]' &
@@ -92,26 +91,25 @@ rdfilelist = [
 
 datasets = json.load(open("%s/src/nano/analysis/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 #cut_step = "(step>=5)"
-#cut = 'lep1.Pt()>60&&lep2.Pt()>60&&dilep.M()>60&&step>=5'
-#cut = 'dilep.M()>60&&step>4&&filtered&&MVA_BDT>-0.0246'
-cut = 'Dilep.M()>=120&&Dilep.M()<=130&&nonB==1'
+#cut = 'Dilep.M()>=120&&Dilep.M()<=130&&nonB==1'
+cut = 'Dilep.M()>=60'
 #cut = 'filtered==1&&%s&&%s'%(cut_step,emu_pid)
 #cut = 'channel==2'
 print cut
 #weight = 'genweight*puweight*mueffweight*eleffweight*tri'
 #weight = 'weight*(mueffweight)'
 #weight = 'genweight*puweight'
-weight = 'weight*mueffweight*btagweight'
+weight = 'genweight*puweight*mueffweight*btagweight'
 #weight = 'weight'
 #plotvar = 'njet'
-plotvar = 'MVA_BDTnoB'
+plotvar = 'Dilep.M()'
 binning = [50, -0.3, 0.3]#[150, 50, 200]
 #binning = [50, 0, 1]#[150, 50, 200]
 #x_name = 'Invariant Mass[GeV]'
 x_name = 'mass'
 y_name = 'Events'
 dolog = True
-f_name = 'MVAFnon120'
+f_name = 'Dlep'
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:f:j:",["cut","weight","binning","plotvar","x_name","y_name","f_name","json_used","dolog"])
 except getopt.GetoptError:          
@@ -158,10 +156,14 @@ lumilist= [datalumi,300*1000,900*1000,3000*1000]
 sysNameList = ["mueffweight", "puweight"] 
 sysErr_up = []
 sysErr_dn = []
+staNameList = ["Lumi"]
+staErr = []
 
 for sysname in sysNameList:
    sysErr_up.append(defTH1(sysname+'_up', sysname+'_up', binning))
    sysErr_dn.append(defTH1(sysname+'_dn', sysname+'_dn', binning))
+for staname in staNameList:
+   staErr.append(defTH1(staname, staname, binning))
 
 sig = 0
 bg = 0
@@ -199,36 +201,22 @@ for imc,mcname in enumerate(mcfilelist):
       if "weight" in sysname:
          sysErr_up[i].Add(makeTH1(rfname, tname, title, binning, plotvar, tcut.replace(sysname,sysname+'_up'), scale))
          sysErr_dn[i].Add(makeTH1(rfname, tname, title, binning, plotvar, tcut.replace(sysname,sysname+'_dn'), scale))
-   
+    for i, staname in enumerate(staNameList):
+         newscale = scale + (((datalumi*0.025)*data["xsec"])/wentries)
+         staErr[i].Add(makeTH1(rfname, tname, title, binning, plotvar, tcut, newscale))
+
     mchist.SetFillColor(colour)
     mchist.SetLineColor(colour)
 
-    mchistList.append(mchist)
-
     remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
-    if "ttH" in mcname:
+    if any(a in mcname for a in ("ttH", "HToMuMu")):
       sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-      TTH = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-      print "TTH"
-    elif "WMinusH_HToMuMu" in mcname:
-      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-      print "WMinus"
-    elif "WPlusH_HToMuMu" in mcname:
-      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-      print "WPlus"
-    elif "ZH_HToMuMu" in mcname:
-      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-      print "ZH"
-    elif "VBF_HToMuMu" in mcname:
-      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-      print "VBF"
-    elif "GG_HToMuMu" in mcname:
-      sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-      print "GG"
     else: 
       bg += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
       cout += 1
       print mcname
+    if "ttH" in mcname:  
+      TTH = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
     if 'TTWJetsToLNu' in mcname:  
       TTW = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
     if 'TTZToLLNuNu' in mcname:
@@ -239,35 +227,8 @@ for imc,mcname in enumerate(mcfilelist):
       SingleTop = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
     if "SingleTbar_tW" in mcname:
       SingleTbar = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-"""
-    for l,lumi in enumerate(lumilist):
-        rescale = lumi*data["xsec"]/wentries
-        remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, rescale)    
-        if "HToMuMu" in mcname:
-            sig[l]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
-        else:
-            bg[l]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
-    lumi3 = 0
-    while ((sig[4]/math.sqrt(sig[4]+bg[4]))<3):
-        rescale = lumi3*data["xsec"]/wentries
-        remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, rescale)    
-        if "HToMuMu" in mcname:
-            sig[4]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
-        else:
-            bg[4]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
-        if (imc < len(mcfilelist)-1):break
-        lumi3 += 10
-    lumilist.append(lumi3)
-    lumi5 = 0
-    while ((sig[j]/math.sqrt(sig[j]+bg[j]))<5):
-        lumi5 += 10
-        rescale = lumi5*data["xsec"]/wentries
-        remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, rescale)    
-        if "HToMuMu" in mcname:
-            sig[5]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
-        else:
-            bg[5]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
-""" 
+
+    mchistList.append(mchist)
 print "TTH          = {}".format(TTH)          
 print "TTW          = {}".format(TTW)          
 print "TTZ          = {}".format(TTZ)          
@@ -278,6 +239,7 @@ print "signal       = {}".format(sig)
 print "background   = {}".format(bg)
 print "significance = {}".format(sig/math.sqrt(sig+bg))
 print cout
+
 if plotvar == "Dilep.M()": cut = cut+'&&(Dilep.M()<120||Dilep.M()>130)'            
 print "rdfname: %s\n tname: %s\n binning: %s\n plotvar: %s\n cut: %s\n"%(rdfname, tname, binning, plotvar, cut)
 rdhist = makeTH1(rdfname, tname, 'data', binning, plotvar, cut)
@@ -314,6 +276,11 @@ for i in  range(len(sysNameList)):
       maxErr = max(abs(sysErr_up[i].GetBinContent(j)), abs(sysErr_dn[i].GetBinContent(j)))
       sumErr = math.sqrt(errorBand.GetBinError(j)**2+maxErr**2)
       errorBand.SetBinError(j, sumErr)
+for i in range(len(staNameList)):
+   staErr[i].Add(h_nom, -1)
+   for j in range (1,nbins+1):
+      sumErr = math.sqrt(errorBand.GetBinError(j)**2+staErr[i].GetBinContent(j)**2)
+      errorBand.SetBinError(j, sumErr)
 
 canv = drawTH1(f_name, CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
 mainPad = canv.GetPrimitive("mainPad")
@@ -329,9 +296,37 @@ sysErrRatio.Divide(rdhist)
 sysErrRatio.Draw("e2same")
 ratioPad.GetPrimitive("hratio").Draw("esame")
 canv.Update()
+canv.SaveAs("./Plots/"+f_name+".png")      
 
-canv.SaveAs("./KPS/"+f_name+".png")            
 """
+    for l,lumi in enumerate(lumilist):
+        rescale = lumi*data["xsec"]/wentries
+        remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, rescale)    
+        if "HToMuMu" in mcname:
+            sig[l]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
+        else:
+            bg[l]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
+    lumi3 = 0
+    while ((sig[4]/math.sqrt(sig[4]+bg[4]))<3):
+        rescale = lumi3*data["xsec"]/wentries
+        remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, rescale)    
+        if "HToMuMu" in mcname:
+            sig[4]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
+        else:
+            bg[4]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
+        if (imc < len(mcfilelist)-1):break
+        lumi3 += 10
+    lumilist.append(lumi3)
+    lumi5 = 0
+    while ((sig[j]/math.sqrt(sig[j]+bg[j]))<5):
+        lumi5 += 10
+        rescale = lumi5*data["xsec"]/wentries
+        remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, rescale)    
+        if "HToMuMu" in mcname:
+            sig[5]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
+        else:
+            bg[5]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
+ 
 print "="*50
 print rfname
 print "="*50
