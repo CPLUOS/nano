@@ -77,11 +77,12 @@ titleBabel = {
     "Cross section (pb)":"xsec", "NEvent":"nevt",
     "Avg GenWgt":"avgWgt", "luminosity (fb-1)":"lumi",
     "colour":"colour", "Path":"path",
-    "DataSetName":"DataSetName", "LumiMask":"LumiMask",
+    "DataSetName":"DataSetName", "doHadron":"doHadron",
 }
 titleRule = {
     "xsec":str2float, "nevt":str2int, "avgWgt":str2float,
     "lumi":str2float, "colour":(lambda x: eval(x)),
+    "doHadron":str2int,
 }
 
 ## analyze CSV file

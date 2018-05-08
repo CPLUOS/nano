@@ -27,7 +27,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('/store/user/jlee/tsW_13TeV_PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v4_reco/reco_226.root'),
+    fileNames = cms.untracked.vstring('/store/user/jlee/tsW_13TeV_PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v4_miniAOD/miniAOD_226.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -83,7 +83,11 @@ process = nanoAOD_customizeMC(process)
 from nano.nanoAOD.nano_cff import customise 
 
 #call to customisation function customise imported from nano.nanoAOD.nano_cff
-process = customise(process)
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing ('python')
+options.register('doHadron', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "doHadron: 1  default")
+options.parseArguments()
+process = customise(process, options.doHadron)
 
 # End of customisation functions
 
