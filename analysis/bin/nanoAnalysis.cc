@@ -152,12 +152,24 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("btagweight", &b_btagweight, "btagweight/F");
   t->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
   t->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
-  t->Branch("lf_up", &b_lf_up, "lf_up/F");
-  t->Branch("lf_dn", &b_lf_dn, "lf_dn/F");
+  t->Branch("jes_up", &b_jes_up, "jes_up/F");
+  t->Branch("jes_dn", &b_jes_dn, "jes_dn/F");
+  t->Branch("cferr1_up", &b_cferr1_up, "cferr1_up/F");
+  t->Branch("cferr1_dn", &b_cferr1_dn, "cferr1_dn/F");
+  t->Branch("cferr2_up", &b_cferr2_up, "cferr2_up/F");
+  t->Branch("cferr2_dn", &b_cferr2_dn, "cferr2_dn/F");
+  t->Branch("hf_up", &b_hf_up, "hf_up/F");
+  t->Branch("hf_dn", &b_hf_dn, "hf_dn/F");
   t->Branch("hfstats1_up", &b_hfstats1_up, "hfstats1_up/F");
   t->Branch("hfstats1_dn", &b_hfstats1_dn, "hfstats1_dn/F");
   t->Branch("hfstats2_up", &b_hfstats2_up, "hfstats2_up/F");
   t->Branch("hfstats2_dn", &b_hfstats2_dn, "hfstats2_dn/F");
+  t->Branch("lf_up", &b_lf_up, "lf_up/F");
+  t->Branch("lf_dn", &b_lf_dn, "lf_dn/F");
+  t->Branch("lfstats1_up", &b_lfstats1_up, "lfstats1_up/F");
+  t->Branch("lfstats1_dn", &b_lfstats1_dn, "lfstats1_dn/F");
+  t->Branch("lfstats2_up", &b_lfstats2_up, "lfstats2_up/F");
+  t->Branch("lfstats2_dn", &b_lfstats2_dn, "lfstats2_dn/F");
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   t->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
   t->Branch("mueffweight_dn", &b_mueffweight_dn, "mueffweight_dn/F");
@@ -280,6 +292,7 @@ bool nanoAnalysis::Analysis()
  
   if (Muons.size() < 2) return false;
 
+  h_cutFlow->Fill(3);
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
   
   // make all the variables that you need to save here
@@ -299,6 +312,7 @@ bool nanoAnalysis::Analysis()
   }
   if (!(IsoMu24 || IsoTkMu24)) return false; 
   
+  h_cutFlow->Fill(4);
   for(UInt_t i = 0; i < Muons.size(); i++)
   { 
     if( (b_Mu_tlv[0].Pt() > 26) || (b_Mu_tlv[0].Pt() > 26) )
@@ -317,6 +331,7 @@ bool nanoAnalysis::Analysis()
   }
 
   if (b_charge == 0) return false; 
+  h_cutFlow->Fill(5);
 
   b_Dilep = b_Mu1 + b_Mu2;
   b_nlep = Muons.size() + Elecs.size();
@@ -601,7 +616,7 @@ int main(Int_t argc, Char_t** argv)
   else
   {
  //   TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/ttHToMuMu_M125_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180125_131219/0000/nanoAOD_004.root", "read");
-    TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/180125_131129/0000/nanoAOD_100.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/180125_131129/0000/nanoAOD_100.root", "read");
     TTree *tree;
     f->GetObject("Events", tree);
     
@@ -670,7 +685,8 @@ vector<TParticle> nanoAnalysis::ElectronSelection(vector<TParticle> leptons)
 vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> jets;
-  float Jet_SF_CSV[19] = {1.0,};
+  float Jet_SF_CSV[19];
+  for(UInt_t i = 0; i < 19; i++) Jet_SF_CSV[i] = 1.0;
   for(UInt_t i = 0; i < nJet; i++)
   {
     if (abs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
@@ -699,14 +715,30 @@ vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
     b_btagweight_up = Jet_SF_CSV[1];
     b_btagweight_dn = Jet_SF_CSV[2];
 
+    b_jes_up = Jet_SF_CSV[1];
+    b_jes_dn = Jet_SF_CSV[2];
     b_lf_up = Jet_SF_CSV[3];
     b_lf_dn = Jet_SF_CSV[4];
-
+    b_hf_up = Jet_SF_CSV[5];
+    b_hf_dn = Jet_SF_CSV[6];
     b_hfstats1_up = Jet_SF_CSV[7];
     b_hfstats1_dn = Jet_SF_CSV[8];
-
     b_hfstats2_up = Jet_SF_CSV[9];
     b_hfstats2_dn = Jet_SF_CSV[10];
+    b_lfstats1_up = Jet_SF_CSV[11];
+    b_lfstats1_dn = Jet_SF_CSV[12];
+    b_lfstats2_up = Jet_SF_CSV[13];
+    b_lfstats2_dn = Jet_SF_CSV[14];
+    b_cferr1_up = Jet_SF_CSV[15];
+    b_cferr1_dn = Jet_SF_CSV[16];
+    b_cferr2_up = Jet_SF_CSV[17];
+    b_cferr2_dn = Jet_SF_CSV[18];
+
+    for(UInt_t i=3; i < 19; i++)
+    {
+      if(i % 2 == 1) b_btagweight_up *= Jet_SF_CSV[i];
+      else b_btagweight_dn *= Jet_SF_CSV[i];
+    }
   }
   return jets;
 }
