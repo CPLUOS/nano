@@ -260,7 +260,7 @@ void nanoAnalysis::LoadModules(pileUpTool* pileUp, lumiTool* lumi, RoccoR* rocCo
   std::string csvFile = env+"/src/nano/analysis/data/btagSF/"+csvFileName;
   BTagCalibration calib("csvv2", csvFile);
   m_btagSF = BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
-  m_btagSF.load(calib, BTagEntry::FLAV_B, "comb");
+  m_btagSF.load(calib, BTagEntry::FLAV_B, "mujets");
 }
 
 bool nanoAnalysis::Analysis()
