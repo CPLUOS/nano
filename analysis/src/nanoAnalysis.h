@@ -11,7 +11,7 @@
 #include "lumiTool.h"
 #include "MuonScaleFactorEvaluator.h"
 #include "ElecScaleFactorEvaluator.h"
-#include "BTagWeightEvaluator.h"
+#include "BTagCalibrationStandalone.cc"
 #include "TopTriggerSF.h"
 #include "TTbarModeDefs.h"
 
@@ -61,10 +61,6 @@ private:
       Float_t b_puweight, b_puweight_up, b_puweight_dn; 
       Float_t b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
       Float_t b_btagweight, b_btagweight_up, b_btagweight_dn;
-      Float_t b_jes_up, b_jes_dn;
-      Float_t b_cferr1_up, b_cferr1_dn, b_cferr2_up, b_cferr2_dn;
-      Float_t b_hf_up, b_hf_dn, b_hfstats1_up, b_hfstats1_dn, b_hfstats2_up, b_hfstats2_dn;
-      Float_t b_lf_up, b_lf_dn, b_lfstats1_up, b_lfstats1_dn, b_lfstats2_up, b_lfstats2_dn;
 
       Int_t b_Event_No, b_Event_Total;
 
@@ -104,7 +100,7 @@ private:
       RoccoR* m_rocCor;
       MuonScaleFactorEvaluator m_muonSF;
       ElecScaleFactorEvaluator m_elecSF;
-      BTagWeightEvaluator m_btagSF;
+      BTagCalibrationReader m_btagSF;
       std::vector<UInt_t> idxs;
 
       TMVA::Reader* bdt_XL;

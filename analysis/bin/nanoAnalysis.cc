@@ -152,7 +152,7 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("btagweight", &b_btagweight, "btagweight/F");
   t->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
   t->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
-  t->Branch("jes_up", &b_jes_up, "jes_up/F");
+  /*t->Branch("jes_up", &b_jes_up, "jes_up/F");
   t->Branch("jes_dn", &b_jes_dn, "jes_dn/F");
   t->Branch("cferr1_up", &b_cferr1_up, "cferr1_up/F");
   t->Branch("cferr1_dn", &b_cferr1_dn, "cferr1_dn/F");
@@ -169,7 +169,7 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("lfstats1_up", &b_lfstats1_up, "lfstats1_up/F");
   t->Branch("lfstats1_dn", &b_lfstats1_dn, "lfstats1_dn/F");
   t->Branch("lfstats2_up", &b_lfstats2_up, "lfstats2_up/F");
-  t->Branch("lfstats2_dn", &b_lfstats2_dn, "lfstats2_dn/F");
+  t->Branch("lfstats2_dn", &b_lfstats2_dn, "lfstats2_dn/F");*/
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   t->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
   t->Branch("mueffweight_dn", &b_mueffweight_dn, "mueffweight_dn/F");
@@ -254,7 +254,13 @@ void nanoAnalysis::LoadModules(pileUpTool* pileUp, lumiTool* lumi, RoccoR* rocCo
   m_rocCor = rocCor;
   m_lumi = lumi;
   m_pileUp = pileUp;
-  m_btagSF.initCSVWeight();
+  //m_btagSF.initCSVWeight();
+  string csvFileName = "CSVv2_Moriond17_B_H.csv";
+  std::string env = std::getenv("CMSSW_BASE");
+  std::string csvFile = env+"/src/nano/analysis/data/btagSF/"+csvFileName;
+  BTagCalibration calib("csvv2", csvFile);
+  m_btagSF = BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
+  m_btagSF.load(calib, BTagEntry::FLAV_B, "comb");
 }
 
 bool nanoAnalysis::Analysis()
@@ -685,8 +691,6 @@ vector<TParticle> nanoAnalysis::ElectronSelection(vector<TParticle> leptons)
 vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> jets;
-  float Jet_SF_CSV[19];
-  for(UInt_t i = 0; i < 19; i++) Jet_SF_CSV[i] = 1.0;
   for(UInt_t i = 0; i < nJet; i++)
   {
     if (abs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
@@ -704,41 +708,6 @@ vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
     jet.SetMomentum(mom);
     b_Jet_tlv.push_back(mom);
     jets.push_back(jet);
-    for (UInt_t iu = 0; iu < 19; iu++)
-    {
-      Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
-    }
-  }
-  for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
-  if(m_isMC){
-    b_btagweight = Jet_SF_CSV[0];
-    b_btagweight_up = Jet_SF_CSV[1];
-    b_btagweight_dn = Jet_SF_CSV[2];
-
-    b_jes_up = Jet_SF_CSV[1];
-    b_jes_dn = Jet_SF_CSV[2];
-    b_lf_up = Jet_SF_CSV[3];
-    b_lf_dn = Jet_SF_CSV[4];
-    b_hf_up = Jet_SF_CSV[5];
-    b_hf_dn = Jet_SF_CSV[6];
-    b_hfstats1_up = Jet_SF_CSV[7];
-    b_hfstats1_dn = Jet_SF_CSV[8];
-    b_hfstats2_up = Jet_SF_CSV[9];
-    b_hfstats2_dn = Jet_SF_CSV[10];
-    b_lfstats1_up = Jet_SF_CSV[11];
-    b_lfstats1_dn = Jet_SF_CSV[12];
-    b_lfstats2_up = Jet_SF_CSV[13];
-    b_lfstats2_dn = Jet_SF_CSV[14];
-    b_cferr1_up = Jet_SF_CSV[15];
-    b_cferr1_dn = Jet_SF_CSV[16];
-    b_cferr2_up = Jet_SF_CSV[17];
-    b_cferr2_dn = Jet_SF_CSV[18];
-
-    for(UInt_t i=3; i < 19; i++)
-    {
-      if(i % 2 == 1) b_btagweight_up *= Jet_SF_CSV[i];
-      else b_btagweight_dn *= Jet_SF_CSV[i];
-    }
   }
   return jets;
 }
@@ -746,6 +715,9 @@ vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
 vector<TParticle> nanoAnalysis::BJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> bJets;
+  b_btagweight = 1.0;
+  b_btagweight_up = 1.0;
+  b_btagweight_dn = 1.0;
   for (UInt_t i = 0; i < nJet; i++)
   {
     if (Jet_btagCSVV2[i] < 0.8484) continue;
@@ -763,6 +735,9 @@ vector<TParticle> nanoAnalysis::BJetSelection(vector<TParticle> Muons, vector<TP
     b_bJet_tlv.push_back(mom);
     bJets.push_back(bjet);
     b_CSVv2.push_back(Jet_btagCSVV2[i]);
+    b_btagweight *= m_btagSF.eval_auto_bounds("central", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
+    b_btagweight_up *= m_btagSF.eval_auto_bounds("up", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
+    b_btagweight_dn *= m_btagSF.eval_auto_bounds("down", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
   }
   return bJets;
 }
