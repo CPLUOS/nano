@@ -1,6 +1,6 @@
-#include "RoccoR.h"
+#include "nanoAnalysis.h"
 
-class nanoAnalysis : public Events {
+class h2muAnalysis : public nanoAnalysis {
 private: 
       //histogram
       TH1D* h_Event_Tot;
@@ -86,19 +86,18 @@ private:
 
 public:
   //set output file
+  h2muAnalysis(TTree *tree=0, Bool_t isMc = false);
+  ~h2muAnalysis();
   void SetOutput(std::string outputName);
-  nanoAnalysis(TTree *tree=0, Bool_t isMc = false);
-  ~nanoAnalysis();
   virtual void     Loop();
 };
 
-nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : nanoAnalysis(tree, Bool_t isMC)
+h2muAnalysis::h2muAnalysis(TTree *tree, Bool_t isMC) : nanoAnalysis(tree, isMC)
 {
+  string env = getenv("CMSSW_BASE");
   m_rocCor = new RoccoR(env+"/src/nano/analysis/data/rcdata.2016.v3/");
 }
 
-nanoAnalysis::~nanoAnalysis()
+h2muAnalysis::~h2muAnalysis()
 {
-  m_output->Write();
-  m_output->Close();
 }

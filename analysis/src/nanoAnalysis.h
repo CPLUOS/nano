@@ -1,3 +1,4 @@
+#define Events_cxx
 #include "nano/analysis/src/Events_2016v3.h"
 
 #include <TH1D.h>
@@ -10,6 +11,7 @@
 #include "MuonScaleFactorEvaluator.h"
 #include "ElecScaleFactorEvaluator.h"
 #include "BTagCalibrationStandalone.cc"
+#include "RoccoR.h"
 
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"
@@ -19,19 +21,17 @@
 class nanoAnalysis : public Events
 {
 public:
-  nanoAnalysis(TTree *tree=0);
+  nanoAnalysis(TTree *tree=0, Bool_t isMC=false);
   virtual ~nanoAnalysis();
-  virtual void SetOutput(std::string outputName);
-  virtual void Loop();
+  virtual void Loop() = 0;
 
-private:
   //Output Variables
   TFile* m_output;
       
   //Tree
   TTree* m_tree;
 
-  pileUpTool* m_pileUp
+  pileUpTool* m_pileUp;
   lumiTool* m_lumi;
   RoccoR* m_rocCor;
   MuonScaleFactorEvaluator m_muonSF;
@@ -41,7 +41,7 @@ private:
   Bool_t m_isMC;
 };
 
-nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(), m_isMC(isMC)
+nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC)
 {
   m_pileUp = new pileUpTool();
   string env = getenv("CMSSW_BASE");
@@ -60,7 +60,4 @@ nanoAnalysis::~nanoAnalysis()
  m_output->Close();
 }
 
-SetOutput(std::string outputName)
-{
-  m_output = TFile::Open(outputName.c_str(), "RECREATE");
-}
+void nanoAnalysis::Loop(){};
