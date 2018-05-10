@@ -7,7 +7,7 @@ import sys, os
 # ///      otherwise only specific dir name where root files are in       ///
 # ///////////////////////////////////////////////////////////////////////////
 
-#user_input = sys.argv[1]
+user_input = sys.argv[1]
 """
 if "results_merged" not in os.listdir(os.getcwd()):
     os.system("mkdir results_merged")
@@ -16,7 +16,7 @@ if "results_merged" not in os.listdir(os.getcwd()):
 
 version="%s"%os.environ["CMSSW_VERSION"]
 dirname = "test"
-pstored="/xrootd/store/user/%s/nanoAOD/%s/"%(os.environ['USER'],dirname)
+pstored="/xrootd/store/user/%s/nanoAOD/%s/"%(os.environ['USER'],user_input)
 #pstored = "/cms/scratch/daniel/nanoAOD/src/nano/analysis/h2mu/Results/CSV/"
 
 pmerged=pstored+"results_merged/" 

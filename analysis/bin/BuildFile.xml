@@ -1,5 +1,6 @@
 <bin name="nanoAnalysis" file="nanoAnalysis.cc">
   <use name="root"/>
+  <lib name="TMVA"/>
   <use name="rootxml"/>
   <lib name="Eve"/>
   <lib name="EG"/>
