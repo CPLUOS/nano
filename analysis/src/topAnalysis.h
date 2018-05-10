@@ -3,7 +3,7 @@
 
 #include "nanoAnalysis.h"
 #include "TopTriggerSF.h"
-#include "TTbarModeDefs.h"
+//#include "TTbarModeDefs.h"
 
 class topAnalysis : public nanoAnalysis
 {
@@ -13,7 +13,7 @@ private:
 
   TParticle GetTParticle(int pdgId, int idx);
 
-protected:
+public:
   enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
 
   Bool_t lumiCheck();
@@ -21,7 +21,7 @@ protected:
   std::vector<TParticle> elecSelection();
   std::vector<TLorentzVector> recoleps;
   std::vector<TParticle> jetSelection();
-  std::vector<TParticle> bjetSelection();
+  virtual std::vector<TParticle> bjetSelection() = 0;
 
 public:
   Bool_t m_isDL, m_isSL_e, m_isSL_m;
@@ -31,7 +31,7 @@ public:
 //  void collectTMVAvalues();
   topAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~topAnalysis();  
-  virtual void     Loop();
+  virtual void Loop() = 0;
 };
 
 topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : nanoAnalysis(tree, isMC), m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm)// Events(tree, isMC), m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm)
