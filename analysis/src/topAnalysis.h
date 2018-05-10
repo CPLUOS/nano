@@ -10,18 +10,17 @@ class topAnalysis : public nanoAnalysis
 private:
   std::vector<Float_t> b_csvweights;
   float b_btagweight;
-
-  TParticle GetTParticle(int pdgId, int idx);
+  //TParticle GetTParticle(int pdgId, int idx);
 
 public:
   enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
 
-  Bool_t lumiCheck();
+  //Bool_t lumiCheck();
   std::vector<TParticle> muonSelection();
   std::vector<TParticle> elecSelection();
   std::vector<TLorentzVector> recoleps;
   std::vector<TParticle> jetSelection();
-  virtual std::vector<TParticle> bjetSelection() = 0;
+  std::vector<TParticle> bjetSelection();
 
 public:
   Bool_t m_isDL, m_isSL_e, m_isSL_m;
@@ -41,4 +40,5 @@ topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t
 topAnalysis::~topAnalysis()
 {
 }
+
 #endif
