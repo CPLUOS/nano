@@ -3,7 +3,6 @@
 #include <TLorentzVector.h>
 
 #include "nano/analysis/src/hadAnalysis.h"
-#include "nano/analysis/bin/topAnalysis.cc"
 #include "TFile.h"
 #include "TTree.h"
 

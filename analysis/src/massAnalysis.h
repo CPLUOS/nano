@@ -1,3 +1,5 @@
+#ifndef massAnalysis_H
+#define massAnalysis_H
 #include "nano/analysis/src/topAnalysis.h"
 
 class massAnalysis : public topAnalysis {
@@ -53,7 +55,6 @@ private:
 public :
   //set output file
   void setOutput(std::string outputName);
-  void LoadModules(pileUpTool* pileUp, lumiTool* lumi);
   void collectTMVAvalues();
   massAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~massAnalysis();
@@ -68,5 +69,6 @@ massAnalysis::massAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool
 
 massAnalysis::~massAnalysis()
 {
-  m_output->Close();
 }
+
+#endif

@@ -1,5 +1,4 @@
-#define topAnalysis_cxx
-#include "nano/analysis/src/nanoAnalysis.h"
+#include "nano/analysis/src/massAnalysis.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -16,7 +15,7 @@ bool massAnalysis::analysis()
     Int_t nvtx = Pileup_nTrueInt;
     b_puweight = m_pileUp->getWeight(nvtx);
       
-   b_genweight = genWeight;
+    b_genweight = genWeight;
     h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
   }
@@ -177,13 +176,6 @@ bool massAnalysis::analysis()
   return true;
 }
 
-void massAnalysis::LoadModules(pileUpTool* pileUp, lumiTool* lumi)
-{
-  m_lumi = lumi;
-  m_pileUp = pileUp;
-}
-
-
 void massAnalysis::Loop()
 {
   if (fChain == 0) return;
@@ -210,8 +202,6 @@ int main(int argc, char* argv[])
 {
   string env = getenv("CMSSW_BASE");
   string username = getenv("USER");
-  lumiTool* lumi = new lumiTool(env+"/src/nano/analysis/data/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt");
-  pileUpTool* pileUp = new pileUpTool();
 
   if(argc != 1)
   {
@@ -244,23 +234,21 @@ int main(int argc, char* argv[])
       temp = argv[i];   
       found = temp.find_last_of('/');
       std::string outPutName = dirName+temp.substr(found);
-      topAnalysis t(tree, isMC, isDL, isSL_e, isSL_m);
+      massAnalysis t(tree, isMC, isDL, isSL_e, isSL_m);
       
-      t.LoadModules(pileUp, lumi);  
       t.setOutput(outPutName);
       t.Loop();
     }
   }
   else
   {
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180417_162254/0000/nanoAOD_581.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
     //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v2/DoubleMuon/Run2016B-18Apr2017_ver1-v1/171219_063744/0000/nanoAOD_23.root", "read");
 
     TTree *tree;
     f->GetObject("Events", tree);
 
-    topAnalysis t(tree);
-    t.LoadModules(pileUp, lumi);  
+    massAnalysis t(tree, true);
     t.setOutput("test.root");
     t.Loop();
   }
