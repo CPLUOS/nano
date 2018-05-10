@@ -1,4 +1,4 @@
-#include "topAnalysis.h"
+#include "nano/analysis/src/topAnalysis.h"
 
 class massAnalysis : public topAnalysis {
 private: 
