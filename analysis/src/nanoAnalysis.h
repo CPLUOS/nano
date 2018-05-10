@@ -1,5 +1,5 @@
 #define Events_cxx
-#include "nano/analysis/src/Events_2016v3.h"
+#include "nano/analysis/src/Events.h"
 
 #include <TH1D.h>
 #include <TLorentzVector.h>
@@ -20,17 +20,9 @@
 #include "TMVA/DataLoader.h"
 #include "TMVA/MethodCuts.h"
 
-
-//void Events::Loop(){}
-
-void makeEventsClass(const char* filedir){
-  TFile *f = TFile::Open(filedir);
-  TTree *t = (TTree*) f->Get("Events");
-  t->MakeClass(); // this will generate Events.h file.
-}
-
 #ifdef nanoAnalysis_cxx
 class nanoAnalysis : public Events {
+
 private: 
       //Output Variables
       TFile* m_output;
@@ -225,7 +217,7 @@ vtsAnalysis::vtsAnalysis(TTree *tree) : Events(tree)
 { }
 vtsAnalysis::~vtsAnalysis(){ }
 #endif
-
+/*
 #ifdef topAnalysis_cxx
 class topAnalysis : public Events {
 private: 
@@ -317,4 +309,4 @@ topAnalysis::~topAnalysis()
   m_output->Close();
 }
 #endif
-
+*/
