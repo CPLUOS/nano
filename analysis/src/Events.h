@@ -247,8 +247,7 @@ public :
    Bool_t          Photon_mvaID_WP90[600];   //[nPhoton00]
    Bool_t          Photon_pixelSeed[600];   //[nPhoton00]
    Int_t           Pileup_nPU;
-   Float_t         Pileup_nTrueInt;
-   //Int_t           Pileup_nTrueInt;
+   Int_t           Pileup_nTrueInt;
    Float_t         PuppiMET_phi;
    Float_t         PuppiMET_pt;
    Float_t         PuppiMET_sumEt;
@@ -2014,7 +2013,7 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
-   virtual void     Loop();
+   virtual void     Loop() = 0;
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
