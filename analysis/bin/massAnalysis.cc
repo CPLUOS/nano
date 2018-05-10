@@ -1,5 +1,4 @@
-#define topAnalysis_cxx
-#include "nano/analysis/src/nanoAnalysis.h"
+#include "nano/analysis/src/massAnalysis.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -7,104 +6,7 @@
 #include <cstdlib>
 using namespace std;
 
-vector<TParticle> topAnalysis::muonSelection()
-{
-  vector<TParticle> muons; 
-  for (UInt_t i = 0; i < nMuon; ++i){
-    if (!Muon_tightId[i]) continue;
-    if (Muon_pt[i] < 20) continue;
-    if (std::abs(Muon_eta[i]) > 2.4) continue;
-    if (Muon_pfRelIso04_all[i] > 0.15) continue;
-    if (!Muon_globalMu[i]) continue;
-    if (!Muon_isPFcand[i]) continue;
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
-    auto muon = TParticle();
-    muon.SetPdgCode(13*Muon_charge[i]*-1);
-    muon.SetMomentum(mom);
-
-    muons.push_back(muon);
-  }
-  return muons;
-}
-
-
-vector<TParticle> topAnalysis::elecSelection()
-{
-  vector<TParticle> elecs; 
-  for (UInt_t i = 0; i < nElectron; ++i){
-    if (Electron_pt[i] < 20) continue;
-    if (std::abs(Electron_eta[i]) > 2.4) continue;
-    if (Electron_cutBased[i] < 3) continue;
-    float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
-    if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
-   
-    auto elec = TParticle();
-    elec.SetPdgCode(11*Electron_charge[i]*-1);
-    elec.SetMomentum(mom);
-    elec.SetWeight(el_scEta);
-    elecs.push_back(elec);
-  }
-  return elecs;
-}
-
-
-vector<TParticle> topAnalysis::jetSelection()
-{
-  vector<TParticle> jets; 
-  float Jet_SF_CSV[19] = {1.0,};
-  for (UInt_t i = 0; i < nJet; ++i){
-    if (Jet_pt[i] < 30) continue;
-    if (std::abs(Jet_eta[i]) > 2.4) continue;
-    if (Jet_jetId[i] < 1) continue;
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
-    bool hasOverLap = false;
-    for (auto lep : recoleps){
-        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
-    }
-    if (hasOverLap) continue;
-    auto jet = TParticle();
-    jet.SetMomentum(mom);
-    jets.push_back(jet);
-    for (UInt_t iu = 0; iu < 19; iu++)
-    {   
-      Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
-    }
-  }
-  for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
-  b_btagweight = Jet_SF_CSV[0];
-
-  return jets;
-}
-
-
-vector<TParticle> topAnalysis::bjetSelection()
-{
-  vector<TParticle> bjets; 
-  for (UInt_t i = 0; i < nJet; ++i ){
-    if (Jet_pt[i] < 30) continue;
-    if (std::abs(Jet_eta[i]) > 2.4) continue;
-    if (Jet_jetId[i] < 1) continue;
-    if (Jet_btagCSVV2[i] < 0.8484) continue;
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
-    bool hasOverLap = false;
-    for (auto lep : recoleps){
-        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
-    }
-    if (hasOverLap) continue;
-    auto bjet = TParticle();
-    bjet.SetMomentum(mom);
-    bjets.push_back(bjet);
-  }
-  return bjets;
-}
-
-
-bool topAnalysis::analysis()
+bool massAnalysis::analysis()
 {
   h_cutFlow->Fill(0);
 
@@ -113,7 +15,7 @@ bool topAnalysis::analysis()
     Int_t nvtx = Pileup_nTrueInt;
     b_puweight = m_pileUp->getWeight(nvtx);
       
-   b_genweight = genWeight;
+    b_genweight = genWeight;
     h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
   }
@@ -274,14 +176,7 @@ bool topAnalysis::analysis()
   return true;
 }
 
-void topAnalysis::LoadModules(pileUpTool* pileUp, lumiTool* lumi)
-{
-  m_lumi = lumi;
-  m_pileUp = pileUp;
-}
-
-
-void topAnalysis::Loop()
+void massAnalysis::Loop()
 {
   if (fChain == 0) return;
 
@@ -307,8 +202,6 @@ int main(int argc, char* argv[])
 {
   string env = getenv("CMSSW_BASE");
   string username = getenv("USER");
-  lumiTool* lumi = new lumiTool(env+"/src/nano/analysis/data/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt");
-  pileUpTool* pileUp = new pileUpTool();
 
   if(argc != 1)
   {
@@ -341,30 +234,28 @@ int main(int argc, char* argv[])
       temp = argv[i];   
       found = temp.find_last_of('/');
       std::string outPutName = dirName+temp.substr(found);
-      topAnalysis t(tree, isMC, isDL, isSL_e, isSL_m);
+      massAnalysis t(tree, isMC, isDL, isSL_e, isSL_m);
       
-      t.LoadModules(pileUp, lumi);  
       t.setOutput(outPutName);
       t.Loop();
     }
   }
   else
   {
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180417_162254/0000/nanoAOD_581.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
     //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v2/DoubleMuon/Run2016B-18Apr2017_ver1-v1/171219_063744/0000/nanoAOD_23.root", "read");
 
     TTree *tree;
     f->GetObject("Events", tree);
 
-    topAnalysis t(tree);
-    t.LoadModules(pileUp, lumi);  
+    massAnalysis t(tree, true);
     t.setOutput("test.root");
     t.Loop();
   }
   return 0;
 }
 
-void topAnalysis::collectTMVAvalues()
+void massAnalysis::collectTMVAvalues()
 {
   for(UInt_t i=0; i < nhad; ++i){
     //if(had_pdgId[i] != 421) continue;
@@ -419,7 +310,7 @@ void topAnalysis::collectTMVAvalues()
 }
 
 
-void topAnalysis::setOutput(std::string outputName)
+void massAnalysis::setOutput(std::string outputName)
 {
   m_output = TFile::Open(outputName.c_str(), "recreate");
 
@@ -466,7 +357,7 @@ void topAnalysis::setOutput(std::string outputName)
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
 }
 
-void topAnalysis::MakeBranch(TTree* t)
+void massAnalysis::MakeBranch(TTree* t)
 {
   t->Branch("nvertex", &b_nvertex, "nvertex/I");
   t->Branch("step", &b_step, "step/I");
@@ -545,7 +436,7 @@ void topAnalysis::MakeBranch(TTree* t)
 }
 
 
-void topAnalysis::resetBranch()
+void massAnalysis::resetBranch()
 {
   b_lep1.SetPtEtaPhiM(0,0,0,0);
   b_lep2.SetPtEtaPhiM(0,0,0,0);

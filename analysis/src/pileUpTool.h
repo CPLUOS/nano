@@ -13,7 +13,8 @@ class pileUpTool {
   static const std::vector<float> Moriond17RD_dn;
 
  public:  
-  pileUpTool(){
+  pileUpTool()
+  {
     m_weights.clear(); m_weights_up.clear(); m_weights_dn.clear();
 
     std::vector<float> pileupMC = Moriond17MC;
@@ -30,24 +31,22 @@ class pileUpTool {
     std::vector<float> pileupRDTmp;
     std::vector<float> pileupUpTmp, pileupDnTmp;
 
-    for ( int i=0, n=std::min(pileupMC.size(), pileupRD.size()); i<n; ++i ){
+    for (int i=0, n=std::min(pileupMC.size(), pileupRD.size()); i<n; ++i) {
       pileupMCTmp.push_back(pileupMC[i]/sumWMC);
       pileupRDTmp.push_back(pileupRD[i]/sumWRD);
       pileupUpTmp.push_back(pileupUp[i]/sumWUp);
       pileupDnTmp.push_back(pileupDn[i]/sumWDn);
     }
     
-    for ( int i=0, n=std::min(pileupMC.size(), pileupRD.size()); i<n; ++i ){
+    for (int i=0, n=std::min(pileupMC.size(), pileupRD.size()); i<n; ++i) {
       m_weights.push_back(pileupRDTmp[i]/pileupMCTmp[i]);
       m_weights_up.push_back(pileupUpTmp[i]/pileupMCTmp[i]);
       m_weights_dn.push_back(pileupDnTmp[i]/pileupMCTmp[i]);
-      /* std::cout << " " << i */
-      /* 		<< " weight = "<< pileupRDTmp[i]/pileupMCTmp[i] */
-      /* 		<< std::endl; */
     }
   };
   
-  float getWeight(int nTrueInt, int sys = 0){
+  float getWeight(int nTrueInt, int sys = 0)
+  {
     if (sys == 0) return m_weights[nTrueInt];
     if (sys == 1) return m_weights_up[nTrueInt];
     if (sys == -1) return m_weights_dn[nTrueInt];
