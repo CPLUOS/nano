@@ -217,7 +217,7 @@ vtsAnalysis::vtsAnalysis(TTree *tree) : Events(tree)
 { }
 vtsAnalysis::~vtsAnalysis(){ }
 #endif
-/*
+
 #ifdef topAnalysis_cxx
 class topAnalysis : public Events {
 private: 
@@ -309,4 +309,4 @@ topAnalysis::~topAnalysis()
   m_output->Close();
 }
 #endif
-*/
+
