@@ -1,7 +1,7 @@
 #ifndef hadAnalysis_H
 #define hadAnalysis_H
 
-#include "topAnalysis.h"
+#include "nano/analysis/src/topAnalysis.h"
 
 class hadAnalysis : public topAnalysis 
 {
@@ -66,8 +66,12 @@ private:
   Double_t DeltaPhi(Double_t phi1, Double_t phi2);
   Double_t GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz);
 
+  void MakeBranch(TTree* t);
+
 public:
-  void MakeTree(std::string outputName);
+//  void MakeTree(std::string outputName);
+  void setOutput(std::string outputName);
+
   hadAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~hadAnalysis();
   virtual void     Loop();

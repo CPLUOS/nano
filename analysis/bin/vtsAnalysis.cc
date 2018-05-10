@@ -3,7 +3,7 @@
 #include <TLorentzVector.h>
 
 #include "nano/analysis/src/hadAnalysis.h"
-#include "topAnalysis.cc"
+#include "nano/analysis/bin/topAnalysis.cc"
 #include "TFile.h"
 #include "TTree.h"
 
@@ -54,7 +54,7 @@ int main(Int_t argc, Char_t** argv) {
     auto inTree = (TTree*) inFile->Get("Events");
     cout << "c " << inTree << endl;
     hadAnalysis ana(inTree,false,false,false,false);
-    ana.MakeTree("nanotree.root");
+    ana.setOutput("nanotree.root");
     ana.Loop();
   }
   else{
@@ -69,7 +69,7 @@ int main(Int_t argc, Char_t** argv) {
       hadAnalysis ana(inTree,false,false,false,false);
 
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
-      ana.MakeTree(outFileName);
+      ana.setOutput(outFileName);
       ana.Loop();
     }
   }
@@ -94,15 +94,22 @@ void hadAnalysis::Loop() {
     m_tree->Fill();
   }
 //  for (int i =1; i<10; i++) { cout << h_cutFlow->GetBinContent(i) << "  "; }
-  m_output->Write();
-  m_output->Close();
+//  m_output->Write();
+//  m_output->Close();
   cout << endl;
 
 }
 
-void hadAnalysis::MakeTree(std::string outFileName) {
-  m_output = TFile::Open(outFileName.c_str(), "RECREATE");
-  m_tree = new TTree("events", "events");
+void hadAnalysis::setOutput(std::string outFileName)
+{
+  m_output = TFile::Open(outFileName.c_str(), "recreate");
+
+  m_tree = new TTree("event", "event");
+  MakeBranch(m_tree);
+}
+
+void hadAnalysis::MakeBranch(TTree* t)
+{
   m_tree->Branch("channel", &b_channel, "channel/I");
   m_tree->Branch("njet", &b_njet, "njet/I");
   m_tree->Branch("met", &b_met, "met/F");

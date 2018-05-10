@@ -1,7 +1,7 @@
 #ifndef topAnalysis_H
 #define topAnalysis_H
 
-#include "nanoAnalysis.h"
+#include "nano/analysis/src/nanoAnalysis.h"
 #include "TopTriggerSF.h"
 //#include "TTbarModeDefs.h"
 
