@@ -1,22 +1,30 @@
 #define Events_cxx
-#include "nano/analysis/src/Events_2016v3.h"
+#ifndef nanoAnalysis_H
+#define nanoAnalysis_H
+
+//#include "nano/analysis/src/Events_2016v3.h"
+#include "nano/analysis/src/Events.h"
 
 #include <TH1D.h>
 #include <TLorentzVector.h>
 #include <TParticle.h>
+
 #include <TString.h>
 
 #include "pileUpTool.h"
+#include "RoccoR.h"
 #include "lumiTool.h"
+
 #include "MuonScaleFactorEvaluator.h"
 #include "ElecScaleFactorEvaluator.h"
+//#include "BTagWeightEvaluator.h"
 #include "BTagCalibrationStandalone.cc"
-#include "RoccoR.h"
 
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"
 #include "TMVA/DataLoader.h"
 #include "TMVA/MethodCuts.h"
+
 
 class nanoAnalysis : public Events
 {
@@ -27,7 +35,6 @@ public:
 
   //Output Variables
   TFile* m_output;
-      
   //Tree
   TTree* m_tree;
 
@@ -61,3 +68,5 @@ nanoAnalysis::~nanoAnalysis()
 }
 
 void nanoAnalysis::Loop(){};
+
+#endif
