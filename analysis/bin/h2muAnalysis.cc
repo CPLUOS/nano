@@ -1,5 +1,4 @@
-#define nanoAnalysis_cxx
-#include "nano/analysis/src/nanoAnalysis.h"
+#include "nano/analysis/src/h2muAnalysis.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -9,10 +8,10 @@
 using namespace std;
 /*
 To compile:
-g++ `root-config --cflags --glibs` -lEG nanoAnalysis.cc -o nanoAnalysis
+g++ `root-config --cflags --glibs` -lEG h2muAnalysis.cc -o h2muAnalysis
 */
 
-void nanoAnalysis::SetOutput(string outputName)
+void h2muAnalysis::SetOutput(string outputName)
 {
   m_output = TFile::Open(outputName.c_str(), "recreate");
   // TMVA Booking //
@@ -117,7 +116,7 @@ void nanoAnalysis::SetOutput(string outputName)
   h_Non = new TH1D("Non", "Non", 1, 0, 1);
 }
 
-void nanoAnalysis::MakeBranch(TTree* t)
+void h2muAnalysis::MakeBranch(TTree* t)
 {
   t->Branch("Event_No", &b_Event_No, "Event_No/I");
   t->Branch("Step", &b_Step, "Step/I");
@@ -209,7 +208,7 @@ void nanoAnalysis::MakeBranch(TTree* t)
   t->Branch("CSV", &b_CSV, "CSV/F");
 }
 
-void nanoAnalysis::ResetBranch()
+void h2muAnalysis::ResetBranch()
 {
   b_Event_No = 0;
   b_Step = 0;
@@ -247,23 +246,7 @@ void nanoAnalysis::ResetBranch()
   b_CSV = 0;
 }
 
-
-void nanoAnalysis::LoadModules(pileUpTool* pileUp, lumiTool* lumi, RoccoR* rocCor)
-{
-  //Get Modules
-  m_rocCor = rocCor;
-  m_lumi = lumi;
-  m_pileUp = pileUp;
-  //m_btagSF.initCSVWeight();
-  string csvFileName = "CSVv2_Moriond17_B_H.csv";
-  std::string env = std::getenv("CMSSW_BASE");
-  std::string csvFile = env+"/src/nano/analysis/data/btagSF/"+csvFileName;
-  BTagCalibration calib("csvv2", csvFile);
-  m_btagSF = BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
-  m_btagSF.load(calib, BTagEntry::FLAV_B, "mujets");
-}
-
-bool nanoAnalysis::Analysis()
+bool h2muAnalysis::Analysis()
 {
   h_Event_Tot->Fill(0.5, b_Event_Total);
   h_cutFlow->Fill(0);
@@ -277,8 +260,7 @@ bool nanoAnalysis::Analysis()
     h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
     h_weight->Fill(0.5, b_weight);
-  }
-  else {
+  } else {
     b_puweight = 1;
     b_genweight = 0;
     if(!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
@@ -309,7 +291,7 @@ bool nanoAnalysis::Analysis()
   Bool_t IsoMu24 = false;
   Bool_t IsoTkMu24 = false;
 
-  for (UInt_t i = 0; i < nTrigObj; ++i){
+  for (UInt_t i = 0; i < nTrigObj; ++i) {
     if (TrigObj_id[i] != 13) continue;
     if (TrigObj_pt[i] < 24) continue;
     Int_t bits = TrigObj_filterBits[i];
@@ -319,12 +301,9 @@ bool nanoAnalysis::Analysis()
   if (!(IsoMu24 || IsoTkMu24)) return false; 
   
   h_cutFlow->Fill(4);
-  for(UInt_t i = 0; i < Muons.size(); i++)
-  { 
-    if( (b_Mu_tlv[0].Pt() > 26) || (b_Mu_tlv[0].Pt() > 26) )
-    { 
-      if( ( Muons[0].GetPdgCode() * Muons[i].GetPdgCode() ) < 0 )
-      { 
+  for (UInt_t i = 0; i < Muons.size(); i++) { 
+    if ( (b_Mu_tlv[0].Pt() > 26) || (b_Mu_tlv[0].Pt() > 26) ) { 
+      if ( ( Muons[0].GetPdgCode() * Muons[i].GetPdgCode() ) < 0 ) { 
         b_Mu1 = b_Mu_tlv[0];
         b_Mu2 = b_Mu_tlv[i];
 
@@ -348,80 +327,59 @@ bool nanoAnalysis::Analysis()
   b_nbjet = BJets.size();
   b_npvs = PV_npvs;
   // Extra lep //
-  if (Muons.size() + Elecs.size()  >= 3 && BJets.size() >= 1)
-  {
+  if (Muons.size() + Elecs.size()  >= 3 && BJets.size() >= 1) {
      b_XL = 1;
      h_XL->Fill(0.5, b_XL); 
 
      b_CSV = b_CSVv2[0];
-     if (Muons.size() > 2) 
-     {
-       for (UInt_t k=1; k < Muons.size(); k++)
-       {
-         if (b_Mu_tlv[k].Pt() != b_Mu2.Pt())
-         {
-           if (b_Mu_tlv[k].Pt() > MuPT_Hold)
-           {
+     if (Muons.size() > 2) {
+       for (UInt_t k=1; k < Muons.size(); k++) {
+         if (b_Mu_tlv[k].Pt() != b_Mu2.Pt()) {
+           if (b_Mu_tlv[k].Pt() > MuPT_Hold) {
              MuPT_Hold = b_Mu_tlv[k].Pt();
            }
            mT_Hold = sqrt(2.0*b_Mu_tlv[k].Pt()*b_Met*(1-cos(abs(b_Mu_tlv[k].Eta()-b_Met_phi))));
-           if (mT_Hold > b_mT2)
-           {
+           if (mT_Hold > b_mT2) {
               b_mT2 = mT_Hold; 
            }
          }
        } 
      }
-     if (Elecs.size() > 0) 
-     {
+     if (Elecs.size() > 0) {
        ElPT_Hold = b_El_tlv[0].Pt();
-       for (UInt_t k=0; k < Elecs.size(); k++)
-       {
+       for (UInt_t k=0; k < Elecs.size(); k++) {
          mT_Hold = sqrt(2.0*b_El_tlv[k].Pt()*b_Met*(1-cos(abs(b_El_tlv[k].Eta()-b_Met_phi))));
-         if (mT_Hold > b_mT2)
-         {
+         if (mT_Hold > b_mT2) {
            b_mT2 = mT_Hold; 
          }
        }
      }
-     if (ElPT_Hold > MuPT_Hold)
-     {
+     if (ElPT_Hold > MuPT_Hold) {
        b_XlepPt = ElPT_Hold;
-     }
-     else 
-     {
+     } else {
        b_XlepPt = MuPT_Hold; 
      }
 
-     if (nonbJets.size() >= 2)
-     {
+     if (nonbJets.size() >= 2) {
        nonbJets[0].Momentum(b_nonbJet1); 
        nonbJets[1].Momentum(b_nonbJet2); 
        b_DiJetM12 = b_nonbJet1.M() + b_nonbJet2.M();
      }
 
-     for (UInt_t i = 0; i < BJets.size(); i++)
-     {
-       if (Elecs.size() > 0)
-       {
-         for (UInt_t m = 0; m < Elecs.size(); m++)
-         { 
+     for (UInt_t i = 0; i < BJets.size(); i++) {
+       if (Elecs.size() > 0) {
+         for (UInt_t m = 0; m < Elecs.size(); m++) { 
            DR_Hold = b_bJet_tlv[i].DeltaR(b_El_tlv[m]);
-           if (DR_Hold < b_minDR || b_minDR < 0)
-           {
+           if (DR_Hold < b_minDR || b_minDR < 0) {
              b_minDR = DR_Hold;
            }
          }
        }
-       if (Muons.size() > 2)
-       {
-         for (UInt_t n = 1; n < Muons.size(); n++)
-         {
-           if (Muons[n].Pt() != b_Mu2.Pt())
-           {
+       if (Muons.size() > 2) {
+         for (UInt_t n = 1; n < Muons.size(); n++) {
+           if (Muons[n].Pt() != b_Mu2.Pt()) {
              DR_Hold = b_bJet_tlv[i].DeltaR(b_Mu_tlv[n]);
-             if (DR_Hold < b_minDR || b_minDR < 0)
-             {
+             if (DR_Hold < b_minDR || b_minDR < 0) {
                b_minDR = DR_Hold;
              } 
            }
@@ -432,8 +390,7 @@ bool nanoAnalysis::Analysis()
      b_mT = sqrt(2.0*b_Mu1.Pt()*b_Met*(1-cos(abs(b_Mu1.Eta()-b_Met_phi))));
   }
   // Hadronic //
-  if (Elecs.size() == 0 && Muons.size() == 2 && BJets.size() >= 1 && nonbJets.size() >= 4)
-  {
+  if (Elecs.size() == 0 && Muons.size() == 2 && BJets.size() >= 1 && nonbJets.size() >= 4) {
      b_nFH4 = 1;
      b_CSV = b_CSVv2[0];
      nonbJets[0].Momentum(b_nonbJet1); 
@@ -448,71 +405,58 @@ bool nanoAnalysis::Analysis()
      b_DiJetM24 = b_nonbJet2.M() + b_nonbJet4.M();
      b_DiJetM34 = b_nonbJet3.M() + b_nonbJet4.M();
      
-     for (UInt_t i = 0; i < BJets.size(); i++)
-     {
+     for (UInt_t i = 0; i < BJets.size(); i++) {
        DR_Hold = b_bJet_tlv[i].DeltaR(b_Mu1);
        DR_Hold2 = b_bJet_tlv[i].DeltaR(b_Mu2);
-       if (DR_Hold < b_minDR1 || b_minDR1 < 0)
-       {
+       if (DR_Hold < b_minDR1 || b_minDR1 < 0) {
          b_minDR1 = DR_Hold;
        }
-       if (DR_Hold2 > b_minDR2 || b_minDR2 < 0)
-       {
+       if (DR_Hold2 > b_minDR2 || b_minDR2 < 0) {
          b_minDR2 = DR_Hold2;
        }
      }
      
-
      b_mT2 = sqrt(2.0*b_Mu1.Pt()*b_Met*(1-cos(abs(b_Mu1.Eta()-b_Met_phi))));
      b_mT = sqrt(2.0*b_Mu2.Pt()*b_Met*(1-cos(abs(b_Mu2.Eta()-b_Met_phi))));
      h_nFH4->Fill(0.5, b_nFH4); 
   }
   //Outsider //
-  if (BJets.size() >= 1 && b_nFH4 == 0 && b_XL == 0)
-  {
+  if (BJets.size() >= 1 && b_nFH4 == 0 && b_XL == 0) {
      b_Out = 1;
      b_CSV = b_CSVv2[0];
-     if (nonbJets.size() >= 2)
-     {
+     if (nonbJets.size() >= 2) {
      nonbJets[0].Momentum(b_nonbJet1);
      nonbJets[1].Momentum(b_nonbJet2);
      
      b_DiJetM12 = b_nonbJet1.M() + b_nonbJet2.M();
      }     
+
      b_mT2 = sqrt(2.0*b_Mu1.Pt()*b_Met*(1-cos(abs(b_Mu1.Eta()-b_Met_phi))));
      b_mT = sqrt(2.0*b_Mu2.Pt()*b_Met*(1-cos(abs(b_Mu2.Eta()-b_Met_phi))));
      
      h_Out->Fill(0.5,b_Out);
   }
   // nob // 
-  if (BJets.size() == 0)
-  {
+  if (BJets.size() == 0) {
      b_nonB = 1;
      b_nexLep = Muons.size() + Elecs.size() - 2;
-     if (Jets.size() >= 2)
-     {
+     if (Jets.size() >= 2) {
        TLorentzVector j1; 
        TLorentzVector j2; 
        b_etaJ1 = b_Jet_tlv[0].Eta();
        b_etaJ2 = b_Jet_tlv[1].Eta();
-       for (auto& J1 : b_Jet_tlv) 
-       {
-         for (auto& J2 : b_Jet_tlv) 
-         {
-           if (J1.M() != J2.M())
-           { 
+       for (auto& J1 : b_Jet_tlv) {
+         for (auto& J2 : b_Jet_tlv) {
+           if (J1.M() != J2.M()) { 
              TLorentzVector Dijet_hold = J1 + J2;
-             if (Dijet_hold.M() > b_DijetM2)  
-             {
+             if (Dijet_hold.M() > b_DijetM2) {
                b_DijetM2 = Dijet_hold.M();
                b_DijetEta2 = Dijet_hold.Eta();
              }    
-             if (b_DijetM1 == b_DijetM2) 
-             {
+             if (b_DijetM1 == b_DijetM2) {
                b_DijetM2 = 0; 
              }    
-             if (b_DijetM2 > b_DijetM1) 
-             {
+             if (b_DijetM2 > b_DijetM1) {
                DijetM_hold = b_DijetM1;
                DijetEta_hold = b_DijetEta1;
 
@@ -540,14 +484,10 @@ bool nanoAnalysis::Analysis()
   b_all_Dilep_Eta = b_Dilep.Eta();   
   b_all_Dilep_Phi = b_Dilep.Phi();   
 
-  for (auto& J : Jets) 
-  {
-    if (abs(J.Eta()) < 2.4)
-    {
+  for (auto& J : Jets) {
+    if (abs(J.Eta()) < 2.4) {
        b_Central_Jets += 1;   
-    }
-    else 
-    {
+    } else {
        b_Forward_Jets += 1; 
     }
   }
@@ -565,7 +505,7 @@ bool nanoAnalysis::Analysis()
 }
 
 
-void nanoAnalysis::Loop()
+void h2muAnalysis::Loop()
 {
   if (fChain == 0) return;
 
@@ -580,7 +520,7 @@ void nanoAnalysis::Loop()
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
     bool keep = Analysis();
-    if (keep){
+    if (keep) {
       m_tree->Fill();
     }
   }
@@ -591,20 +531,15 @@ int main(Int_t argc, Char_t** argv)
 {
   string env = getenv("CMSSW_BASE");
   string username = getenv("USER");
-  RoccoR* rocCor = new RoccoR(env+"/src/nano/analysis/data/rcdata.2016.v3/");
-  lumiTool* lumi = new lumiTool(env+"/src/nano/analysis/data/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt");
-  pileUpTool* pileUp = new pileUpTool();
 
-  if(argc != 1)
-  {
+  if (argc != 1) {
     string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/"+username+"/nanoAOD/"+std::string(argv[1])+"/"+std::string(argv[2]);
    // string dirName = env+("/src/nano/analysis/test/h2mu/Results/")+argv[1]+"/"+argv[2];
     string temp = argv[2];
     Bool_t isMC = false;
     Size_t found = temp.find("Run");
     if(found == string::npos) isMC = true;
-    for(Int_t i = 3; i < argc; i++)
-    {
+    for (Int_t i = 3; i < argc; i++) {
       TFile *f = TFile::Open(argv[i], "read");
 
       TTree *tree;
@@ -613,21 +548,17 @@ int main(Int_t argc, Char_t** argv)
       temp = argv[i];
       found = temp.find_last_of('/');
       string outPutName = dirName+temp.substr(found);
-      nanoAnalysis t(tree, isMC);
-      t.LoadModules(pileUp, lumi, rocCor);
+      h2muAnalysis t(tree, isMC);
       t.SetOutput(outPutName);
       t.Loop();
     }
-  }
-  else
-  {
+  } else {
  //   TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/ttHToMuMu_M125_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180125_131219/0000/nanoAOD_004.root", "read");
     TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/180125_131129/0000/nanoAOD_100.root", "read");
     TTree *tree;
     f->GetObject("Events", tree);
     
-    nanoAnalysis t(tree, true);
-    t.LoadModules(pileUp, lumi, rocCor);
+    h2muAnalysis t(tree, true);
     t.SetOutput("test.root");
     t.Loop();
   }
@@ -636,11 +567,10 @@ int main(Int_t argc, Char_t** argv)
 }
 
 //Object Selections
-vector<TParticle> nanoAnalysis::MuonSelection()
+vector<TParticle> h2muAnalysis::MuonSelection()
 {
   vector<TParticle> muons;
-  for(UInt_t i = 0; i < nMuon; i++)
-  {
+  for (UInt_t i = 0; i < nMuon; i++) {
     if (!Muon_trackerMu[i]) continue;
     if (!Muon_globalMu[i]) continue;
     if (!Muon_tightId[i]) continue;
@@ -663,17 +593,17 @@ vector<TParticle> nanoAnalysis::MuonSelection()
   return muons;
 }
 
-vector<TParticle> nanoAnalysis::ElectronSelection(vector<TParticle> leptons)
+vector<TParticle> h2muAnalysis::ElectronSelection(vector<TParticle> leptons)
 {
   vector<TParticle> electrons;
-  for(UInt_t i = 0; i < nElectron; i++)
-  {
+  for(UInt_t i = 0; i < nElectron; i++) {
     if ( Electron_pt[i] < 10) continue;
     if (abs(Electron_eta[i]) > 2.5 ) continue; //<~~~~~~~~~~~~~~ Higgs Electron pt == 10; Higgs Electron eta > 2.5  
     //if( Electron_pfRelIso03_all[i] > 0.15 || Electron_cutBased[i] < 3 ) continue; //<~~~~~~~~~~~~~~ Top doesn't use isolation? 
     if (Electron_cutBased[i] < 3) continue;
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
+
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
 
@@ -688,11 +618,10 @@ vector<TParticle> nanoAnalysis::ElectronSelection(vector<TParticle> leptons)
   }
   return electrons;
 }
-vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
+vector<TParticle> h2muAnalysis::JetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> jets;
-  for(UInt_t i = 0; i < nJet; i++)
-  {
+  for (UInt_t i = 0; i < nJet; i++) {
     if (abs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
     if (abs(Jet_eta[i]) < 2.4 &&  Jet_pt[i] < 20) continue;
     if (abs(Jet_eta[i]) > 4.7) continue; 
@@ -712,14 +641,13 @@ vector<TParticle> nanoAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
   return jets;
 }
 
-vector<TParticle> nanoAnalysis::BJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
+vector<TParticle> h2muAnalysis::BJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> bJets;
   b_btagweight = 1.0;
   b_btagweight_up = 1.0;
   b_btagweight_dn = 1.0;
-  for (UInt_t i = 0; i < nJet; i++)
-  {
+  for (UInt_t i = 0; i < nJet; i++) {
     if (Jet_btagCSVV2[i] < 0.8484) continue;
     if (Jet_pt[i] < 20) continue;
     if (abs(Jet_eta[i]) > 2.4) continue;
@@ -742,11 +670,10 @@ vector<TParticle> nanoAnalysis::BJetSelection(vector<TParticle> Muons, vector<TP
   return bJets;
 }
 
-vector<TParticle> nanoAnalysis::nonbJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
+vector<TParticle> h2muAnalysis::nonbJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> nonbjets;
-  for(UInt_t i = 0; i < nJet; i++)
-  {
+  for (UInt_t i = 0; i < nJet; i++) {
     if (Jet_pt[i] < 30) continue;
     if (abs(Jet_eta[i]) > 4.7) continue; 
     if (Jet_jetId[i] < 1) continue;
@@ -766,34 +693,30 @@ vector<TParticle> nanoAnalysis::nonbJetSelection(vector<TParticle> Muons, vector
   }
   return nonbjets;
 }
-bool nanoAnalysis::hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad)
+bool h2muAnalysis::hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad)
 {
-  for (auto obj: objects){
+  for (auto obj: objects) {
     TLorentzVector mom;
     obj.Momentum(mom);
-    if (cand.DeltaR(mom) < rad){
+    if (cand.DeltaR(mom) < rad) {
       return true;
     }
   }
   return false;
 }
 
-Double_t nanoAnalysis::roccoR(TLorentzVector m, int &q, int &nGen, int &nTrackerLayers)
+Double_t h2muAnalysis::roccoR(TLorentzVector m, int &q, int &nGen, int &nTrackerLayers)
 {
   Float_t u1 = gRandom->Rndm();
   Float_t u2 = gRandom->Rndm();
-  if (!m_isMC){
+  if (!m_isMC) {
     return m_rocCor->kScaleDT(q, m.Pt(), m.Eta(), m.Phi(), 0, 0);
-  }
-  else {
-    if (nGen > -1){
+  } else {
+    if (nGen > -1) {
       return m_rocCor->kScaleFromGenMC(q, m.Pt(), m.Eta(), m.Phi(),
 				       nTrackerLayers, GenPart_pt[nGen],
 				       u1, 0, 0);
-    }
-    else
-      return m_rocCor->kScaleAndSmearMC(q, m.Pt(), m.Eta(), m.Phi(),
-					nTrackerLayers, u1, u2, 0, 0);
+    } else return m_rocCor->kScaleAndSmearMC(q, m.Pt(), m.Eta(), m.Phi(),
+	        			     nTrackerLayers, u1, u2, 0, 0);
   }
-  return 1.0;
 }

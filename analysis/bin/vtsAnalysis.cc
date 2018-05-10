@@ -264,6 +264,7 @@ vector<TParticle> topAnalysis::jetSelection() {
 */
 void hadAnalysis::MatchingForMC() {
   m_isMC = true;
+
   //Find s quark from Gen Info.  
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 3) {
