@@ -1,5 +1,4 @@
 #define Events_cxx
-<<<<<<< HEAD
 #ifndef nanoAnalysis_H
 #define nanoAnalysis_H
 
@@ -23,7 +22,6 @@
 #include "TMVA/Reader.h"
 #include "TMVA/DataLoader.h"
 #include "TMVA/MethodCuts.h"
-
 
 class nanoAnalysis : public Events
 {
