@@ -1,3 +1,5 @@
+#ifndef h2muAnalysis_H
+#define h2muAnalysis_H
 #include "nanoAnalysis.h"
 
 class h2muAnalysis : public nanoAnalysis {
@@ -101,3 +103,5 @@ h2muAnalysis::h2muAnalysis(TTree *tree, Bool_t isMC) : nanoAnalysis(tree, isMC)
 h2muAnalysis::~h2muAnalysis()
 {
 }
+
+#endif
