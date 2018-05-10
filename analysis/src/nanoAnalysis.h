@@ -1,8 +1,9 @@
 #define Events_cxx
+<<<<<<< HEAD
 #ifndef nanoAnalysis_H
 #define nanoAnalysis_H
 
-#include "Events_2016v3.h"
+#include "nano/analysis/src/Events.h"
 
 #include <TH1D.h>
 #include <TLorentzVector.h>
@@ -16,7 +17,6 @@
 
 #include "MuonScaleFactorEvaluator.h"
 #include "ElecScaleFactorEvaluator.h"
-//#include "BTagWeightEvaluator.h"
 #include "BTagCalibrationStandalone.cc"
 
 #include "TMVA/Tools.h"
