@@ -16,7 +16,10 @@
 
 #include "MuonScaleFactorEvaluator.h"
 #include "ElecScaleFactorEvaluator.h"
-#include "BTagCalibrationStandalone.cc"
+
+#include "BTagCalibrationStandalone.h"
+//#include "TopTriggerSF.h"
+//#include "TTbarModeDefs.h"
 
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"

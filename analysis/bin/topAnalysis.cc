@@ -5,8 +5,9 @@
 #include <TCanvas.h>
 //#include <iostream>
 #include <cstdlib>
+
 using namespace std;
-/*
+
 vector<TParticle> topAnalysis::muonSelection()
 {
   vector<TParticle> muons; 
@@ -35,12 +36,12 @@ vector<TParticle> topAnalysis::elecSelection()
   for (UInt_t i = 0; i < nElectron; ++i){
     if (Electron_pt[i] < 20) continue;
     if (std::abs(Electron_eta[i]) > 2.4) continue;
-    if (Electron_cutBased[i] < 3) continue;
+    if (Electron_cutBased[i] < 3) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
-   
+
     auto elec = TParticle();
     elec.SetPdgCode(11*Electron_charge[i]*-1);
     elec.SetMomentum(mom);
@@ -50,10 +51,9 @@ vector<TParticle> topAnalysis::elecSelection()
   return elecs;
 }
 
-
 vector<TParticle> topAnalysis::jetSelection()
 {
-  vector<TParticle> jets; 
+  vector<TParticle> jets;
   float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
     if (Jet_pt[i] < 30) continue;
@@ -69,21 +69,20 @@ vector<TParticle> topAnalysis::jetSelection()
     auto jet = TParticle();
     jet.SetMomentum(mom);
     jets.push_back(jet);
-    for (UInt_t iu = 0; iu < 19; iu++)
-    {   
-      Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
+    for (UInt_t iu = 0; iu < 19; iu++) {
+     // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
     }
   }
   for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
   b_btagweight = Jet_SF_CSV[0];
-
+  
   return jets;
 }
 
 vector<TParticle> topAnalysis::bjetSelection()
 {
-  vector<TParticle> bjets; 
-  for (UInt_t i = 0; i < nJet; ++i ){
+  vector<TParticle> bjets;
+  for (UInt_t i = 0; i < nJet; ++i ) {
     if (Jet_pt[i] < 30) continue;
     if (std::abs(Jet_eta[i]) > 2.4) continue;
     if (Jet_jetId[i] < 1) continue;
@@ -91,8 +90,8 @@ vector<TParticle> topAnalysis::bjetSelection()
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
     bool hasOverLap = false;
-    for (auto lep : recoleps){
-        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
+    for (auto lep : recoleps) {
+      if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
     auto bjet = TParticle();
@@ -101,8 +100,9 @@ vector<TParticle> topAnalysis::bjetSelection()
   }
   return bjets;
 }
-*/
 
+
+/*
 vector<TParticle> topAnalysis::muonSelection() {
   vector<TParticle> muons;
   for (UInt_t i = 0; i < nMuon; ++i) {
@@ -149,8 +149,8 @@ vector<TParticle> topAnalysis::jetSelection() {
   }
   return jets;
 }
-
-int main() {
-  //do nothing
+*/
+int main()
+{
   return 0;
 }
