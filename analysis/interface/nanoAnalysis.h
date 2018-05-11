@@ -9,16 +9,16 @@
 
 #include <TString.h>
 
-#include "nano/external/src/pileUpTool.h"
-#include "nano/external/src/RoccoR.h"
-#include "nano/external/src/lumiTool.h"
+#include "nano/external/interface/pileUpTool.h"
+#include "nano/external/interface/RoccoR.h"
+#include "nano/external/interface/lumiTool.h"
 
-#include "nano/external/src/MuonScaleFactorEvaluator.h"
-#include "nano/external/src/ElecScaleFactorEvaluator.h"
+#include "nano/external/interface/MuonScaleFactorEvaluator.h"
+#include "nano/external/interface/ElecScaleFactorEvaluator.h"
 
-#include "nano/external/src/BTagCalibrationStandalone.h"
-//#include "nano/external/src/TopTriggerSF.h"
-//#include "nano/external/src/TTbarModeDefs.h"
+#include "nano/external/interface/BTagCalibrationStandalone.h"
+//#include "nano/external/interface/TopTriggerSF.h"
+//#include "nano/external/interface/TTbarModeDefs.h"
 
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"

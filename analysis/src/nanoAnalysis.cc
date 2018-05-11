@@ -1,4 +1,4 @@
-#include "nano/analysis/src/nanoAnalysis.h"
+#include "nano/analysis/interface/nanoAnalysis.h"
 
 using std::string;
 
