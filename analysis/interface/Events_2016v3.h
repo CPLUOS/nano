@@ -2023,6 +2023,7 @@ public :
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
    virtual Bool_t   Notify();
+   virtual void     Loop() = 0;
    virtual void     Show(Long64_t entry = -1);
 };
 

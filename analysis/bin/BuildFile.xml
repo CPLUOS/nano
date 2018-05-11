@@ -1,4 +1,4 @@
-<bin name="nanoAnalysis" file="nanoAnalysis.cc">
+<bin name="h2muAnalysis" file="h2muAnalysis.cc">
   <use name="root"/>
   <lib name="TMVA"/>
   <use name="rootxml"/>
@@ -6,7 +6,7 @@
   <lib name="EG"/>
   <use name="nano/analysis"/>
 </bin>
-<bin name="topAnalysis" file="topAnalysis.cc">
+<bin name="massAnalysis" file="massAnalysis.cc">
   <use name="root"/>
   <use name="rootxml"/>
   <lib name="Eve"/>

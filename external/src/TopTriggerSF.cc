@@ -1,6 +1,6 @@
-#include "TopTriggerSF.h"
+#include "nano/external/interface/TopTriggerSF.h"
 #include "TParticle.h"
-#include "TTbarModeDefs.h"
+#include "nano/external/interface/TTbarModeDefs.h"
 #include <cmath>
 
 double computeTrigSF(const TParticle& lep1, const  TParticle& lep2, int direction)
