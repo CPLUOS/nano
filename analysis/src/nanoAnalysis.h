@@ -1,8 +1,7 @@
-#define Events_cxx
 #ifndef nanoAnalysis_H
 #define nanoAnalysis_H
 
-#include "nano/analysis/src/Events.h"
+#include "Events.h"
 
 #include <TH1D.h>
 #include <TLorentzVector.h>
@@ -10,16 +9,16 @@
 
 #include <TString.h>
 
-#include "nano/analysis/plugins/pileUpTool.h"
-#include "nano/analysis/plugins/RoccoR.cc"
-#include "nano/analysis/plugins/lumiTool.h"
+#include "nano/external/src/pileUpTool.h"
+#include "nano/external/src/RoccoR.h"
+#include "nano/external/src/lumiTool.h"
 
-#include "nano/analysis/plugins/MuonScaleFactorEvaluator.h"
-#include "nano/analysis/plugins/ElecScaleFactorEvaluator.h"
+#include "nano/external/src/MuonScaleFactorEvaluator.h"
+#include "nano/external/src/ElecScaleFactorEvaluator.h"
 
-#include "nano/analysis/plugins/BTagCalibrationStandalone.cc"
-//#include "nano/analysis/plugins/TopTriggerSF.h"
-//#include "nano/analysis/plugins/TTbarModeDefs.h"
+#include "nano/external/src/BTagCalibrationStandalone.h"
+//#include "nano/external/src/TopTriggerSF.h"
+//#include "nano/external/src/TTbarModeDefs.h"
 
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"
@@ -47,26 +46,5 @@ public:
 
   Bool_t m_isMC;
 };
-
-nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC)
-{
-  m_pileUp = new pileUpTool();
-  string env = getenv("CMSSW_BASE");
-  string username = getenv("USER");
-  m_lumi = new lumiTool(env+"/src/nano/analysis/data/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt");
-  string csvFileName = "CSVv2_Moriond17_B_H.csv";
-  std::string csvFile = env+"/src/nano/analysis/data/btagSF/"+csvFileName;
-  BTagCalibration calib("csvv2", csvFile);
-  m_btagSF = BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
-  m_btagSF.load(calib, BTagEntry::FLAV_B, "mujets");
-}
-
-nanoAnalysis::~nanoAnalysis()
-{
- m_output->Write();
- m_output->Close();
-}
-
-void nanoAnalysis::Loop(){};
 
 #endif

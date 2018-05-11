@@ -1,5 +1,6 @@
 #include "topAnalysis.h"
 
+using std::vector;
 
 topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : nanoAnalysis(tree, isMC), m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm)
 {

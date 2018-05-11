@@ -2,8 +2,8 @@
 #define topAnalysis_H
 
 #include "nanoAnalysis.h"
-#include "nano/analysis/plugins/TopTriggerSF.cc"
-//#include "nano/analysis/plugins/TTbarModeDefs.h"
+#include "nano/external/src/TopTriggerSF.h"
+//#include "nano/external/src/TTbarModeDefs.h"
 
 class topAnalysis : public nanoAnalysis
 {

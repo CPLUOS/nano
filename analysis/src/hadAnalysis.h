@@ -1,7 +1,7 @@
 #ifndef hadAnalysis_H
 #define hadAnalysis_H
 
-#include "nano/analysis/src/topAnalysis.h"
+#include "topAnalysis.h"
 
 class hadAnalysis : public topAnalysis 
 {
