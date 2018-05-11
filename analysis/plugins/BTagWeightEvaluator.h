@@ -1,4 +1,4 @@
-#include "nano/analysis/external/BTagCalibrationStandalone.cc"
+#include "BTagCalibrationStandalone.cc"
 
 #include <string>
 #include <vector>
