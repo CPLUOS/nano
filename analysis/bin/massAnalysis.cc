@@ -1,4 +1,4 @@
-#include "nano/analysis/src/massAnalysis.h"
+#include "nano/analysis/interface/massAnalysis.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>

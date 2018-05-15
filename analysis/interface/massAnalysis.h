@@ -1,6 +1,6 @@
 #ifndef massAnalysis_H
 #define massAnalysis_H
-#include "nano/analysis/src/topAnalysis.h"
+#include "topAnalysis.h"
 
 class massAnalysis : public topAnalysis {
 private: 

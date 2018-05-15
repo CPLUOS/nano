@@ -6,8 +6,81 @@
 #include <iostream>
 #include "TSystem.h"
 #include "TMath.h"
-#include "RoccoR.h"
+#include "nano/external/interface/RoccoR.h"
 
+///
+
+CrystalBall::CrystalBall(){
+  init(0, 1, 10, 10);
+}
+
+CrystalBall::CrystalBall(double m_, double s_, double a_, double n_){
+  init(m_, s_, a_, n_);
+}
+
+void CrystalBall::init(double m_, double s_, double a_, double n_){
+  m=m_;
+  s=s_;
+  a=a_;
+  n=n_;
+  
+  double fa   = fabs(a);
+  double expa = exp(-fa*fa/2);
+  double A    = pow(n/fa, n)*expa;
+  double C1   = n/fa/(n-1)*expa; 
+  double D1   = 2*SPiO2*erf(fa/S2);
+  
+  B  = n/fa-fa;
+  C  = (D1+2*C1)/C1;   
+  D  = (D1+2*C1)/2;   
+  
+  N  = 1.0/s/(D1+2*C1); 
+  k  = 1.0/(n-1);  
+  
+  NA = N*A;       
+  Ns = N*s;       
+  NC = Ns*C1;     
+  F  = 1-fa*fa/n; 
+  G  = s*n/fa;    
+  
+  cdfMa=cdf(m-a*s);
+  cdfPa=cdf(m+a*s);
+}
+
+double CrystalBall::pdf(double x) const{ 
+  double d=(x-m)/s;
+  if(d<-a) return NA*pow(B-d, -n);
+  if(d> a) return NA*pow(B+d, -n);
+  return N*exp(-d*d/2);
+}
+
+double CrystalBall::pdf(double x, double ks, double dm) const{ 
+	double d=(x-m-dm)/(s*ks);
+	if(d<-a) return NA/ks*pow(B-d, -n);
+	if(d> a) return NA/ks*pow(B+d, -n);
+	return N/ks*exp(-d*d/2);
+}
+
+double CrystalBall::cdf(double x) const{
+  double d = (x-m)/s;
+  if(d<-a) return NC / pow(F-s*d/G, n-1);
+  if(d> a) return NC * (C - pow(F+s*d/G, 1-n) );
+  return Ns*(D-SPiO2*erf(-d/S2));
+}
+
+double CrystalBall::invcdf(double u) const{
+  if(u<cdfMa) return m + G*(F - pow(NC/u,    k) );
+  if(u>cdfPa) return m - G*(F - pow(C-u/NC, -k) );
+  return m - S2*s*TMath::ErfInverse((D - u/Ns ) / SPiO2);
+}
+
+const double CrystalBall::pi    = TMath::Pi();
+const double CrystalBall::SPiO2 = sqrt(TMath::Pi()/2.0);
+const double CrystalBall::S2    = sqrt(2.0);
+
+
+
+///
 
 int RocRes::getBin(double x, const int NN, const double *b) const{
     for(int i=0; i<NN; ++i) if(x<b[i+1]) return i;

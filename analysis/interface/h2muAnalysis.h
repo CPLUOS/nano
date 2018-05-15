@@ -76,7 +76,7 @@ private:
   //For Selection
   enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
 
-  bool hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad);
+  bool hasOverLap(TLorentzVector cand, std::vector<TParticle> objects, Float_t rad);
   
   std::vector<TParticle> MuonSelection();
   std::vector<TParticle> ElectronSelection(std::vector<TParticle>);
@@ -96,7 +96,7 @@ public:
 
 h2muAnalysis::h2muAnalysis(TTree *tree, Bool_t isMC) : nanoAnalysis(tree, isMC)
 {
-  string env = getenv("CMSSW_BASE");
+  std::string env = getenv("CMSSW_BASE");
   m_rocCor = new RoccoR(env+"/src/nano/analysis/data/rcdata.2016.v3/");
 }
 

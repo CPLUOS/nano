@@ -1,3 +1,4 @@
+<use name="nano/external" />
 <use name="root"/>
 <use name="rootxml"/>
   <lib name="Eve"/>

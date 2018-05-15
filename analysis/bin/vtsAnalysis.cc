@@ -2,7 +2,7 @@
 #include <vector>
 #include <TLorentzVector.h>
 
-#include "nano/analysis/src/hadAnalysis.h"
+#include "nano/analysis/interface/hadAnalysis.h"
 #include "TFile.h"
 #include "TTree.h"
 

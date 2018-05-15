@@ -1,20 +1,6 @@
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <vector>
-#include <map>
-#include <array>
-#include <string>
-using namespace std;
+#include "nano/external/interface/lumiTool.h"
 
-class lumiTool {
-public:
-  lumiTool(string fileName);
-  ~lumiTool();
-  Bool_t LumiCheck(UInt_t run, UInt_t luminosityBlock);
-private:
-  map<UInt_t, vector<array<UInt_t, 2>>> lumiMap;
-};
+using namespace std;
 
 lumiTool::lumiTool(string fileName)
 {
