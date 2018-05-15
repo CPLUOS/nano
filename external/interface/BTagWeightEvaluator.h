@@ -20,11 +20,11 @@ public:
   double getSF(const TParticle& jet, const float CSVV2, const int hadronFlavour, const int unc);
 
   enum CSVUNC {
-    CENTRAL, JES_UP, JES_DN,
-    LF_UP, LF_DN, HF_UP, HF_DN,
-    HFSTAT1_UP, HFSTAT1_DN, HFSTAT2_UP, HFSTAT2_DN,
-    LFSTAT1_UP, LFSTAT1_DN, LFSTAT2_UP, LFSTAT2_DN,
-    CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN
+    CENTRAL=0, JES_UP=1, JES_DN=2,
+    LF_UP=3, LF_DN=4, HF_UP=5, HF_DN=6,
+    HFSTAT1_UP=7, HFSTAT1_DN=8, HFSTAT2_UP=9, HFSTAT2_DN=10,
+    LFSTAT1_UP=11, LFSTAT1_DN=12, LFSTAT2_UP=13, LFSTAT2_DN=14,
+    CFERR1_UP=15, CFERR1_DN=16, CFERR2_UP=17, CFERR2_DN=18
   };
 
 private:
@@ -35,10 +35,10 @@ private:
 
 void BTagWeightEvaluator::initCSVWeight()
 {
-  string csvFileName = "btagSF_CSVv2_ichep2016.csv";
+  string csvFileName = "CSVv2_Moriond17_B_H.csv";
+  //string csvFileName = "btagSF_CSVv2_ichep2016.csv";
   std::string env = std::getenv("CMSSW_BASE");
   std::string csvFile = env+"/src/nano/analysis/data/btagSF/"+csvFileName;
-  std::cout << csvFile << std::endl;
   BTagCalibration calib("csvv2", csvFile);
   uncNames_ = {
     "central", "up_jes", "down_jes",
@@ -48,7 +48,6 @@ void BTagWeightEvaluator::initCSVWeight()
     "up_cferr1", "down_cferr1", "up_cferr2", "down_cferr2"
   };
   for ( unsigned int i=0; i<uncNames_.size(); ++i ) {
-    std::cout << "test : " << i << std::endl;
     readers_[i] = BTagCalibrationReader(&calib, BTagEntry::OP_RESHAPING, "iterativefit", uncNames_[i]);
   }
 }
@@ -68,21 +67,25 @@ double BTagWeightEvaluator::getSF(const TParticle& jet, const float CSVV2, const
 
   // Special care for the flavour dependent SFs
   int uncKey = unc;
-  if ( flav == 5 ) {
+  if ( flav == 5 ) {  // Heavy Flavor / B quark
     if ( unc != LF_UP and unc != LF_DN and
+        unc != JES_UP and unc != JES_DN and
         unc != HFSTAT1_UP and unc != HFSTAT1_DN and
-        unc != HFSTAT2_UP and unc != HFSTAT2_DN ) uncKey = CENTRAL;
+        unc != HFSTAT2_UP and unc != HFSTAT2_DN and
+	unc != CENTRAL) return 1.;
   }
-  else if ( flav == 4 ) {
+  else if ( flav == 4 ) {   // C 
     if ( unc != CFERR1_UP and unc != CFERR1_DN and
-        unc != CFERR2_UP and unc != CFERR2_DN ) uncKey = CENTRAL;
+        unc != CFERR2_UP and unc != CFERR2_DN and
+	unc != CENTRAL) return 1.;
   }
-  else {
+  else {  // Light Flavor
     if ( unc != HF_UP and unc != HF_DN and
+        unc != JES_UP and unc != JES_DN and
         unc != LFSTAT1_UP and unc != LFSTAT1_DN and
-        unc != LFSTAT2_UP and unc != LFSTAT2_DN ) uncKey = CENTRAL;
+        unc != LFSTAT2_UP and unc != LFSTAT2_DN and
+	unc != CENTRAL) return 1.;
   }
-
   auto readerItr = readers_.find(uncKey);
   if ( readerItr == readers_.end() ) return 1.0;
 
@@ -91,6 +94,4 @@ double BTagWeightEvaluator::getSF(const TParticle& jet, const float CSVV2, const
   else if ( flav == 4 ) jf = BTagEntry::FLAV_C;
 
   return readerItr->second.eval(jf, aeta, pt, discr);
-  
-  return 1.;
 };

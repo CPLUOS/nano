@@ -3,63 +3,54 @@
 #include <algorithm>
 #include <cassert>
 #include "TLorentzVector.h"
+#include "nano/external/interface/MuonScaleFactorEvaluator.h"
 
-class MuonScaleFactorEvaluator
-{
-public:
-  MuonScaleFactorEvaluator(){
-    const unsigned int n = (pt_bins.size()-1)*(eta_bins.size()-1);
-    // FIXME : check that these bins are monolothically increasing
-    assert(values.size() == n);
-    assert(errors.size() == n);
+MuonScaleFactorEvaluator::MuonScaleFactorEvaluator(){
+  const unsigned int n = (pt_bins.size()-1)*(eta_bins.size()-1);
+  // FIXME : check that these bins are monolothically increasing
+  assert(values.size() == n);
+  assert(errors.size() == n);
+  
+  // For cache
+  width = pt_bins.size()-1;
+};
 
-    // For cache
-    width = pt_bins.size()-1;
-  };
-  double operator()(const double x, const double y, const double shift = 0){
+double MuonScaleFactorEvaluator::operator()(const double x, const double y, const double shift){
+  auto xbin = std::lower_bound(pt_bins.begin(), pt_bins.end(), x);
+  if ( xbin == pt_bins.end() || xbin+1 == pt_bins.end() ) return 1;
+  auto ybin = std::lower_bound(eta_bins.begin(), eta_bins.end(), y);
+  if ( ybin == eta_bins.end() || ybin+1 == eta_bins.end() ) return 1;
+  
+  const int column = xbin-pt_bins.begin();
+  const int row = ybin-eta_bins.begin();
+  
+  const int bin = row*width+column;
+  const double value = values.at(bin);
+  const double error = errors.at(bin);
+  
+  return std::max(0.0, value+shift*error);
+};
+
+double MuonScaleFactorEvaluator::getScaleFactor(const TParticle& p, const int pid, const double shift){
+  const int aid = abs(p.GetPdgCode());
+  if ( aid == pid ) {
+    const double x = p.Pt(), y = p.Eta();
+    
     auto xbin = std::lower_bound(pt_bins.begin(), pt_bins.end(), x);
     if ( xbin == pt_bins.end() || xbin+1 == pt_bins.end() ) return 1;
     auto ybin = std::lower_bound(eta_bins.begin(), eta_bins.end(), y);
     if ( ybin == eta_bins.end() || ybin+1 == eta_bins.end() ) return 1;
-
+    
     const int column = xbin-pt_bins.begin();
     const int row = ybin-eta_bins.begin();
-
+    
     const int bin = row*width+column;
     const double value = values.at(bin);
     const double error = errors.at(bin);
-
+    
     return std::max(0.0, value+shift*error);
-  };
-  double getScaleFactor(const TParticle& p, const int pid, const double shift = 0){
-    const int aid = abs(p.GetPdgCode());
-    if ( aid == pid ) {
-      const double x = p.Pt(), y = p.Eta();
-      
-      auto xbin = std::lower_bound(pt_bins.begin(), pt_bins.end(), x);
-      if ( xbin == pt_bins.end() || xbin+1 == pt_bins.end() ) return 1;
-      auto ybin = std::lower_bound(eta_bins.begin(), eta_bins.end(), y);
-      if ( ybin == eta_bins.end() || ybin+1 == eta_bins.end() ) return 1;
-
-      const int column = xbin-pt_bins.begin();
-      const int row = ybin-eta_bins.begin();
-
-      const int bin = row*width+column;
-      const double value = values.at(bin);
-      const double error = errors.at(bin);
-
-      return std::max(0.0, value+shift*error);
-    }
-    return 1;
-  };
-
-private:
-  static const std::vector<double> pt_bins;
-  static const std::vector<double> eta_bins;
-  static const std::vector<double> values;
-  static const std::vector<double> errors;
-
-  int width;
+  }
+  return 1;
 };
 
 //For Muons

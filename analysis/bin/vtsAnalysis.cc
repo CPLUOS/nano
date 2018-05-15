@@ -1,15 +1,14 @@
-#define vtsAnalysis_cxx
 #include <iostream>
 #include <vector>
 #include <TLorentzVector.h>
 
-#include "nano/analysis/src/nanoAnalysis.h"
+#include "nano/analysis/interface/hadAnalysis.h"
 #include "TFile.h"
 #include "TTree.h"
 
 using namespace std;
-
-TParticle vtsAnalysis::GetTParticle(int pdgId, int idx) {
+/*
+TParticle topAnalysis::GetTParticle(int pdgId, int idx) {
   TLorentzVector tlv;
   if      (abs(pdgId) == 11) tlv.SetPtEtaPhiM(Electron_pt[idx], Electron_eta[idx], Electron_phi[idx], Electron_mass[idx]);
   else if (abs(pdgId) == 13) tlv.SetPtEtaPhiM(Muon_pt[idx], Muon_eta[idx], Muon_phi[idx], Muon_mass[idx]);
@@ -17,12 +16,12 @@ TParticle vtsAnalysis::GetTParticle(int pdgId, int idx) {
   else tlv.SetPtEtaPhiM(Jet_pt[idx], Jet_eta[idx], Jet_phi[idx], Jet_mass[idx]);
   return TParticle(pdgId, 0, 0, 0, 0, 0, tlv, tlv);
 }
-
-//Double_t vtsAnalysis::DeltaR(Double_t deta, Double_t dphi) {
+*/
+//Double_t hadAnalysis::DeltaR(Double_t deta, Double_t dphi) {
 //  return TMath::Sqrt(deta*deta + dphi*dphi);
 //}
 
-Double_t vtsAnalysis::DeltaPhi(Double_t phi1, Double_t phi2) {
+Double_t hadAnalysis::DeltaPhi(Double_t phi1, Double_t phi2) {
   static const Double_t kPI = TMath::Pi();
   static const Double_t kTWOPI = 2*TMath::Pi();
   Double_t x = phi1 - phi2;
@@ -35,7 +34,7 @@ Double_t vtsAnalysis::DeltaPhi(Double_t phi1, Double_t phi2) {
   return x;
 }
 
-Double_t vtsAnalysis::GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz) {
+Double_t hadAnalysis::GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz) {
   TLorentzVector tlv;
   tlv.SetPtEtaPhiM(pt,eta,phi,m);
   std::vector<Double_t> b = { tlv.Px()/(sqrt(tlv.Px()*tlv.Px()+tlv.Py()*tlv.Py()+tlv.Pz()*tlv.Pz())), tlv.Py()/(sqrt(tlv.Px()*tlv.Px()+tlv.Py()*tlv.Py()+tlv.Pz()*tlv.Pz())), tlv.Pz()/(sqrt(tlv.Px()*tlv.Px()+tlv.Py()*tlv.Py()+tlv.Pz()*tlv.Pz())) };
@@ -53,8 +52,8 @@ int main(Int_t argc, Char_t** argv) {
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
     cout << "c " << inTree << endl;
-    vtsAnalysis ana(inTree);
-    ana.MakeTree("nanotree.root");
+    hadAnalysis ana(inTree,false,false,false,false);
+    ana.setOutput("nanotree.root");
     ana.Loop();
   }
   else{
@@ -66,16 +65,16 @@ int main(Int_t argc, Char_t** argv) {
       auto inFileName = argv[i];
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      vtsAnalysis ana(inTree);
+      hadAnalysis ana(inTree,false,false,false,false);
 
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
-      ana.MakeTree(outFileName);
+      ana.setOutput(outFileName);
       ana.Loop();
     }
   }
 }
 
-void vtsAnalysis::Loop() {
+void hadAnalysis::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
 
@@ -85,78 +84,92 @@ void vtsAnalysis::Loop() {
     fChain->GetEntry(entry);
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
 
+//    std::cout << iev << " th event" << std::endl;
+
     ResetBranch();
     EventSelection();
     MatchingForMC();
     HadronAnalysis();
-    outTree->Fill();
+    m_tree->Fill();
   }
 //  for (int i =1; i<10; i++) { cout << h_cutFlow->GetBinContent(i) << "  "; }
-  outFile->Write();
-  outFile->Close();
+//  m_output->Write();
+//  m_output->Close();
   cout << endl;
 
 }
 
-void vtsAnalysis::MakeTree(std::string outFileName) {
-  outFile = TFile::Open(outFileName.c_str(), "RECREATE");
-  outTree = new TTree("events", "events");
-  outTree->Branch("channel", &b_channel, "channel/I");
-  outTree->Branch("njet", &b_njet, "njet/I");
-  outTree->Branch("met", &b_met, "met/F");
-  outTree->Branch("dilep_tlv", "TLorentzVector", &b_dilep_tlv);
+void hadAnalysis::setOutput(std::string outFileName)
+{
+  m_output = TFile::Open(outFileName.c_str(), "recreate");
 
-  outTree->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
-  outTree->Branch("isFrom_had", &b_isFrom_had, "isFrom_had/I");
-  outTree->Branch("d_had", &b_d_had , "d_had/F" );
-  outTree->Branch("x_had", &b_x_had, "x_had/F");
-  outTree->Branch("lxy_had", &b_lxy_had, "lxy_had/F");
-  outTree->Branch("lxySig_had", &b_lxySig_had, "lxySig_had/F");
-  outTree->Branch("angleXY_had", &b_angleXY_had, "angleXY_had/F");
-  outTree->Branch("angleXYZ_had", &b_angleXYZ_had, "angleXYZ_had/F");
-  outTree->Branch("chi2_had", &b_chi2_had, "chi2_had/F");
-  outTree->Branch("dca_had", &b_dca_had, "dca_had/F");
+  m_tree = new TTree("event", "event");
+  MakeBranch(m_tree);
+}
 
-  outTree->Branch("pt_had", &b_pt_had, "pt_had_had/F");
-  outTree->Branch("eta_had", &b_eta_had, "eta_had/F");
-  outTree->Branch("l3D_had", &b_l3D_had, "l3D_had/F");
-  outTree->Branch("l3DSig_had", &b_l3DSig_had, "l3DSig_had/F");
-  outTree->Branch("legDR_had", &b_legDR_had, "legDR_had/F");
-  outTree->Branch("mass_had", &b_mass_had, "mass_had/F");
-  outTree->Branch("pdgId_had", &b_pdgId_had, "pdgId_had/I");
+void hadAnalysis::MakeBranch(TTree* t)
+{
+  m_tree->Branch("channel", &b_channel, "channel/I");
+  m_tree->Branch("njet", &b_njet, "njet/I");
+  m_tree->Branch("met", &b_met, "met/F");
+  m_tree->Branch("dilep_tlv", "TLorentzVector", &b_dilep_tlv);
 
-  outTree->Branch("dau1_chi2_had", &b_dau1_chi2_had, "dau1_chi2_had/F");
-  outTree->Branch("dau1_ipsigXY_had", &b_dau1_ipsigXY_had, "dau1_ipsigXY_had/F");
-  outTree->Branch("dau1_ipsigZ_had", &b_dau1_ipsigZ_had, "dau1_ipsigZ_had/F");
-  outTree->Branch("dau1_pt_had", &b_dau1_pt_had, "dau1_pt_had/F");
+  m_tree->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
+  m_tree->Branch("isFrom_had", &b_isFrom_had, "isFrom_had/I");
+  m_tree->Branch("isHadJetMatched_had", &b_isHadJetMatched_had, "isHadJetMatched_had/O");
+  m_tree->Branch("d_had", &b_d_had , "d_had/F" );
+  m_tree->Branch("x_had", &b_x_had, "x_had/F");
+  m_tree->Branch("dr_had", &b_dr_had, "dr_had/F"); // distance between hadron and jet-center
+  m_tree->Branch("lxy_had", &b_lxy_had, "lxy_had/F");
+  m_tree->Branch("lxySig_had", &b_lxySig_had, "lxySig_had/F");
+  m_tree->Branch("angleXY_had", &b_angleXY_had, "angleXY_had/F");
+  m_tree->Branch("angleXYZ_had", &b_angleXYZ_had, "angleXYZ_had/F");
+  m_tree->Branch("chi2_had", &b_chi2_had, "chi2_had/F");
+  m_tree->Branch("dca_had", &b_dca_had, "dca_had/F");
 
-  outTree->Branch("dau2_chi2_had", &b_dau2_chi2_had, "dau2_chi2_had/F");
-  outTree->Branch("dau2_ipsigXY_had", &b_dau2_ipsigXY_had, "dau2_ipsigXY_had/F");
-  outTree->Branch("dau2_ipsigZ_had", &b_dau2_ipsigZ_had, "dau2_ipsigZ_had/F");
-  outTree->Branch("dau2_pt_had", &b_dau2_pt_had, "dau2_pt_had/F");
+  m_tree->Branch("pt_had", &b_pt_had, "pt_had_had/F");
+  m_tree->Branch("eta_had", &b_eta_had, "eta_had/F");
+  m_tree->Branch("l3D_had", &b_l3D_had, "l3D_had/F");
+  m_tree->Branch("l3DSig_had", &b_l3DSig_had, "l3DSig_had/F");
+  m_tree->Branch("legDR_had", &b_legDR_had, "legDR_had/F");
+  m_tree->Branch("mass_had", &b_mass_had, "mass_had/F");
+  m_tree->Branch("pdgId_had", &b_pdgId_had, "pdgId_had/I");
 
-  outTree->Branch("btagCSVV2_Jet", &b_btagCSVV2_Jet, "btagCSVV2_Jet/F");
-  outTree->Branch("btagDeepB_Jet", &b_btagDeepB_Jet, "btagDeepB_Jet/F");
-  outTree->Branch("btagDeepC_Jet", &b_btagDeepC_Jet, "btagDeepC_Jet/F");
-  outTree->Branch("btagCMVA_Jet", &b_btagCMVA_Jet, "btagCMVA_Jet/F");
+  m_tree->Branch("dau1_chi2_had", &b_dau1_chi2_had, "dau1_chi2_had/F");
+  m_tree->Branch("dau1_ipsigXY_had", &b_dau1_ipsigXY_had, "dau1_ipsigXY_had/F");
+  m_tree->Branch("dau1_ipsigZ_had", &b_dau1_ipsigZ_had, "dau1_ipsigZ_had/F");
+  m_tree->Branch("dau1_pt_had", &b_dau1_pt_had, "dau1_pt_had/F");
 
-  outTree->Branch("area_Jet", &b_area_Jet, "are_Jet/F");
-  outTree->Branch("pt_Jet", &b_pt_Jet, "pt_Jet/F");
-  outTree->Branch("nConstituents_Jet", &b_nConstituents_Jet, "nConstituents_Jet/I");
-  outTree->Branch("nElectrons_Jet", &b_nElectrons_Jet, "nElectrons_Jet/I");
-  outTree->Branch("nMuons_Jet", &b_nMuons_Jet, "nMuons_Jet/I");
+  m_tree->Branch("dau2_chi2_had", &b_dau2_chi2_had, "dau2_chi2_had/F");
+  m_tree->Branch("dau2_ipsigXY_had", &b_dau2_ipsigXY_had, "dau2_ipsigXY_had/F");
+  m_tree->Branch("dau2_ipsigZ_had", &b_dau2_ipsigZ_had, "dau2_ipsigZ_had/F");
+  m_tree->Branch("dau2_pt_had", &b_dau2_pt_had, "dau2_pt_had/F");
+
+  m_tree->Branch("btagCSVV2_Jet", &b_btagCSVV2_Jet, "btagCSVV2_Jet/F");
+  m_tree->Branch("btagDeepB_Jet", &b_btagDeepB_Jet, "btagDeepB_Jet/F");
+  m_tree->Branch("btagDeepC_Jet", &b_btagDeepC_Jet, "btagDeepC_Jet/F");
+  m_tree->Branch("btagCMVA_Jet", &b_btagCMVA_Jet, "btagCMVA_Jet/F");
+
+  m_tree->Branch("area_Jet", &b_area_Jet, "are_Jet/F");
+  m_tree->Branch("pt_Jet", &b_pt_Jet, "pt_Jet/F");
+  m_tree->Branch("nConstituents_Jet", &b_nConstituents_Jet, "nConstituents_Jet/I");
+  m_tree->Branch("nElectrons_Jet", &b_nElectrons_Jet, "nElectrons_Jet/I");
+  m_tree->Branch("nMuons_Jet", &b_nMuons_Jet, "nMuons_Jet/I");
 
 }
 
-void vtsAnalysis::ResetBranch() {
+void hadAnalysis::ResetBranch() {
+  m_isMC = false;
+
   b_channel = -9; b_njet = -9;
   b_met = -99;
   b_dilep_tlv.SetPtEtaPhiM(0,0,0,0);
   recoleps.clear();
 
   b_had_tlv.SetPtEtaPhiM(0,0,0,0);
-  b_isFrom_had = -9;
-  b_d_had = -1; b_x_had = -1;
+  b_isFrom_had = -99;
+  b_isHadJetMatched_had = false;
+  b_d_had = -1; b_x_had = -1; b_dr_had = -1;
   b_lxy_had = -1; b_lxySig_had = -1; b_angleXY_had = -1; b_angleXYZ_had = -1; b_chi2_had = -1; b_dca_had = -1;
   b_pt_had = -1; b_eta_had = -99; b_l3D_had = -1; b_l3DSig_had = -1; b_legDR_had = -1; b_mass_had = -99; b_pdgId_had = -99;
   b_dau1_chi2_had = -1; b_dau1_ipsigXY_had = -1; b_dau1_ipsigZ_had = -1; b_dau1_pt_had = -1;
@@ -169,7 +182,7 @@ void vtsAnalysis::ResetBranch() {
 }
 
 
-void vtsAnalysis::EventSelection() {
+void hadAnalysis::EventSelection() {
   //h_cutFlow->Fill(0);
   recolep1_tlv.SetPtEtaPhiM(0,0,0,0);
   recolep2_tlv.SetPtEtaPhiM(0,0,0,0);
@@ -207,8 +220,8 @@ void vtsAnalysis::EventSelection() {
   //h_cutFlow->Fill(5);
 
 }
-
-vector<TParticle> vtsAnalysis::muonSelection() {
+/*
+vector<TParticle> topAnalysis::muonSelection() {
   vector<TParticle> muons;
   for (UInt_t i = 0; i < nMuon; ++i) {
     if (!Muon_tightId[i]) continue;
@@ -222,7 +235,7 @@ vector<TParticle> vtsAnalysis::muonSelection() {
   return muons;
 }
 
-vector<TParticle> vtsAnalysis::elecSelection() {
+vector<TParticle> topAnalysis::elecSelection() {
   vector<TParticle> elecs;
   for (UInt_t i = 0; i < nElectron; ++i) {
     if (Electron_pt[i] < 20) continue;
@@ -237,7 +250,7 @@ vector<TParticle> vtsAnalysis::elecSelection() {
   return elecs;
 }
 
-vector<TParticle> vtsAnalysis::jetSelection() {
+vector<TParticle> topAnalysis::jetSelection() {
   vector<TParticle> jets;
   for (UInt_t i = 0; i < nJet; ++i) {
     if (Jet_pt[i] < 30) continue;
@@ -254,98 +267,108 @@ vector<TParticle> vtsAnalysis::jetSelection() {
   }
   return jets;
 }
+*/
+void hadAnalysis::MatchingForMC() {
+  m_isMC = true;
 
-void vtsAnalysis::MatchingForMC() {
-  //Find s/b quark from Gen Info.  
+  //Find s quark from Gen Info.  
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 3) {
       qMC_.push_back(i);
     }
-    if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 5) {
-      qMC_.push_back(i);
-    }
   }
-  if (qMC_.size() != 2) return;//(std::find(qMC_.begin(), qMC_.end(), -1) != qMC_.end()) return;
+  if (qMC_.size() == 0) {
+    ++b_chk;
+    return;
+  }
 
   auto q1 = qMC_[0];
-  auto q2 = qMC_[1];
   TLorentzVector q1_tlv; 
   q1_tlv.SetPtEtaPhiM(GenPart_pt[q1], GenPart_eta[q1], GenPart_phi[q1], GenPart_mass[q1]);
-  TLorentzVector q2_tlv; 
-  q2_tlv.SetPtEtaPhiM(GenPart_pt[q2], GenPart_eta[q2], GenPart_phi[q2], GenPart_mass[q2]);
 
-/*
-  //Gen Particle & Gen Jet matching
-  for (unsigned int j=0; j<nGenJet; ++j) {
-    TLorentzVector gjet_tlv;
-    gjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
-    if (q1_tlv.DeltaR(gjet_tlv) < 0.3) { 
-      if (abs(GenJet_partonFlavour[j] == 3) genJet_.push_back(j);
-      if (abs(GenJet_partonFlavour[j] == 5) genJet_.push_back(j);
-    }
-    else if (q2_tlv.DeltaR(gjet_tlv) < 0.3) {
-      if (abs(GenJet_partonFlavour[j] == 3) genJet_.push_back(j);
-      if (abs(GenJet_partonFlavour[j] == 5) genJet_.push_back(j);
-    }
+  unsigned int q2;
+  TLorentzVector q2_tlv; 
+  if (qMC_.size() == 2) {
+    q2 = qMC_[1];
+    q2_tlv.SetPtEtaPhiM(GenPart_pt[q2], GenPart_eta[q2], GenPart_phi[q2], GenPart_mass[q2]);
   }
-  if (genJet_.size() == 0) return;
-*/
 
   //Gen Particle & Reco Jet matching
   for (unsigned int j=0; j<nJet;++j) {
+    struct JetStat Stat;
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
+
     if (q1_tlv.DeltaR(jet_tlv) < 0.3) {
-      recoJet_.push_back(j);
       qjMapForMC_.insert({j, GenPart_pdgId[q1]});
+      Stat.idx = j;
+      Stat.dr = q1_tlv.DeltaR(jet_tlv);
+      Stat.matchedQuark = qjMapForMC_[j];
+      recoJet_.push_back(Stat);
     }
-    else if (q2_tlv.DeltaR(jet_tlv) < 0.3) {
-      recoJet_.push_back(j);
-      qjMapForMC_.insert({j, GenPart_pdgId[q2]});
+    else {
+      if (qMC_.size() == 1) qjMapForMC_.insert({j, -9});
+      else if (qMC_.size() == 2) {
+        if (q2_tlv.DeltaR(jet_tlv) < 0.3) {
+          qjMapForMC_.insert({j, GenPart_pdgId[q2]});
+          Stat.idx = j;
+          Stat.dr = q2_tlv.DeltaR(jet_tlv);
+          Stat.matchedQuark = qjMapForMC_[j];
+          recoJet_.push_back(Stat);
+        }
+        else qjMapForMC_.insert({j, -9});
+      }
     }
   }
+
   if (recoJet_.size() == 0) return;
-
-//  if (qMC_.size() != 2) std::cout << "qMC_ : " << qMC_.size() << " , idx : [ " << qMC_[0] << " , " << qMC_[1] << " ] " << std::endl;
-//  if (recoJet_.size() != 2)std::cout << "reoJet_ : " << recoJet_.size() << " , idx : [ " << recoJet_[0] << " , " << recoJet_[1] << " ] " << std::endl;
-
-  isMC_ = true;
+  else if (recoJet_.size() > 1) {
+    if ( recoJet_[0].matchedQuark == recoJet_[1].matchedQuark ) {
+      sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) {return a.dr < b.dr;}); // pick the closest matched recojet
+      qjMapForMC_[recoJet_[1].idx] = -9;
+    }
+  }
 }
 
-void vtsAnalysis::HadronAnalysis() {
+void hadAnalysis::HadronAnalysis() {
   std::vector<std::vector<struct HadStat>> JetCollection;
-  std::vector<struct HadStat> HadInJet;
+  std::vector<struct HadStat> Had;
   struct HadStat Stat;
-  unsigned int njets;
-  if (isMC_) njets = recoJet_.size();
-  else njets = nJet;
   //Reco Jet & Reco KS matching 
-  for (unsigned int j=0; j<njets; ++j){
-    HadInJet.clear();
-    if(isMC_) j = recoJet_[j];
+  for (unsigned int j=0; j<nJet; ++j){
+    Had.clear();
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]); 
     for (unsigned int k=0; k<nhad; ++k) {
-      if (abs(had_pdgId[k]) != 310) continue;// && abs(had_pdgId[k]) != 3122) continue;
-//      if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
-//      if ( had_angleXY[k] < 0.95 ) continue;
-//      if ( had_chi2[k] > 5 ) continue;
-//      if ( had_dca[k] > 2 ) continue;
-      //if ( !((had_lxy[k]/had_lxyErr[k]) > 15 && had_angleXY[k] > 0.98 && had_chi2[k] < 3 && had_dca[k] < 1) ) continue; // tight KS cut
+      if (abs(had_pdgId[k]) == 310) {
+        if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
+        if ( had_angleXY[k] < 0.98 ) continue;
+        if ( had_chi2[k] > 3 ) continue;
+        if ( had_dca[k] > 1 ) continue;
+      }
+      else if (abs(had_pdgId[k]) == 3122) {
+        if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
+        if ( had_angleXY[k] < 0.98 ) continue;
+        if ( had_chi2[k] > 3 ) continue;
+        if ( had_dca[k] > 1 ) continue;
+      }
+      else continue;
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
       if (jet_tlv.DeltaR(had_tlv) < 0.3 && (had_pt[k]/Jet_pt[j]) > 0.15) {
         Stat.idx = k;
         Stat.pdgId = had_pdgId[k];
         Stat.x = had_pt[k]/Jet_pt[j];
-        if (isMC_) Stat.label = qjMapForMC_[j];
+        if (m_isMC) Stat.label = qjMapForMC_[j];
+        Stat.isHadJetMatched = true;
+        Stat.dr = jet_tlv.DeltaR(had_tlv);
         Stat.jetIdx = j;
-        HadInJet.push_back(Stat);
+        Had.push_back(Stat);
       }
     }
-    if (HadInJet.size() != 0 ) {
-      if (HadInJet.size() > 1) sort(HadInJet.begin(), HadInJet.end(), [](struct HadStat a, struct HadStat b) {return a.x > b.x;}); // pick hadron with highest x in the jet
-      JetCollection.push_back(HadInJet);
+    if (Had.size() != 0 ) {
+      if (Had.size() > 1) sort(Had.begin(), Had.end(), [](struct HadStat a, struct HadStat b) {return a.x > b.x;}); // pick hadron with highest x in the jet
+      JetCollection.push_back(Had);
     }
   }
   if (JetCollection.size() != 0 ) {
@@ -355,7 +378,9 @@ void vtsAnalysis::HadronAnalysis() {
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
     b_x_had = JetCollection[0][0].x;
-    b_isFrom_had = JetCollection[0][0].label;
+    b_isFrom_had = JetCollection[0][0].label;  // -99 : there is no matching between had and jet, -9 : there is t->s in the event,but not matched to jet, 0 : there is no t->s in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->s
+    b_isHadJetMatched_had = JetCollection[0][0].isHadJetMatched;
+    b_dr_had = JetCollection[0][0].dr;
     b_d_had = GetD(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx], had_x[idx], had_y[idx], had_z[idx]);
     b_lxy_had = had_lxy[idx];
     b_lxySig_had = had_lxy[idx]/had_lxyErr[idx];
@@ -389,5 +414,10 @@ void vtsAnalysis::HadronAnalysis() {
     b_nElectrons_Jet = Jet_nElectrons[jidx];
     b_nMuons_Jet = Jet_nMuons[jidx];
   }
+/*
+  std::cout <<" b_chk : " << b_chk << std::endl;
+  std::cout <<"JetCol : " << JetCollection.size() << std::endl;
+  std::cout <<"isFrom : " << b_isFrom_had << std::endl;
+  std::cout <<"isMatc : " << b_isHadJetMatched_had << std::endl;
+*/
 }
-
