@@ -50,7 +50,7 @@ private:
   bool analysis();
 
   //For cmeson
-  vector<TLorentzVector> d0s;
+  std::vector<TLorentzVector> d0s;
   TLorentzVector b_d0;
   std::vector<float> b_d0_lepSV_lowM;
   std::vector<float> b_d0_lepSV_correctM;
