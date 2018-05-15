@@ -139,7 +139,9 @@ print "-"*80
 for d in ds:
     dataSetName = d['DataSetName']
     dataSetName = dataSetName.split('/')
-    if len(dataSetName) < 4: continue
+    if len(dataSetName) < 4:
+        print
+        continue
     pdName, sdName = dataSetName[1], dataSetName[2]
     #era = 'run2_2016MC_NANO'
     path = "%s/%s/%s" % (storageprefix, pdName, sdName)
