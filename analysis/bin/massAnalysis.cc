@@ -23,7 +23,7 @@ bool massAnalysis::analysis() {
     b_genweight = 0;
     if (!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
   }
-  h_nevents->Fill(0.5,b_genweight*b_puweight); 
+  h_nevents->Fill(0.5, b_genweight*b_puweight); 
     
   h_cutFlow->Fill(1);
   if (std::abs(PV_z) >= 24.) return false;
@@ -35,7 +35,7 @@ bool massAnalysis::analysis() {
   auto muons = muonSelection();
   auto elecs = elecSelection();
 
-  if (muons.size()+ elecs.size() != 2) return false;
+  if (muons.size() + elecs.size() != 2) return false;
 
   h_cutFlow->Fill(3);
 
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
   string username = getenv("USER");
 
   if (argc != 1) {
-    std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/"+username+"/nanoAOD/"+std::string(argv[1])+"/"+std::string(argv[2]);
+    std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/" + username + "/nanoAOD/" + std::string(argv[1]) + "/" + std::string(argv[2]);
     std::string temp = argv[2];
     
     Bool_t isDL = false;
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
       
       temp = argv[i];   
       found = temp.find_last_of('/');
-      std::string outPutName = dirName+temp.substr(found);
+      std::string outPutName = dirName + temp.substr(found);
       massAnalysis t(tree, isMC, isDL, isSL_e, isSL_m);
       
       t.setOutput(outPutName);
