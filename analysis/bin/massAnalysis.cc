@@ -39,7 +39,7 @@ bool massAnalysis::analysis() {
 
   h_cutFlow->Fill(3);
 
-  int mulpdg = -1;
+  int mulpdg = 1;
   if (muons.size() == 2) {
       recolep1 = muons[0];
       recolep2 = muons[1];
@@ -115,14 +115,13 @@ bool massAnalysis::analysis() {
   b_eleffweight    = elecSF_.getScaleFactor(recolep1, 11, 0)*elecSF_.getScaleFactor(recolep2, 11,  0);
   b_eleffweight_up = elecSF_.getScaleFactor(recolep1, 11, 1)*elecSF_.getScaleFactor(recolep2, 11, 1);
   b_eleffweight_dn = elecSF_.getScaleFactor(recolep1, 11, -1)*elecSF_.getScaleFactor(recolep2, 11, -1);
-  
+
   b_tri = b_tri_up = b_tri_dn = 0;
   b_tri = computeTrigSF(recolep1, recolep2);
   b_tri_up = computeTrigSF(recolep1, recolep2, 1);
   b_tri_dn = computeTrigSF(recolep1, recolep2, -1);
 
-  
-  
+
   if (b_dilep.M() < 20. || mulpdg > 0) return false;
   b_step1 = true;
   b_step = 1;
@@ -181,7 +180,7 @@ bool massAnalysis::analysis() {
     d0s.push_back(d0_tlv);
     if (d0s.size() < 1) continue;
     sort(d0s.begin(), d0s.end(), [](const TLorentzVector& a, const TLorentzVector& b){return a.Pt() > b.Pt();});
-    d0s.erase(d0s.begin()+1,d0s.end());
+    d0s.erase(d0s.begin()+1, d0s.end());
     b_d0 = d0s[0];
 
     vecSumDMLep1 = b_lep1 + b_d0;
@@ -266,9 +265,8 @@ int main(int argc, char* argv[]) {
     }
   }
   else {
-    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
-    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v2/DoubleMuon/Run2016B-18Apr2017_ver1-v1/171219_063744/0000/nanoAOD_23.root", "read");
-    TFile *f = TFile::Open("/cms/scratch/jdj0715/nanoAOD/src/nano/nanoAOD/prod/nanoAOD.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
+    //TFile *f = TFile::Open("/cms/scratch/jdj0715/nanoAOD/src/nano/nanoAOD/prod/nanoAOD.root", "read");
     TTree *tree;
     f->GetObject("Events", tree);
 
@@ -320,7 +318,6 @@ void massAnalysis::collectTMVAvalues() {
         b_bdtg = b_cme_tmva_bdtg;
     }
   }
-      ////printf("i %d",b_maxbIdx);
   if (b_maxbIdx != -1 && b_bdtg != -1) {
     b_cme_mass = had_mass[b_maxbIdx];
     b_cme_tmva_bdtg = b_bdtg;
@@ -337,37 +334,37 @@ void massAnalysis::setOutput(std::string outputName) {
 
   
   bdtg = new TMVA::Reader();
-  bdtg->AddVariable( "cme_lxy", &b_cme_lxy );
-  bdtg->AddVariable( "cme_lxyE", &b_cme_lxyE );
-  bdtg->AddVariable( "cme_l3D", &b_cme_l3D );
-  bdtg->AddVariable( "cme_l3DE", &b_cme_l3DE );
-  bdtg->AddVariable( "cme_jetDR", &b_cme_jetDR );
-  bdtg->AddVariable( "cme_legDR", &b_cme_legDR );
-  bdtg->AddVariable( "cme_dca", &b_cme_dca );
-  bdtg->AddVariable( "cme_angleXY", &b_cme_angleXY );
-  bdtg->AddVariable( "cme_angleXYZ", &b_cme_angleXYZ );
-  bdtg->AddVariable( "cme_x", &b_cme_x );
-  bdtg->AddVariable( "cme_y", &b_cme_y );
-  bdtg->AddVariable( "cme_z", &b_cme_z );
-  bdtg->AddVariable( "cme_pt", &b_cme_pt );
-  bdtg->AddVariable( "cme_chi2", &b_cme_chi2 );
-  bdtg->AddVariable( "cme_eta", &b_cme_eta );
-  bdtg->AddVariable( "cme_phi", &b_cme_phi );
-  bdtg->AddVariable( "cme_jet_btagCMVA", &b_cme_jet_btagCMVA );
-  bdtg->AddVariable( "cme_jet_btagCSVV2", &b_cme_jet_btagCSVV2 );
-  bdtg->AddVariable( "cme_jet_btagDeepB", &b_cme_jet_btagDeepB );
-  bdtg->AddVariable( "cme_jet_btagDeepC", &b_cme_jet_btagDeepC );
-  bdtg->AddVariable( "cme_dau1_chi2", &b_cme_dau1_chi2 );
-  bdtg->AddVariable( "cme_dau1_ipsigXY", &b_cme_dau1_ipsigXY );
-  bdtg->AddVariable( "cme_dau1_ipsigZ", &b_cme_dau1_ipsigZ );
-  bdtg->AddVariable( "cme_dau1_nHits", &b_cme_dau1_nHits );
-  bdtg->AddVariable( "cme_dau1_pt", &b_cme_dau1_pt );
-  bdtg->AddVariable( "cme_dau2_chi2", &b_cme_dau2_chi2 );
-  bdtg->AddVariable( "cme_dau2_ipsigXY", &b_cme_dau2_ipsigXY );
-  bdtg->AddVariable( "cme_dau2_ipsigZ", &b_cme_dau2_ipsigZ );
-  bdtg->AddVariable( "cme_dau2_nHits", &b_cme_dau2_nHits );
-  bdtg->AddVariable( "cme_dau2_pt", &b_cme_dau2_pt );
-  bdtg->AddSpectator( "cme_mass", &b_cme_mass );
+  bdtg->AddVariable("cme_lxy", &b_cme_lxy);
+  bdtg->AddVariable("cme_lxyE", &b_cme_lxyE);
+  bdtg->AddVariable("cme_l3D", &b_cme_l3D);
+  bdtg->AddVariable("cme_l3DE", &b_cme_l3DE);
+  bdtg->AddVariable("cme_jetDR", &b_cme_jetDR);
+  bdtg->AddVariable("cme_legDR", &b_cme_legDR);
+  bdtg->AddVariable("cme_dca", &b_cme_dca);
+  bdtg->AddVariable("cme_angleXY", &b_cme_angleXY);
+  bdtg->AddVariable("cme_angleXYZ", &b_cme_angleXYZ);
+  bdtg->AddVariable("cme_x", &b_cme_x);
+  bdtg->AddVariable("cme_y", &b_cme_y);
+  bdtg->AddVariable("cme_z", &b_cme_z);
+  bdtg->AddVariable("cme_pt", &b_cme_pt);
+  bdtg->AddVariable("cme_chi2", &b_cme_chi2);
+  bdtg->AddVariable("cme_eta", &b_cme_eta);
+  bdtg->AddVariable("cme_phi", &b_cme_phi);
+  bdtg->AddVariable("cme_jet_btagCMVA", &b_cme_jet_btagCMVA);
+  bdtg->AddVariable("cme_jet_btagCSVV2", &b_cme_jet_btagCSVV2);
+  bdtg->AddVariable("cme_jet_btagDeepB", &b_cme_jet_btagDeepB);
+  bdtg->AddVariable("cme_jet_btagDeepC", &b_cme_jet_btagDeepC);
+  bdtg->AddVariable("cme_dau1_chi2", &b_cme_dau1_chi2);
+  bdtg->AddVariable("cme_dau1_ipsigXY", &b_cme_dau1_ipsigXY);
+  bdtg->AddVariable("cme_dau1_ipsigZ", &b_cme_dau1_ipsigZ);
+  bdtg->AddVariable("cme_dau1_nHits", &b_cme_dau1_nHits);
+  bdtg->AddVariable("cme_dau1_pt", &b_cme_dau1_pt);
+  bdtg->AddVariable("cme_dau2_chi2", &b_cme_dau2_chi2);
+  bdtg->AddVariable("cme_dau2_ipsigXY", &b_cme_dau2_ipsigXY);
+  bdtg->AddVariable("cme_dau2_ipsigZ", &b_cme_dau2_ipsigZ);
+  bdtg->AddVariable("cme_dau2_nHits", &b_cme_dau2_nHits);
+  bdtg->AddVariable("cme_dau2_pt", &b_cme_dau2_pt);
+  bdtg->AddSpectator("cme_mass", &b_cme_mass);
   bdtg->BookMVA("BDTG", "/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/xml/TMVAClassification_BDTG.weights.xml");
     
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
@@ -412,19 +409,15 @@ void massAnalysis::MakeBranch(TTree* t) {
   t->Branch("trig_mm", &b_trig_mm, "trig_mm/O");
   t->Branch("trig_em", &b_trig_em, "trig_em/O");
   t->Branch("trig_ee", &b_trig_ee, "trig_ee/O");
-
   
   t->Branch("cme_tmva_bdtg", &b_cme_tmva_bdtg, "cme_tmva_bdtg/F");
   t->Branch("cme_mass", &b_cme_mass, "cme_mass/F");
   t->Branch("cme_pdgId", &b_cme_pdgId, "cme_pdgId/I");
   
-  
   t->Branch("d0","TLorentzVector",&b_d0);
   t->Branch("d0_lepSV_lowM","std::vector<float>",&b_d0_lepSV_lowM);
   t->Branch("d0_lepSV_dRM","std::vector<float>",&b_d0_lepSV_dRM);
   t->Branch("d0_lepSV_correctM","std::vector<float>",&b_d0_lepSV_correctM);
-  
-  
 }
 
 
@@ -447,10 +440,8 @@ void massAnalysis::resetBranch() {
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 
-  
   b_cme_mass = -999;
   b_cme_pdgId = 0;
-  
   b_cme_tmva_bdtg = -999;
   b_bdtg = -1; b_maxbIdx = -1;
   
