@@ -32,7 +32,7 @@ private:
   float b_cme_jet_btagCMVA, b_cme_jet_btagCSVV2, b_cme_jet_btagDeepB, b_cme_jet_btagDeepC;
   float b_cme_mass;
   float b_cme_tmva_bdtg;
-  float b_cme_pdgId;
+  int b_cme_pdgId;
   int b_cme_nMatched;
   float b_bdtg;
   int b_maxbIdx;
@@ -48,6 +48,13 @@ private:
   void MakeBranch(TTree* t);
   void resetBranch();
   bool analysis();
+
+  //For cmeson
+  vector<TLorentzVector> d0s;
+  TLorentzVector b_d0;
+  std::vector<float> b_d0_lepSV_lowM;
+  std::vector<float> b_d0_lepSV_correctM;
+  std::vector<float> b_d0_lepSV_dRM;
 
   //TMVA
   TMVA::Reader* bdtg;
