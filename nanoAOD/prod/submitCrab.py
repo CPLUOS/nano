@@ -72,7 +72,7 @@ for d in datasets:
         continue
     if 'RD' in psetName and isMC:
         continue
-
+            
     dataset = dataset.strip()
     if isMC :
         label = dataset.split("/")[1]
@@ -86,6 +86,10 @@ for d in datasets:
     config.General.requestName = dataRequestName
     config.Data.outputDatasetTag = outputDatasetTag
     config.JobType.pyCfgParams = ['doHadron=%s'%(doHadron)]
+    
+    if 'Fast' in dataset:
+        config.JobType.pyCfgParams.append('fastSim=True')
+
 
     if os.path.exists('crab_'+dataRequestName):
         continue

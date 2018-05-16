@@ -29,5 +29,4 @@
 
 <library   file="*.cc" name="nanoAODPlugins">
   <flags   EDM_PLUGIN="1"/>
-  <Flags CXXFLAGS="-g"/>
 </library>
