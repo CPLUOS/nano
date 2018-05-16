@@ -2,16 +2,13 @@
 
 using std::vector;
 
-topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : nanoAnalysis(tree, isMC), m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm)
-{
+topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : nanoAnalysis(tree, isMC), m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm) {
 }
 
-topAnalysis::~topAnalysis()
-{
+topAnalysis::~topAnalysis() {
 }
 
-vector<TParticle> topAnalysis::muonSelection()
-{
+vector<TParticle> topAnalysis::muonSelection() {
   vector<TParticle> muons; 
   for (UInt_t i = 0; i < nMuon; ++i){
     if (!Muon_tightId[i]) continue;
@@ -32,8 +29,7 @@ vector<TParticle> topAnalysis::muonSelection()
 }
 
 
-vector<TParticle> topAnalysis::elecSelection()
-{
+vector<TParticle> topAnalysis::elecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
     if (Electron_pt[i] < 20) continue;
@@ -53,8 +49,7 @@ vector<TParticle> topAnalysis::elecSelection()
   return elecs;
 }
 
-vector<TParticle> topAnalysis::jetSelection()
-{
+vector<TParticle> topAnalysis::jetSelection() {
   vector<TParticle> jets;
   float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
@@ -81,8 +76,7 @@ vector<TParticle> topAnalysis::jetSelection()
   return jets;
 }
 
-vector<TParticle> topAnalysis::bjetSelection()
-{
+vector<TParticle> topAnalysis::bjetSelection() {
   vector<TParticle> bjets;
   for (UInt_t i = 0; i < nJet; ++i ) {
     if (Jet_pt[i] < 30) continue;
