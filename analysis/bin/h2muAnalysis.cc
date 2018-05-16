@@ -15,7 +15,7 @@ void h2muAnalysis::SetOutput(string outputName)
 {
   m_output = TFile::Open(outputName.c_str(), "recreate");
   // TMVA Booking //
-  weightXL = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/split/XL_50/weights/TMVAClassification_BDT.weights.xml";
+/*  weightXL = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/split/XL_50/weights/TMVAClassification_BDT.weights.xml";
   weightFH = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/split/nFH4_50/weights/TMVAClassification_BDT.weights.xml";
   weightOut = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/split/Out_100/weights/TMVAClassification_BDT.weights.xml";
   weightnoB = std::string(std::getenv("CMSSW_BASE"))+"/src/nano/analysis/test/h2mu/TMVA/newEvent/nonB_120/weights/TMVAClassification_BDT.weights.xml";
@@ -102,7 +102,7 @@ void h2muAnalysis::SetOutput(string outputName)
   bdt_noB->AddVariable( "DijetEta1", &b_DijetEta1 );
   bdt_noB->AddVariable( "DijetEta2", &b_DijetEta2 );
   bdt_noB->BookMVA("BDT", weightnoB);
-
+*/
   m_tree = new TTree("events", "events");
   MakeBranch(m_tree);
   
@@ -139,7 +139,6 @@ void h2muAnalysis::MakeBranch(TTree* t)
   t->Branch("nnonbjet", &b_nnonbjet, "nnonbjet/F");
   t->Branch("nbjet", &b_nbjet, "nbjet/F");
   t->Branch("trig_m", &b_trig_m, "trig_m/O");
-  t->Branch("trig_m2", &b_trig_m2, "trig_m2/O");
   t->Branch("Met", &b_Met, "Met/F");
   t->Branch("Met_phi", &b_Met_phi, "Met_phi/F");
   t->Branch("CSVv2", &b_CSVv2);
@@ -209,7 +208,7 @@ void h2muAnalysis::MakeBranch(TTree* t)
 }
 
 void h2muAnalysis::ResetBranch()
-{
+{  
   b_Event_No = 0;
   b_Step = 0;
   b_Dilep.SetPtEtaPhiM(0,0,0,0);
@@ -283,24 +282,23 @@ bool h2muAnalysis::Analysis()
   h_cutFlow->Fill(3);
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
   
-  // make all the variables that you need to save here
   TParticle mu1;
   TParticle mu2; 
   b_Met = PuppiMET_pt;
   b_Met_phi = PuppiMET_phi;
   Bool_t IsoMu24 = false;
   Bool_t IsoTkMu24 = false;
-
+  
   for (UInt_t i = 0; i < nTrigObj; ++i) {
-    if (TrigObj_id[i] != 13) continue;
+    if (TrigObj_id[i] != 13) continue; 
     if (TrigObj_pt[i] < 24) continue;
     Int_t bits = TrigObj_filterBits[i];
     if (bits & 0x2) IsoMu24 = true;
     if (bits & 0x8) IsoTkMu24 = true;  
   }
   if (!(IsoMu24 || IsoTkMu24)) return false; 
-  
   h_cutFlow->Fill(4);
+
   for (UInt_t i = 0; i < Muons.size(); i++) { 
     if ( (b_Mu_tlv[0].Pt() > 26) || (b_Mu_tlv[0].Pt() > 26) ) { 
       if ( ( Muons[0].GetPdgCode() * Muons[i].GetPdgCode() ) < 0 ) { 
@@ -496,11 +494,12 @@ bool h2muAnalysis::Analysis()
   b_mueffweight_dn = m_muonSF.getScaleFactor(mu1, 13, -1)*m_muonSF.getScaleFactor(mu2, 13, -1);
 
   b_Event_No = 1;
-  b_MVA_BDTXL = bdt_XL->EvaluateMVA("BDT");
+ /* b_MVA_BDTXL = bdt_XL->EvaluateMVA("BDT");
   b_MVA_BDTFH = bdt_FH->EvaluateMVA("BDT");
   b_MVA_BDTnoB = bdt_noB->EvaluateMVA("BDT");
   b_MVA_BDTOut = bdt_Out->EvaluateMVA("BDT");
-
+*/
+  cout << "Hello" << endl;
   return true;
 }
 
@@ -553,8 +552,9 @@ int main(Int_t argc, Char_t** argv)
       t.Loop();
     }
   } else {
- //   TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/ttHToMuMu_M125_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180125_131219/0000/nanoAOD_004.root", "read");
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/180125_131129/0000/nanoAOD_100.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/ttHToMuMu_M125_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180509_131219/0000/nanoAOD_112.root", "read");
+//    TFile *f = TFile::Open("root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/nanoAOD/run2_2016v3/ttHToMuMu_M125_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180125_131219/0000/nanoAOD_004.root", "read");
+  //  TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/180125_131129/0000/nanoAOD_100.root", "read");
     TTree *tree;
     f->GetObject("Events", tree);
     
