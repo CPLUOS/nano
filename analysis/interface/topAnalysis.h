@@ -43,10 +43,10 @@ protected:
   std::vector<float> b_d0_lepSV_lowM;
   std::vector<float> b_d0_lepSV_correctM;
   std::vector<float> b_d0_lepSV_dRM;
+  
+  Bool_t m_isDL, m_isSL_e, m_isSL_m;
 
 public:
-  Bool_t m_isDL, m_isSL_e, m_isSL_m;
-  Bool_t m_isHadAna;
 
   enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
 
