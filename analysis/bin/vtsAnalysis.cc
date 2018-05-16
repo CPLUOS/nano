@@ -63,6 +63,7 @@ void hadAnalysis::Loop() {
 
     ResetBranch();
     int PassedStep = EventSelection();
+    cout << PassedStep << endl;
     if (PassedStep >= 4) {
       MatchingForMC();
       HadronAnalysis();
@@ -137,7 +138,10 @@ void hadAnalysis::MakeBranch(TTree* t)
 }
 
 void hadAnalysis::ResetBranch() {
-  b_channel = -9; b_njet = -9;
+  b_step = 0;
+
+  b_channel = -9; 
+  b_njet = -9;
   b_met = -99;
   b_dilep.SetPtEtaPhiM(0,0,0,0);
 
