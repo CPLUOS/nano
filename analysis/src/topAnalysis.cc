@@ -29,11 +29,11 @@ bool topAnalysis::EventSelection(Bool_t m_isHadAna) {
   h_nevents->Fill(0.5, b_genweight*b_puweight);
 
   h_cutFlow->Fill(1);
-/*
+
   if (std::abs(PV_z) >= 24.) return false;
   if (PV_npvs == 0) return false;
   if (PV_ndof < 4) return false;
-*/
+
   h_cutFlow->Fill(2);
 
   auto muons = muonSelection();
@@ -77,7 +77,7 @@ bool topAnalysis::EventSelection(Bool_t m_isHadAna) {
   b_trig_em = HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL
     || HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ || HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ;
   b_trig_ee = HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ;
-/*
+
   if (b_channel == CH_MUMU) {
     if (m_isMC) {
       if (!(b_trig_mm || b_trig_m)) return false;
@@ -109,7 +109,7 @@ bool topAnalysis::EventSelection(Bool_t m_isHadAna) {
       if (b_trig_ee || !b_trig_e) return false;
     }
   }
-*/
+
   //leptonS
   b_mueffweight    = muonSF_.getScaleFactor(recolep1, 13, 0)*muonSF_.getScaleFactor(recolep2, 13,  0);
   b_mueffweight_up = muonSF_.getScaleFactor(recolep1, 13, 1)*muonSF_.getScaleFactor(recolep2, 13, 1);

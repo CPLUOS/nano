@@ -68,8 +68,6 @@ void hadAnalysis::Loop() {
       HadronAnalysis();
       m_tree->Fill();
     } else {
-      MatchingForMC();
-      HadronAnalysis();
       m_tree->Fill();
     }
   }
