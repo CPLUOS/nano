@@ -62,8 +62,8 @@ void hadAnalysis::Loop() {
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
 
     ResetBranch();
-    bool keep = EventSelection(true);
-    if (keep) {
+    int PassedStep = EventSelection();
+    if (PassedStep >= 4) {
       MatchingForMC();
       HadronAnalysis();
       m_tree->Fill();
@@ -155,40 +155,6 @@ void hadAnalysis::ResetBranch() {
 
   qjMapForMC_.clear(); qMC_.clear(); genJet_.clear(); recoJet_.clear();
 }
-
-/*
-void hadAnalysis::EventSelection() {
-  recolep1_tlv.SetPtEtaPhiM(0,0,0,0);
-  recolep2_tlv.SetPtEtaPhiM(0,0,0,0);
-
-  auto muons = muonSelection();
-  auto elecs = elecSelection();
-  if (muons.size()+ elecs.size() != 2) return;
-
-  if      (muons.size() == 2) { recolep1 = muons[0]; recolep2 = muons[1]; b_channel = CH_MUMU; }
-  else if (elecs.size() == 2) { recolep1 = elecs[0]; recolep2 = elecs[1]; b_channel = CH_ELEL; }
-  else { recolep1 = muons[0]; recolep2 = elecs[0]; b_channel = CH_MUEL; }
-
-  recolep1.Momentum(recolep1_tlv);
-  recolep2.Momentum(recolep2_tlv);
-  recoleps.push_back(recolep1_tlv);
-  recoleps.push_back(recolep2_tlv);
-  b_dilep_tlv = recolep1_tlv + recolep2_tlv;
-
-  auto jets = jetSelection();
-
-  if (b_dilep_tlv.M() < 20.) return;
-
-  if (b_channel != CH_MUEL && 76 < b_dilep_tlv.M() && b_dilep_tlv.M() < 106) return;
-
-  b_met = MET_pt;
-  b_njet = jets.size();
-
-  if (b_channel != CH_MUEL && b_met < 40) return;
-
-  if (b_njet < 2) return;
-}
-*/
 
 void hadAnalysis::MatchingForMC() {
   m_isMC = true;
@@ -301,7 +267,7 @@ void hadAnalysis::HadronAnalysis() {
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
     b_x_had = JetCollection[0][0].x;
-    b_isFrom_had = JetCollection[0][0].label;  // -99 : event that can't pass event selection or there is no matching between had and jet, -9 : there is t->s in the event,but not matched to jet, 0 : there is no t->s in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->s
+    b_isFrom_had = JetCollection[0][0].label;  // -99 : event that can't pass till step4(jet selection) or there is no matching between had and jet, -9 : there is t->s in the event,but not matched to jet, 0 : there is no t->s in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->s
     b_isHadJetMatched_had = JetCollection[0][0].isHadJetMatched;
     b_dr_had = JetCollection[0][0].dr;
 

@@ -8,7 +8,7 @@ topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t
 topAnalysis::~topAnalysis() {
 }
 
-bool topAnalysis::EventSelection(Bool_t m_isHadAna) {
+int topAnalysis::EventSelection() {
   h_cutFlow->Fill(0);
 
   //Run for MC
@@ -23,23 +23,23 @@ bool topAnalysis::EventSelection(Bool_t m_isHadAna) {
   else {
     b_puweight = 1;
     b_genweight = 0;
-    if (!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
+    if (!(m_lumi->LumiCheck(run, luminosityBlock))) return b_step;
   }
 
   h_nevents->Fill(0.5, b_genweight*b_puweight);
 
   h_cutFlow->Fill(1);
 
-  if (std::abs(PV_z) >= 24.) return false;
-  if (PV_npvs == 0) return false;
-  if (PV_ndof < 4) return false;
+  if (std::abs(PV_z) >= 24.) return b_step;
+  if (PV_npvs == 0) return b_step;
+  if (PV_ndof < 4) return b_step;
 
   h_cutFlow->Fill(2);
 
   auto muons = muonSelection();
   auto elecs = elecSelection();
 
-  if (muons.size() + elecs.size() != 2) return false;
+  if (muons.size() + elecs.size() != 2) return b_step;
 
   h_cutFlow->Fill(3);
 
@@ -80,33 +80,33 @@ bool topAnalysis::EventSelection(Bool_t m_isHadAna) {
 
   if (b_channel == CH_MUMU) {
     if (m_isMC) {
-      if (!(b_trig_mm || b_trig_m)) return false;
+      if (!(b_trig_mm || b_trig_m)) return b_step;
     } else if (m_isDL) {
-      if (!(b_trig_mm)) return false;
+      if (!(b_trig_mm)) return b_step;
     } else if (m_isSL_m) {
-      if (b_trig_mm||!b_trig_m) return false;
+      if (b_trig_mm||!b_trig_m) return b_step;
     }
   }
 
   if (b_channel == CH_MUEL) {
     if (m_isMC) {
-      if (!(b_trig_em || b_trig_m || b_trig_e)) return false;
+      if (!(b_trig_em || b_trig_m || b_trig_e)) return b_step;
     } else if (m_isDL) {
-      if (!(b_trig_em)) return false;
+      if (!(b_trig_em)) return b_step;
     } else if (m_isSL_e) {
-      if (b_trig_em || !b_trig_e || b_trig_m) return false;
+      if (b_trig_em || !b_trig_e || b_trig_m) return b_step;
     } else if (m_isSL_m) {
-      if (b_trig_em || b_trig_e || !b_trig_m) return false;
+      if (b_trig_em || b_trig_e || !b_trig_m) return b_step;
     }
   }
 
   if (b_channel == CH_ELEL) {
     if (m_isMC) {
-      if (!(b_trig_ee || b_trig_e)) return false;
+      if (!(b_trig_ee || b_trig_e)) return b_step;
     } else if (m_isDL) {
-      if (!b_trig_ee) return false;
+      if (!b_trig_ee) return b_step;
     } else if (m_isSL_e) {
-      if (b_trig_ee || !b_trig_e) return false;
+      if (b_trig_ee || !b_trig_e) return b_step;
     }
   }
 
@@ -124,7 +124,7 @@ bool topAnalysis::EventSelection(Bool_t m_isHadAna) {
   b_tri_up = computeTrigSF(recolep1, recolep2, 1);
   b_tri_dn = computeTrigSF(recolep1, recolep2, -1);
 
-  if (b_dilep.M() < 20. || mulpdg > 0) return false;
+  if (b_dilep.M() < 20. || mulpdg > 0) return b_step;
   b_step1 = true;
   b_step = 1;
   h_cutFlow->Fill(4);
@@ -156,53 +156,49 @@ bool topAnalysis::EventSelection(Bool_t m_isHadAna) {
     }
   }
 
-  if (!(m_isHadAna)) {
-    auto bjets = bjetSelection();
-    b_nbjet = bjets.size();
+  auto bjets = bjetSelection();
+  b_nbjet = bjets.size();
 
-    if (b_nbjet > 0) {
-      b_step5 = true;
-      if (b_step == 4) {
-        ++b_step;
-        h_cutFlow->Fill(8);
-      }
+  if (b_nbjet > 0) {
+    b_step5 = true;
+    if (b_step == 4) {
+      ++b_step;
+      h_cutFlow->Fill(8);
     }
   }
 
-  if (nhad < 1) return false;
+  if (nhad < 1) return 0;
 
-  if (!(m_isHadAna)) {
-    TLorentzVector vecSumDMLep1, vecSumDMLep2;
-    float fMDMLep1, fMDMLep2;
-    float fDeltaEta, fDeltaPhi;
-    float fSqrtdRMLep1, fSqrtdRMLep2;
+  TLorentzVector vecSumDMLep1, vecSumDMLep2;
+  float fMDMLep1, fMDMLep2;
+  float fDeltaEta, fDeltaPhi;
+  float fSqrtdRMLep1, fSqrtdRMLep2;
 
-    for (UInt_t i = 0; i < nhad; ++i) {
-      TLorentzVector d0_tlv;
-      d0_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
-      d0s.push_back(d0_tlv);
-      if (d0s.size() < 1) continue;
-      sort(d0s.begin(), d0s.end(), [](const TLorentzVector& a, const TLorentzVector& b){return a.Pt() > b.Pt();});
-      d0s.erase(d0s.begin()+1, d0s.end());
-      b_d0 = d0s[0];
+  for (UInt_t i = 0; i < nhad; ++i) {
+    TLorentzVector d0_tlv;
+    d0_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
+    d0s.push_back(d0_tlv);
+    if (d0s.size() < 1) continue;
+    sort(d0s.begin(), d0s.end(), [](const TLorentzVector& a, const TLorentzVector& b){return a.Pt() > b.Pt();});
+    d0s.erase(d0s.begin()+1, d0s.end());
+    b_d0 = d0s[0];
 
-      vecSumDMLep1 = b_lep1 + b_d0;
-      vecSumDMLep2 = b_lep2 + b_d0;
-      fMDMLep1 = vecSumDMLep1.M();
-      fMDMLep2 = vecSumDMLep2.M();
-      fDeltaEta = b_lep1.Eta() - b_d0.Eta();
-      fDeltaPhi = b_lep1.Phi() - b_d0.Phi();
-      fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+    vecSumDMLep1 = b_lep1 + b_d0;
+    vecSumDMLep2 = b_lep2 + b_d0;
+    fMDMLep1 = vecSumDMLep1.M();
+    fMDMLep2 = vecSumDMLep2.M();
+    fDeltaEta = b_lep1.Eta() - b_d0.Eta();
+    fDeltaPhi = b_lep1.Phi() - b_d0.Phi();
+    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
 
-      fDeltaEta = b_lep2.Eta() - b_d0.Eta();
-      fDeltaPhi = b_lep2.Phi() - b_d0.Phi();
-      fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+    fDeltaEta = b_lep2.Eta() - b_d0.Eta();
+    fDeltaPhi = b_lep2.Phi() - b_d0.Phi();
+    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
 
-      b_d0_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
-      b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
-    }
+    b_d0_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
+    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
   }
-  return true;
+  return b_step;
 }
 
 vector<TParticle> topAnalysis::muonSelection() {

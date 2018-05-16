@@ -50,7 +50,7 @@ public:
 
   enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
 
-  bool EventSelection(Bool_t m_isHadAna = false);
+  int EventSelection();
 
   std::vector<TParticle> muonSelection();
   std::vector<TParticle> elecSelection();
