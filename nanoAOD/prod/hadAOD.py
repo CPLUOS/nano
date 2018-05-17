@@ -66,7 +66,6 @@ process.genParticleTable.variables.mass = Var("mass", float,precision=8,doc="Mas
 
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 process.load('PhysicsTools.PatAlgos.producersLayer1.jetProducer_cff')
-process.load("PhysicsTools.PatAlgos.slimming.packedPFCandidates_cff")
 process.load('nano.nanoAOD.hadrons_cff')
 process.hadTable.jetLabel = cms.InputTag("patJets")
 process.hadTable.vertexLabel = cms.InputTag("offlinePrimaryVertices")
@@ -89,7 +88,14 @@ process.load("Validation.RecoTrack.TrackValidation_cff")
 #process.load('SimTracker.TrackAssociation.trackingParticleRecoTrackAsssociation_cfi')
 process.load('nano.nanoAOD.hadTruth_cff')
 
-process.packedPFSeq = cms.Sequence(process.packedPFCandidatesTask)
+process.load("PhysicsTools.PatAlgos.slimming.slimming_cff")
+from PhysicsTools.PatAlgos.slimming.puppiForMET_cff import makePuppies
+makePuppies(process)
+process.packedPFSeq = cms.Sequence(
+    process.offlineSlimmedPrimaryVertices+
+    process.primaryVertexAssociation+
+    process.puppi+process.pfNoLepPUPPI+process.puppiNoLep+
+    cms.Sequence(process.packedPFCandidatesTask))
 
 process.p = cms.Path(process.makePatJets+process.packedPFSeq
                          +process.hadTables+process.genParticleTable
