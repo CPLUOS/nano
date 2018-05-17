@@ -23,7 +23,7 @@ int main(Int_t argc, Char_t** argv) {
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    hadAnalysis ana(inTree,false,false,false,false);
+    hadAnalysis ana(inTree,true,false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
   }
@@ -31,12 +31,18 @@ int main(Int_t argc, Char_t** argv) {
     string jobName    = string(argv[1]);
     string sampleName = string(argv[2]);
 
+    // temp
+    Bool_t isMC = false;
+    std::string temp = argv[1];
+    Size_t found = temp.find("run");
+    if (found == std::string::npos) isMC = true;
+
     string outFileDir = hostDir+getenv("USER")+"/"+jobName+"/"+sampleName;
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      hadAnalysis ana(inTree,false,false,false,false);
+      hadAnalysis ana(inTree,isMC,false,false,false);
 
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
@@ -56,10 +62,15 @@ void hadAnalysis::Loop() {
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
 
     ResetBranch();
-    EventSelection();
-    MatchingForMC();
-    HadronAnalysis();
-    m_tree->Fill();
+    int PassedStep = EventSelection();
+    cout << PassedStep << endl;
+    if (PassedStep >= 4) {
+      MatchingForMC();
+      HadronAnalysis();
+      m_tree->Fill();
+    } else {
+      m_tree->Fill();
+    }
   }
 }
 
@@ -69,6 +80,11 @@ void hadAnalysis::setOutput(std::string outFileName)
   m_tree = new TTree("event", "event");
 
   MakeBranch(m_tree);
+
+  h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
+  h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
+  h_weights = new TH1D("weight", "weight", 1, 0, 1);
+  h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
 }
 
 void hadAnalysis::MakeBranch(TTree* t)
@@ -76,7 +92,7 @@ void hadAnalysis::MakeBranch(TTree* t)
   m_tree->Branch("channel", &b_channel, "channel/I");
   m_tree->Branch("njet", &b_njet, "njet/I");
   m_tree->Branch("met", &b_met, "met/F");
-  m_tree->Branch("dilep_tlv", "TLorentzVector", &b_dilep_tlv);
+  m_tree->Branch("dilep_tlv", "TLorentzVector", &b_dilep);
 
   m_tree->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
   m_tree->Branch("isFrom_had", &b_isFrom_had, "isFrom_had/I");
@@ -122,12 +138,12 @@ void hadAnalysis::MakeBranch(TTree* t)
 }
 
 void hadAnalysis::ResetBranch() {
-  m_isMC = false;
+  b_step = 0;
 
-  b_channel = -9; b_njet = -9;
+  b_channel = -9; 
+  b_njet = -9;
   b_met = -99;
-  b_dilep_tlv.SetPtEtaPhiM(0,0,0,0);
-  recoleps.clear();
+  b_dilep.SetPtEtaPhiM(0,0,0,0);
 
   b_had_tlv.SetPtEtaPhiM(0,0,0,0);
   b_isFrom_had = -99;
@@ -142,40 +158,6 @@ void hadAnalysis::ResetBranch() {
   b_area_Jet = -1; b_pt_Jet = -1; b_nConstituents_Jet = -1; b_nElectrons_Jet = -1; b_nMuons_Jet = -1;
 
   qjMapForMC_.clear(); qMC_.clear(); genJet_.clear(); recoJet_.clear();
-}
-
-
-void hadAnalysis::EventSelection() {
-  recolep1_tlv.SetPtEtaPhiM(0,0,0,0);
-  recolep2_tlv.SetPtEtaPhiM(0,0,0,0);
-
-  auto muons = muonSelection();
-  auto elecs = elecSelection();
-  if (muons.size()+ elecs.size() != 2) return;
-
-  if      (muons.size() == 2) { recolep1 = muons[0]; recolep2 = muons[1]; b_channel = CH_MUMU; }
-  else if (elecs.size() == 2) { recolep1 = elecs[0]; recolep2 = elecs[1]; b_channel = CH_ELEL; }
-  else { recolep1 = muons[0]; recolep2 = elecs[0]; b_channel = CH_MUEL; }
-
-  recolep1.Momentum(recolep1_tlv);
-  recolep2.Momentum(recolep2_tlv);
-  recoleps.push_back(recolep1_tlv);
-  recoleps.push_back(recolep2_tlv);
-  b_dilep_tlv = recolep1_tlv + recolep2_tlv;
-
-  auto jets = jetSelection();
-
-  if (b_dilep_tlv.M() < 20.) return;
-
-  if (b_channel != CH_MUEL && 76 < b_dilep_tlv.M() && b_dilep_tlv.M() < 106) return;
-
-  b_met = MET_pt;
-  b_njet = jets.size();
-
-  if (b_channel != CH_MUEL && b_met < 40) return;
-
-  if (b_njet < 2) return;
-
 }
 
 void hadAnalysis::MatchingForMC() {
@@ -289,7 +271,7 @@ void hadAnalysis::HadronAnalysis() {
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
     b_x_had = JetCollection[0][0].x;
-    b_isFrom_had = JetCollection[0][0].label;  // -99 : there is no matching between had and jet, -9 : there is t->s in the event,but not matched to jet, 0 : there is no t->s in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->s
+    b_isFrom_had = JetCollection[0][0].label;  // -99 : event that can't pass till step4(jet selection) or there is no matching between had and jet, -9 : there is t->s in the event,but not matched to jet, 0 : there is no t->s in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->s
     b_isHadJetMatched_had = JetCollection[0][0].isHadJetMatched;
     b_dr_had = JetCollection[0][0].dr;
 
