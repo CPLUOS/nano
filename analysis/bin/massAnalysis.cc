@@ -365,7 +365,7 @@ void massAnalysis::setOutput(std::string outputName) {
   bdtg->AddVariable("cme_dau2_nHits", &b_cme_dau2_nHits);
   bdtg->AddVariable("cme_dau2_pt", &b_cme_dau2_pt);
   bdtg->AddSpectator("cme_mass", &b_cme_mass);
-  bdtg->BookMVA("BDTG", "/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/xml/TMVAClassification_BDTG.weights.xml");
+  bdtg->BookMVA("BDTG", "/cms/scratch/jdj0715/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/dataset/weights/TMVAClassification_BDTG.weights.xml");
     
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
