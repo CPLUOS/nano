@@ -6,11 +6,6 @@
 class hadAnalysis : public topAnalysis 
 {
 private:
-  TH1D* h_cutFlow;
-  TParticle recolep1, recolep2;
-  TLorentzVector recolep1_tlv, recolep2_tlv;
-  std::vector<TLorentzVector> recoleps;
-
   struct HadStat {
     int idx = -1;
     int pdgId = -99;
@@ -28,11 +23,6 @@ private:
   };
 
   int b_chk = 0;
-
-  int b_channel;
-  int b_njet;
-  float b_met;
-  TLorentzVector b_dilep_tlv;
   TLorentzVector b_had_tlv;
 
   int b_isFrom_had;
@@ -55,24 +45,18 @@ private:
   std::vector<struct JetStat> recoJet_;
 
   //functions
-  void EventSelection();
   void ResetBranch();
-
   void MatchingForMC();
   void HadronAnalysis();
 
-//  TParticle GetTParticle(int pdgId, int idx);
-  Double_t DeltaR(Double_t deta, Double_t dphi); 
-  Double_t DeltaPhi(Double_t phi1, Double_t phi2);
   Double_t GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz);
 
   void MakeBranch(TTree* t);
 
 public:
-//  void MakeTree(std::string outputName);
   void setOutput(std::string outputName);
 
-  hadAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  hadAnalysis(TTree *tree=0, Bool_t isMC = true, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~hadAnalysis();
   virtual void     Loop();
 };
