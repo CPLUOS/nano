@@ -323,8 +323,10 @@ bool HadTruthProducer::isGenHadFrom(const reco::GenParticle* particle, int pdgId
 {
   GenHadFromTop = false;
   if (abs(particle->pdgId()) == pdgId && particle->status() == 62) {
+    auto dau1 = particle->daughter(0);
     auto dau2 = particle->daughter(1);
-    GenHadFromQuark = dau2->pdgId();
+    if (abs(dau1->pdgId()) == 24) GenHadFromQuark = dau2->pdgId();
+    else GenHadFromQuark = dau1->pdgId();
     GenHadFromTop = true;
     return true;
   }
@@ -341,8 +343,10 @@ bool HadTruthProducer::isGenHadFrom(const reco::GenParticle* particle, int pdgId
 bool HadTruthProducer::isHadFrom(const reco::GenParticleRef& particle, int pdgId, int count, int & hadFromQuark, bool & hadFromTop)
 {
   if(abs(particle->pdgId()) == pdgId && particle->status() == 62) {
+    auto dau1 = particle->daughter(0);
     auto dau2 = particle->daughter(1);
-    hadFromQuark = dau2->pdgId();
+    if (abs(dau1->pdgId()) == 24) hadFromQuark = dau2->pdgId();
+    else hadFromQuark = dau1->pdgId();
     return hadFromTop = true;
   }
   count = count + 1;
