@@ -2,18 +2,11 @@
 #include <vector>
 #include <TLorentzVector.h>
 
-#include "nano/analysis/interface/hadAnalysis.h"
+#include "nano/analysis/interface/vtsAnalysis.h"
 #include "TFile.h"
 #include "TTree.h"
 
 using namespace std;
-
-Double_t hadAnalysis::GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz) {
-  TLorentzVector tlv;
-  tlv.SetPtEtaPhiM(pt,eta,phi,m);
-  TVector3 dv(vx - PV_x, vy - PV_y, vz - PV_z);
-  return tlv.Vect().Unit().Cross(dv).Mag();
-}
 
 int main(Int_t argc, Char_t** argv) {
 
@@ -23,7 +16,7 @@ int main(Int_t argc, Char_t** argv) {
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    hadAnalysis ana(inTree,true,false,false,false);
+    vtsAnalysis ana(inTree,true,false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
   }
@@ -42,8 +35,7 @@ int main(Int_t argc, Char_t** argv) {
       auto inFileName = argv[i];
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      hadAnalysis ana(inTree,isMC,false,false,false);
-
+      vtsAnalysis ana(inTree,isMC,false,false,false);
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
       ana.Loop();
@@ -51,7 +43,7 @@ int main(Int_t argc, Char_t** argv) {
   }
 }
 
-void hadAnalysis::Loop() {
+void vtsAnalysis::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
 
@@ -63,8 +55,7 @@ void hadAnalysis::Loop() {
 
     ResetBranch();
     int PassedStep = EventSelection();
-    cout << PassedStep << endl;
-    if (PassedStep >= 4) {
+    if (PassedStep >= 0) {
       MatchingForMC();
       HadronAnalysis();
       m_tree->Fill();
@@ -74,7 +65,7 @@ void hadAnalysis::Loop() {
   }
 }
 
-void hadAnalysis::setOutput(std::string outFileName)
+void vtsAnalysis::setOutput(std::string outFileName)
 {
   m_output = TFile::Open(outFileName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
@@ -87,57 +78,58 @@ void hadAnalysis::setOutput(std::string outFileName)
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
 }
 
-void hadAnalysis::MakeBranch(TTree* t)
+void vtsAnalysis::MakeBranch(TTree* t)
 {
-  m_tree->Branch("channel", &b_channel, "channel/I");
-  m_tree->Branch("njet", &b_njet, "njet/I");
-  m_tree->Branch("met", &b_met, "met/F");
-  m_tree->Branch("dilep_tlv", "TLorentzVector", &b_dilep);
+  t->Branch("channel", &b_channel, "channel/I");
+  t->Branch("njet", &b_njet, "njet/I");
+  t->Branch("met", &b_met, "met/F");
+  t->Branch("dilep_tlv", "TLorentzVector", &b_dilep);
 
-  m_tree->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
-  m_tree->Branch("isFrom_had", &b_isFrom_had, "isFrom_had/I");
-  m_tree->Branch("isHadJetMatched_had", &b_isHadJetMatched_had, "isHadJetMatched_had/O");
-  m_tree->Branch("d_had", &b_d_had , "d_had/F" );
-  m_tree->Branch("x_had", &b_x_had, "x_had/F");
-  m_tree->Branch("dr_had", &b_dr_had, "dr_had/F"); // distance between hadron and jet-center
-  m_tree->Branch("lxy_had", &b_lxy_had, "lxy_had/F");
-  m_tree->Branch("lxySig_had", &b_lxySig_had, "lxySig_had/F");
-  m_tree->Branch("angleXY_had", &b_angleXY_had, "angleXY_had/F");
-  m_tree->Branch("angleXYZ_had", &b_angleXYZ_had, "angleXYZ_had/F");
-  m_tree->Branch("chi2_had", &b_chi2_had, "chi2_had/F");
-  m_tree->Branch("dca_had", &b_dca_had, "dca_had/F");
+  t->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
+  t->Branch("isFrom_had", &b_isFrom_had, "isFrom_had/I");
+  t->Branch("isHadJetMatched_had", &b_isHadJetMatched_had, "isHadJetMatched_had/O");
+  t->Branch("d_had", &b_d_had , "d_had/F" );
+  t->Branch("x_had", &b_x_had, "x_had/F");
+  t->Branch("dr_had", &b_dr_had, "dr_had/F"); // distance between hadron and jet-center
+  t->Branch("lxy_had", &b_lxy_had, "lxy_had/F");
+  t->Branch("lxySig_had", &b_lxySig_had, "lxySig_had/F");
+  t->Branch("angleXY_had", &b_angleXY_had, "angleXY_had/F");
+  t->Branch("angleXYZ_had", &b_angleXYZ_had, "angleXYZ_had/F");
+  t->Branch("chi2_had", &b_chi2_had, "chi2_had/F");
+  t->Branch("dca_had", &b_dca_had, "dca_had/F");
 
-  m_tree->Branch("pt_had", &b_pt_had, "pt_had_had/F");
-  m_tree->Branch("eta_had", &b_eta_had, "eta_had/F");
-  m_tree->Branch("l3D_had", &b_l3D_had, "l3D_had/F");
-  m_tree->Branch("l3DSig_had", &b_l3DSig_had, "l3DSig_had/F");
-  m_tree->Branch("legDR_had", &b_legDR_had, "legDR_had/F");
-  m_tree->Branch("mass_had", &b_mass_had, "mass_had/F");
-  m_tree->Branch("pdgId_had", &b_pdgId_had, "pdgId_had/I");
+  t->Branch("pt_had", &b_pt_had, "pt_had_had/F");
+  t->Branch("eta_had", &b_eta_had, "eta_had/F");
+  t->Branch("l3D_had", &b_l3D_had, "l3D_had/F");
+  t->Branch("l3DSig_had", &b_l3DSig_had, "l3DSig_had/F");
+  t->Branch("legDR_had", &b_legDR_had, "legDR_had/F");
+  t->Branch("mass_had", &b_mass_had, "mass_had/F");
+  t->Branch("pdgId_had", &b_pdgId_had, "pdgId_had/I");
 
-  m_tree->Branch("dau1_chi2_had", &b_dau1_chi2_had, "dau1_chi2_had/F");
-  m_tree->Branch("dau1_ipsigXY_had", &b_dau1_ipsigXY_had, "dau1_ipsigXY_had/F");
-  m_tree->Branch("dau1_ipsigZ_had", &b_dau1_ipsigZ_had, "dau1_ipsigZ_had/F");
-  m_tree->Branch("dau1_pt_had", &b_dau1_pt_had, "dau1_pt_had/F");
+  t->Branch("dau1_chi2_had", &b_dau1_chi2_had, "dau1_chi2_had/F");
+  t->Branch("dau1_ipsigXY_had", &b_dau1_ipsigXY_had, "dau1_ipsigXY_had/F");
+  t->Branch("dau1_ipsigZ_had", &b_dau1_ipsigZ_had, "dau1_ipsigZ_had/F");
+  t->Branch("dau1_pt_had", &b_dau1_pt_had, "dau1_pt_had/F");
 
-  m_tree->Branch("dau2_chi2_had", &b_dau2_chi2_had, "dau2_chi2_had/F");
-  m_tree->Branch("dau2_ipsigXY_had", &b_dau2_ipsigXY_had, "dau2_ipsigXY_had/F");
-  m_tree->Branch("dau2_ipsigZ_had", &b_dau2_ipsigZ_had, "dau2_ipsigZ_had/F");
-  m_tree->Branch("dau2_pt_had", &b_dau2_pt_had, "dau2_pt_had/F");
+  t->Branch("dau2_chi2_had", &b_dau2_chi2_had, "dau2_chi2_had/F");
+  t->Branch("dau2_ipsigXY_had", &b_dau2_ipsigXY_had, "dau2_ipsigXY_had/F");
+  t->Branch("dau2_ipsigZ_had", &b_dau2_ipsigZ_had, "dau2_ipsigZ_had/F");
+  t->Branch("dau2_pt_had", &b_dau2_pt_had, "dau2_pt_had/F");
 
-  m_tree->Branch("btagCSVV2_Jet", &b_btagCSVV2_Jet, "btagCSVV2_Jet/F");
-  m_tree->Branch("btagDeepB_Jet", &b_btagDeepB_Jet, "btagDeepB_Jet/F");
-  m_tree->Branch("btagDeepC_Jet", &b_btagDeepC_Jet, "btagDeepC_Jet/F");
-  m_tree->Branch("btagCMVA_Jet", &b_btagCMVA_Jet, "btagCMVA_Jet/F");
+  t->Branch("btagCSVV2_Jet", &b_btagCSVV2_Jet, "btagCSVV2_Jet/F");
+  t->Branch("btagDeepB_Jet", &b_btagDeepB_Jet, "btagDeepB_Jet/F");
+  t->Branch("btagDeepC_Jet", &b_btagDeepC_Jet, "btagDeepC_Jet/F");
+  t->Branch("btagCMVA_Jet", &b_btagCMVA_Jet, "btagCMVA_Jet/F");
 
-  m_tree->Branch("area_Jet", &b_area_Jet, "are_Jet/F");
-  m_tree->Branch("pt_Jet", &b_pt_Jet, "pt_Jet/F");
-  m_tree->Branch("nConstituents_Jet", &b_nConstituents_Jet, "nConstituents_Jet/I");
-  m_tree->Branch("nElectrons_Jet", &b_nElectrons_Jet, "nElectrons_Jet/I");
-  m_tree->Branch("nMuons_Jet", &b_nMuons_Jet, "nMuons_Jet/I");
+  t->Branch("area_Jet", &b_area_Jet, "are_Jet/F");
+  t->Branch("pt_Jet", &b_pt_Jet, "pt_Jet/F");
+  t->Branch("nConstituents_Jet", &b_nConstituents_Jet, "nConstituents_Jet/I");
+  t->Branch("nElectrons_Jet", &b_nElectrons_Jet, "nElectrons_Jet/I");
+  t->Branch("nMuons_Jet", &b_nMuons_Jet, "nMuons_Jet/I");
+
 }
 
-void hadAnalysis::ResetBranch() {
+void vtsAnalysis::ResetBranch() {
   b_step = 0;
 
   b_channel = -9; 
@@ -160,12 +152,13 @@ void hadAnalysis::ResetBranch() {
   qjMapForMC_.clear(); qMC_.clear(); genJet_.clear(); recoJet_.clear();
 }
 
-void hadAnalysis::MatchingForMC() {
-  m_isMC = true;
-
+void vtsAnalysis::MatchingForMC() {
   //Find s quark from Gen Info.  
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 3) {
+      qMC_.push_back(i);
+    }
+    if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 5) {
       qMC_.push_back(i);
     }
   }
@@ -177,52 +170,54 @@ void hadAnalysis::MatchingForMC() {
   auto q1 = qMC_[0];
   TLorentzVector q1_tlv; 
   q1_tlv.SetPtEtaPhiM(GenPart_pt[q1], GenPart_eta[q1], GenPart_phi[q1], GenPart_mass[q1]);
-
-  unsigned int q2;
+  auto q2 = qMC_[1];
   TLorentzVector q2_tlv; 
-  if (qMC_.size() == 2) {
-    q2 = qMC_[1];
-    q2_tlv.SetPtEtaPhiM(GenPart_pt[q2], GenPart_eta[q2], GenPart_phi[q2], GenPart_mass[q2]);
-  }
+  q2_tlv.SetPtEtaPhiM(GenPart_pt[q2], GenPart_eta[q2], GenPart_phi[q2], GenPart_mass[q2]);
 
   //Gen Particle & Reco Jet matching
   for (unsigned int j=0; j<nJet;++j) {
     struct JetStat Stat;
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-
-    if (q1_tlv.DeltaR(jet_tlv) < 0.3) {
-      qjMapForMC_.insert({j, GenPart_pdgId[q1]});
-      Stat.idx = j;
-      Stat.dr = q1_tlv.DeltaR(jet_tlv);
-      Stat.matchedQuark = qjMapForMC_[j];
-      recoJet_.push_back(Stat);
-    }
-    else {
-      if (qMC_.size() == 1) qjMapForMC_.insert({j, -9});
-      else if (qMC_.size() == 2) {
-        if (q2_tlv.DeltaR(jet_tlv) < 0.3) {
-          qjMapForMC_.insert({j, GenPart_pdgId[q2]});
-          Stat.idx = j;
-          Stat.dr = q2_tlv.DeltaR(jet_tlv);
-          Stat.matchedQuark = qjMapForMC_[j];
-          recoJet_.push_back(Stat);
-        }
-        else qjMapForMC_.insert({j, -9});
+    if (q1_tlv.DeltaR(jet_tlv) < q2_tlv.DeltaR(jet_tlv)) {
+      auto dR = q1_tlv.DeltaR(jet_tlv);
+      if (dR < 0.3) {
+        qjMapForMC_.insert({j, GenPart_pdgId[q1]});
+        Stat.idx = j;
+        Stat.dr = q1_tlv.DeltaR(jet_tlv);
+        Stat.matchedQuark = qjMapForMC_[j];
+        recoJet_.push_back(Stat);
+      } else {
+        qjMapForMC_.insert({j, -9});
+      }
+    } else { 
+      auto dR = q2_tlv.DeltaR(jet_tlv);
+      if (dR < 0.3) {
+        qjMapForMC_.insert({j, GenPart_pdgId[q2]});
+        Stat.idx = j;
+        Stat.dr = q2_tlv.DeltaR(jet_tlv);
+        Stat.matchedQuark = qjMapForMC_[j];
+        recoJet_.push_back(Stat);
+      } else {
+        qjMapForMC_.insert({j, -9});
       }
     }
   }
-
   if (recoJet_.size() == 0) return;
   else if (recoJet_.size() > 1) {
-    if ( recoJet_[0].matchedQuark == recoJet_[1].matchedQuark ) {
-      sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) {return a.dr < b.dr;}); // pick the closest matched recojet
-      qjMapForMC_[recoJet_[1].idx] = -9;
+    sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) {return ((a.matchedQuark > b.matchedQuark));});
+    sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) {return ((a.dr < b.dr) && (a.matchedQuark == b.matchedQuark));});
+    for (unsigned int i=0; i<recoJet_.size(); ++i) {
+      if (recoJet_[0].matchedQuark == recoJet_[i].matchedQuark && i != 0) qjMapForMC_[recoJet_[i].idx] = -9;
+      else if (recoJet_[0].matchedQuark != recoJet_[i].matchedQuark) {
+        for (unsigned int idx = 1; idx<(recoJet_.size()-i); ++idx) qjMapForMC_[recoJet_[i+idx].idx] = -9;
+        break;
+      }
     }
   }
 }
 
-void hadAnalysis::HadronAnalysis() {
+void vtsAnalysis::HadronAnalysis() {
   std::vector<std::vector<struct HadStat>> JetCollection;
   std::vector<struct HadStat> Had;
   struct HadStat Stat;
@@ -271,7 +266,7 @@ void hadAnalysis::HadronAnalysis() {
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
     b_x_had = JetCollection[0][0].x;
-    b_isFrom_had = JetCollection[0][0].label;  // -99 : event that can't pass till step4(jet selection) or there is no matching between had and jet, -9 : there is t->s in the event,but not matched to jet, 0 : there is no t->s in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->s
+    b_isFrom_had = JetCollection[0][0].label;  // -99 : event that can't pass till step4(jet selection) or there is no matching between had and jet, -9 : there is t->qW in the event,but not matched to recoJet, 0 : there is no t->qW in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->sW, +-5 : hadron is from t->bW
     b_isHadJetMatched_had = JetCollection[0][0].isHadJetMatched;
     b_dr_had = JetCollection[0][0].dr;
 
@@ -309,3 +304,5 @@ void hadAnalysis::HadronAnalysis() {
     b_nMuons_Jet = Jet_nMuons[jidx];
   }
 }
+
+
