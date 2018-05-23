@@ -169,8 +169,8 @@ bool massAnalysis::analysis() {
   float fMDMLep1, fMDMLep2;
   float fDeltaEta, fDeltaPhi;
   float fSqrtdRMLep1, fSqrtdRMLep2;
-
-
+ 
+  
   if (nhad < 1) return false;
   
 
@@ -216,9 +216,10 @@ void massAnalysis::Loop() {
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);
     nbytes += nb;
-    bool keep = analysis();
+    //bool keep = analysis();
+    int keep = EventSelection();
     //cout << keep << endl;
-    if (keep) {
+    if (keep != 0) {
       collectTMVAvalues();
       m_tree->Fill();
     }
@@ -396,6 +397,7 @@ void massAnalysis::MakeBranch(TTree* t) {
   t->Branch("tri_up", &b_tri_up, "tri_up/F");
   t->Branch("tri_dn", &b_tri_dn, "tri_dn/F");
   t->Branch("met", &b_met, "met/F");
+  t->Branch("nhad", &nhad, "nhad/I");
   t->Branch("weight", &b_weight, "weight/F");
   t->Branch("puweight", &b_puweight, "puweight/F");
   t->Branch("genweight", &b_genweight, "genweight/F");

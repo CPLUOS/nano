@@ -17,7 +17,6 @@ private:
   int b_cme_nMatched;
   float b_bdtg;
   int b_maxbIdx;
-
   //Making output branch
   void MakeBranch(TTree* t);
   void resetBranch();

@@ -23,9 +23,9 @@ mcfilelist = [
                'TT_powheg',
              ]
 #rdfilelist = []
-rdfilelist = ['ch_fullme','ch_fullee','ch_fullmm']
+rdfilelist = ['ch_me','ch_fullee','ch_mm']
 
-rootfileDir = "/xrootd/store/user/jdj0715/nanoAOD/test12/results_merged/topmass_"
+rootfileDir = "/xrootd/store/user/jdj0715/nanoAOD/test13/results_merged/topmass_"
 #rootfileDir = "/xrootd/store/user/dayoung/nano/test/results_merged/topmass_"
 
 channel_name = ['MuEl', 'ElEl', 'MuMu']
@@ -34,23 +34,23 @@ datasets = json.load(open("%s/src/nano/nanoAOD/data/dataset/dataset.json" % os.e
 
 #default
 step = 5
-channel = 1
+channel = 0
 #cut = 'vecSumLepSV.M()>0&&ncmeson>0&&tri!=0&&cmeson_pdgId==421&&cmeson_lxy>0.1&&cmeson_l3D>0'
 #cut = 'ncmeson>0&&tri!=0&&cmeson_pdgId==443&&cmeson_lxy>0.1&&cmeson_l3D>0.15'
 #cut = 'tri !=0&&bjet.Pt()>30&&dilep.Pt()>20&&jet2.Pt()>30&&jet1.Pt()>30'
 #cut = 'tri !=0&&abs(cme_pdgId)==443&&cme_tmva_bdtg>0.5'
 #cut = 'nbjet<4&&njet<7&&tri !=0&&(lep1.Eta()<1.4442||1.566<lep1.Eta())&&(lep2.Eta()<1.4442||1.566<lep2.Eta())'
-cut = 'tri !=0'#&&cme_tmva_bdtg>0.5'
+cut = 'tri !=0&&cme_pdgId==421&&cme_tmva_bdtg>0.3'
 weight = 'genweight*puweight*eleffweight*mueffweight*tri'#*topPtWeight'
 #plotvar = 'vecSumLepSV.M()'
 #plotvar = 'njet'
-plotvar = 'dilep.M()'
+plotvar = 'd0.M()'
 #binning = [20,2.8,3.4]
 #binning = [20,1.7,2.2]
 #binning = [60,1,1000]
 #binning = [20, 0, 200]
-#binning = [60, 1.7, 2.0]
-binning = [60, 20, 320]
+binning = [60, 1.8, 2.2]
+#binning = [60, 20, 320]
 x_name = 'Invariant mass(ll) [GeV]'
 #x_name = 'Missing Energy [GeV]'
 #x_name = 'Invariant mass of J/#psi [GeV]'
@@ -58,7 +58,7 @@ x_name = 'Invariant mass(ll) [GeV]'
 #x_name = 'Jet Multiplicity'
 y_name = 'Events'
 dolog = False
-dolog = True
+#dolog = True
 tname = "event"
 #get input
 try:
@@ -181,10 +181,10 @@ else:
         rfname = rootfileDir + rdfile +".root"
         rdtcut = 'channel==%d&&%s&&%s'%((i+1),stepch_tcut,cut)
         rdhist.Add(makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut))
-
+'''
 rdhist.SetMinimum(minp)
 rdhist.SetMaximum(maxp)
-
+'''
 #Drawing plots on canvas
 var = plotvar.split(',')[0]
 var = ''.join(i for i in var if not i.isdigit())
@@ -193,8 +193,8 @@ var = var.replace('()','')
 
 outfile = "%s_s%d_%s.png"%(channel_name[channel-1],step,var)
 if channel == 0: outfile = "Dilepton_s%d_%s.png"%(step,var)
-#canv = drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name,dolog,True,0.5)
-canv = drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
+canv = drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name,dolog,True,0.5)
+#canv = drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
 
 mainPad = canv.GetPrimitive("mainPad")
 mainPad.cd()
