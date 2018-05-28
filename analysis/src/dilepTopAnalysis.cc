@@ -125,12 +125,10 @@ int dilepTopAnalysis::EventSelection() {
   b_tri_dn = computeTrigSF(recolep1, recolep2, -1);
 
   if (b_dilep.M() < 20. || mulpdg > 0) return b_step;
-  b_step1 = true;
   b_step = 1;
   h_cutFlow->Fill(4);
 
   if (b_channel == CH_MUEL || b_dilep.M() < 76 || b_dilep.M() > 106) {
-    b_step2 = true;
     b_step = 2;
     h_cutFlow->Fill(5);
   }
@@ -138,7 +136,6 @@ int dilepTopAnalysis::EventSelection() {
   b_met = MET_pt;
 
   if (b_channel == CH_MUEL || b_met > 40) {
-    b_step3 = true;
     if (b_step == 2) {
       ++b_step;
       h_cutFlow->Fill(6);
@@ -149,7 +146,6 @@ int dilepTopAnalysis::EventSelection() {
   b_njet = jets.size();
 
   if (b_njet >= 2) {
-    b_step4 = true;
     if (b_step == 3) {
       ++b_step;
       h_cutFlow->Fill(7);
@@ -160,7 +156,6 @@ int dilepTopAnalysis::EventSelection() {
   b_nbjet = bjets.size();
 
   if (b_nbjet > 0) {
-    b_step5 = true;
     if (b_step == 4) {
       ++b_step;
       h_cutFlow->Fill(8);
@@ -168,35 +163,5 @@ int dilepTopAnalysis::EventSelection() {
   }
 
   if (nhad < 1) return 0;
-
-  TLorentzVector vecSumDMLep1, vecSumDMLep2;
-  float fMDMLep1, fMDMLep2;
-  float fDeltaEta, fDeltaPhi;
-  float fSqrtdRMLep1, fSqrtdRMLep2;
-
-  for (UInt_t i = 0; i < nhad; ++i) {
-    TLorentzVector d0_tlv;
-    d0_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
-    d0s.push_back(d0_tlv);
-    if (d0s.size() < 1) continue;
-    sort(d0s.begin(), d0s.end(), [](const TLorentzVector& a, const TLorentzVector& b){return a.Pt() > b.Pt();});
-    d0s.erase(d0s.begin()+1, d0s.end());
-    b_d0 = d0s[0];
-
-    vecSumDMLep1 = b_lep1 + b_d0;
-    vecSumDMLep2 = b_lep2 + b_d0;
-    fMDMLep1 = vecSumDMLep1.M();
-    fMDMLep2 = vecSumDMLep2.M();
-    fDeltaEta = b_lep1.Eta() - b_d0.Eta();
-    fDeltaPhi = b_lep1.Phi() - b_d0.Phi();
-    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
-
-    fDeltaEta = b_lep2.Eta() - b_d0.Eta();
-    fDeltaPhi = b_lep2.Phi() - b_d0.Phi();
-    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
-
-    b_d0_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
-    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
-  }
-  return b_step;
+  else return b_step;
 }

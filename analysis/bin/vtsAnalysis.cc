@@ -52,7 +52,7 @@ void vtsAnalysis::Loop() {
     Long64_t entry = LoadTree(iev);
     fChain->GetEntry(entry);
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
-
+    Reset(); 
     ResetBranch();
     int PassedStep = EventSelection();
     if (PassedStep >= 0) {
@@ -130,13 +130,6 @@ void vtsAnalysis::MakeBranch(TTree* t)
 }
 
 void vtsAnalysis::ResetBranch() {
-  b_step = 0;
-
-  b_channel = -9; 
-  b_njet = -9;
-  b_met = -99;
-  b_dilep.SetPtEtaPhiM(0,0,0,0);
-
   b_had_tlv.SetPtEtaPhiM(0,0,0,0);
   b_isFrom_had = -99;
   b_isHadJetMatched_had = false;
@@ -274,7 +267,7 @@ void vtsAnalysis::HadronAnalysis() {
     b_lxy_had = had_lxy[idx];
     b_lxySig_had = had_lxy[idx]/had_lxyErr[idx];
     b_angleXY_had = had_angleXY[idx];
-    b_angleXYZ_had = had_angleXY[idx];
+    b_angleXYZ_had = had_angleXYZ[idx];
     b_chi2_had = had_chi2[idx];
     b_dca_had = had_dca[idx];
     b_pt_had = had_pt[idx];
@@ -304,5 +297,4 @@ void vtsAnalysis::HadronAnalysis() {
     b_nMuons_Jet = Jet_nMuons[jidx];
   }
 }
-
 
