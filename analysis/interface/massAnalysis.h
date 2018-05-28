@@ -1,8 +1,9 @@
 #ifndef massAnalysis_H
 #define massAnalysis_H
-#include "topAnalysis.h"
 
-class massAnalysis : public topAnalysis {
+#include "dilepTopAnalysis.h"
+
+class massAnalysis : public dilepTopAnalysis {
 private: 
   //Varialbes
   float b_cme_dca, b_cme_angleXY, b_cme_angleXYZ, b_cme_jetDR, b_cme_legDR;
@@ -35,7 +36,7 @@ public :
 
 };
 
-massAnalysis::massAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topAnalysis(tree, isMC, dl, sle, slm)
+massAnalysis::massAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : dilepTopAnalysis(tree, isMC, dl, sle, slm)
 {
 }
 
