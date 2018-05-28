@@ -6,7 +6,6 @@
 #include <cstdlib>
 using namespace std;
 
-
 void massAnalysis::Loop() {
   if (fChain == 0) return;
 
@@ -15,12 +14,14 @@ void massAnalysis::Loop() {
   
   for (Long64_t jentry = 0; jentry < nentries; jentry++) {
     //Prepare for new loop
+    Reset();
     resetBranch();
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);
     nbytes += nb;
-    int keep = EventSelection();
+    int keep = EventSelection(); 
+    cmesonSelection();
     if (keep != 0) {
       collectTMVAvalues();
       m_tree->Fill();
@@ -182,13 +183,6 @@ void massAnalysis::MakeBranch(TTree* t) {
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("nbjet", &b_nbjet, "nbjet/I");
-  t->Branch("step1", &b_step1, "step1/O");
-  t->Branch("step2", &b_step2, "step2/O");
-  t->Branch("step3", &b_step3, "step3/O");
-  t->Branch("step4", &b_step4, "step4/O");
-  t->Branch("step5", &b_step5, "step5/O");
-  t->Branch("step6", &b_step6, "step6/O");
-  t->Branch("step7", &b_step7, "step7/O");
   
   m_tree->Branch("lep1", "TLorentzVector", &b_lep1);
   m_tree->Branch("lep1_pid", &b_lep1_pid, "lep1_pid/I");    
@@ -226,23 +220,7 @@ void massAnalysis::MakeBranch(TTree* t) {
 
 
 void massAnalysis::resetBranch() {
-  b_lep1.SetPtEtaPhiM(0,0,0,0);
-  b_lep2.SetPtEtaPhiM(0,0,0,0);
-  b_dilep.SetPtEtaPhiM(0,0,0,0);
-  b_d0.SetPtEtaPhiM(0,0,0,0);
-  
-  recoleps.clear();
   d0s.clear();
-  b_csvweights.clear();
-  b_lep1_pid = 0; b_lep2_pid = 0;
-  b_jet1_CSVInclV2 = -1; b_jet2_CSVInclV2 = -1;
-
-  b_nvertex = 0; b_step = -1; b_channel = 0; b_njet = 0; b_nbjet = 0;
-  b_step1 = 0; b_step2 = 0; b_step3 = 0; b_step4 = 0; b_step5 = 0; b_step6 = 0; b_step7 = 0;
-  b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; b_btagweight = 1;
-  b_tri = 0;
-  b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
-  b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 
   b_cme_mass = -999;
   b_cme_pdgId = 0;
@@ -252,4 +230,38 @@ void massAnalysis::resetBranch() {
   b_d0_lepSV_lowM.clear();
   b_d0_lepSV_dRM.clear();
   b_d0_lepSV_correctM.clear();
+}
+
+void massAnalysis::cmesonSelection() {
+  if (nhad < 1) return;
+
+  TLorentzVector vecSumDMLep1, vecSumDMLep2;
+  float fMDMLep1, fMDMLep2;
+  float fDeltaEta, fDeltaPhi;
+  float fSqrtdRMLep1, fSqrtdRMLep2;
+
+  for (UInt_t i = 0; i < nhad; ++i) {
+    TLorentzVector d0_tlv;
+    d0_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
+    d0s.push_back(d0_tlv);
+    if (d0s.size() < 1) continue;
+    sort(d0s.begin(), d0s.end(), [](const TLorentzVector& a, const TLorentzVector& b){return a.Pt() > b.Pt();});
+    d0s.erase(d0s.begin()+1, d0s.end());
+    b_d0 = d0s[0];
+
+    vecSumDMLep1 = b_lep1 + b_d0;
+    vecSumDMLep2 = b_lep2 + b_d0;
+    fMDMLep1 = vecSumDMLep1.M();
+    fMDMLep2 = vecSumDMLep2.M();
+    fDeltaEta = b_lep1.Eta() - b_d0.Eta();
+    fDeltaPhi = b_lep1.Phi() - b_d0.Phi();
+    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+
+    fDeltaEta = b_lep2.Eta() - b_d0.Eta();
+    fDeltaPhi = b_lep2.Phi() - b_d0.Phi();
+    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+
+    b_d0_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
+    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
+  }
 }
