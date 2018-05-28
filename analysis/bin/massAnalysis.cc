@@ -20,9 +20,7 @@ void massAnalysis::Loop() {
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);
     nbytes += nb;
-    //bool keep = analysis();
     int keep = EventSelection(); 
-    //cout << keep << endl;
     cmesonSelection();
     if (keep != 0) {
       collectTMVAvalues();
