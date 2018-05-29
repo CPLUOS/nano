@@ -189,7 +189,6 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     float ipsigXY = std::abs(trk->dxy(primaryVertexPoint)/trk->dxyError());
     if (ipsigXY < 2.0) continue;
-
     reco::Candidate* recoDau = pfcand.clone();
     
     if (abs(recoDau->pdgId()) == 11 || abs(recoDau->pdgId()) == 13)
