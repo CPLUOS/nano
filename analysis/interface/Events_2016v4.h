@@ -108,6 +108,7 @@ public :
    Int_t           GenPart_genPartIdxMother[8300];   //[nGenPart00]
    Int_t           GenPart_pdgId[8300];   //[nGenPart00]
    Int_t           GenPart_status[8300];   //[nGenPart00]
+   Int_t           GenPart_statusFlags[8300];   //[nGenPart00]
    Float_t         Generator_x1;
    Float_t         Generator_x2;
    UInt_t          nGenVisTau;
@@ -1102,6 +1103,7 @@ public :
    TBranch        *b_GenPart_genPartIdxMother;   //!
    TBranch        *b_GenPart_pdgId;   //!
    TBranch        *b_GenPart_status;   //!
+   TBranch        *b_GenPart_statusFlags;   //!
    TBranch        *b_Generator_x1;   //!
    TBranch        *b_Generator_x2;   //!
    TBranch        *b_nGenVisTau;   //!
@@ -2164,6 +2166,7 @@ void Events::Init(TTree *tree)
    fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
    fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
    fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
+   fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
    fChain->SetBranchAddress("Generator_x1", &Generator_x1, &b_Generator_x1);
    fChain->SetBranchAddress("Generator_x2", &Generator_x2, &b_Generator_x2);
    fChain->SetBranchAddress("nGenVisTau", &nGenVisTau, &b_nGenVisTau);

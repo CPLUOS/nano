@@ -21,3 +21,10 @@
   <lib name="EG"/>
   <use name="nano/analysis"/>
 </bin>
+<bin name="singletopAnalysis" file="singletopAnalysis.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+</bin>
