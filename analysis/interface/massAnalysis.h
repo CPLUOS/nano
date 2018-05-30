@@ -17,7 +17,12 @@ private:
   int b_cme_nMatched;
   float b_bdtg;
   int b_maxbIdx;
-
+  //For C meson
+  std::vector<TLorentzVector> d0s;
+  TLorentzVector b_d0;
+  std::vector<float> b_d0_lepSV_lowM;
+  std::vector<float> b_d0_lepSV_correctM;
+  std::vector<float> b_d0_lepSV_dRM;
   //Making output branch
   void MakeBranch(TTree* t);
   void resetBranch();
@@ -30,6 +35,7 @@ public :
   //set output file
   void setOutput(std::string outputName);
   void collectTMVAvalues();
+  void cmesonSelection();
   massAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~massAnalysis();
   virtual void     Loop();
