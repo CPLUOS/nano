@@ -1,25 +1,29 @@
 import ROOT, os, array, math
 
-filedir = "/cms/ldap_home/tt8888tt/CMSSW_10_0_0_pre2/src/nano/nanoAOD/prod/"
+#filedir = "/cms/ldap_home/tt8888tt/CMSSW_10_0_0_pre2/src/nano/nanoAOD/prod/"
+filedir = "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/hep-tools/hadAOD/"
 
 plotvars = ["mass", "pt",
-            "chi2", "dca", "angleXY", "angleXYZ", "lxy/had_lxyErr","l3D/had_l3DErr", "legDR"]
-            #"dau1_ipsigXY","dau1_ipsigZ","dau1_chi2", "dau1_pt",
-            #"dau2_ipsigXY","dau2_ipsigZ","dau2_chi2", "dau2_pt"]
+            "chi2", "dca", "angleXY", "angleXYZ", "lxy/had_lxyErr","l3D/had_l3DErr", "legDR",
+            "dau1_ipsigXY","dau1_ipsigZ","dau1_chi2", "dau1_pt",
+            "dau2_ipsigXY","dau2_ipsigZ","dau2_chi2", "dau2_pt"]
 plotvars = ["had_"+p for p in plotvars]
 binnings = ["(1000,0.3,0.7)", "(1000,0,10)",
-            "(1000,0,5)","(1000,0,2)","(1000,0,1.01)", "(1000,0,1.01)", "(1000,0,30)","(1000,0,30)","(1000,0,3.5)"]
-            #"(1000,0,50)", "(1000,0,50)", "(1000,0,30)", "(1000,0,10)",
-            #"(1000,0,50)", "(1000,0,50)", "(1000,0,30)", "(1000,0,10)"]
+            "(1000,0,5)","(1000,0,2)","(1000,0,1.01)", "(1000,0,1.01)", "(1000,0,30)","(1000,0,30)","(1000,0,3.5)",
+            "(1000,0,50)", "(1000,0,50)", "(1000,0,30)", "(1000,0,10)",
+            "(1000,0,50)", "(1000,0,50)", "(1000,0,30)", "(1000,0,10)"]
 
 pid = 310
 rocs=[]
+#cut = ""
+cut = "&&had_dau1_pt>0.95&&had_dau2_pt>0.95"
 cnv = ROOT.TCanvas()
 for i, plotvar in enumerate(plotvars):
-    f = ROOT.TFile(filedir+"nanoAOD_true.root")
+    f = ROOT.TFile(filedir+"nanoAOD_1.root")
+    #f = ROOT.TFile(filedir+"nanoAOD.root")
     tree = f.Get("Events")
-    tree.Draw(plotvar+">>true"+binnings[i], "hadTruth_nMatched ==2&&had_pdgId==%d"%pid)
-    tree.Draw(plotvar+">>fake"+binnings[i], "hadTruth_nMatched !=2&&had_pdgId==%d"%pid)
+    tree.Draw(plotvar+">>true"+binnings[i], "hadTruth_nMatched ==2&&had_pdgId==%d"%pid+cut)
+    tree.Draw(plotvar+">>fake"+binnings[i], "hadTruth_nMatched !=2&&had_pdgId==%d"%pid+cut)
 
     h_true = ROOT.gROOT.FindObject("true")
     h_fake = ROOT.gROOT.FindObject("fake")
@@ -67,8 +71,8 @@ for i, plotvar in enumerate(plotvars):
     h_fake.SetBinContent(1,h_fake.GetBinContent(1)+h_fake.GetBinContent(0))
     h_true.SetBinContent(nbins,h_true.GetBinContent(nbins)+h_true.GetBinContent(nbins+1))
     h_fake.SetBinContent(nbins,h_fake.GetBinContent(nbins)+h_fake.GetBinContent(nbins+1))
-    h_fake.Rebin(2)
-    h_true.Rebin(2)
+    h_fake.Rebin(10)
+    h_true.Rebin(10)
     h_fake.SetTitle(plotvar)
     h_fake.SetStats(0)
     h_fake.SetMaximum(max(h.GetMaximum() for h in [h_fake,h_true])*1.2)
