@@ -22,10 +22,8 @@ protected:
   int b_lep_pid;
   float b_jet1_CSVInclV2, b_jet2_CSVInclV2, b_jet3_CSVInclV2, b_jet4_CSVInclV2;
 
-  std::vector<Float_t> b_csvweights;
-
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  float b_met, b_weight, b_genweight, b_puweight, b_btagweight;
+  float b_met, b_weight, b_genweight, b_puweight;
   float b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
         b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
   float b_tri, b_tri_up, b_tri_dn;

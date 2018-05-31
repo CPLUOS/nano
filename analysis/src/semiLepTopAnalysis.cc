@@ -25,6 +25,7 @@ void semiLepTopAnalysis::Reset() {
   b_tri = 0;
 
   recoleps.clear();
+  b_csvweights.clear();
 }
 
 int semiLepTopAnalysis::EventSelection() {
@@ -85,6 +86,7 @@ int semiLepTopAnalysis::EventSelection() {
   b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
   b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
 
+  b_met = MET_pt;
 
   auto muons = muonSelection();
   auto elecs = elecSelection();
