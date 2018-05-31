@@ -53,6 +53,8 @@ public:
   dilepTopAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~dilepTopAnalysis();  
   virtual void Loop() = 0;
+
+  void Reset();
 };
 
 #endif

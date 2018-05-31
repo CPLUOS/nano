@@ -2,7 +2,10 @@
 
 using std::vector;
 
-semiLepTopAnalysis::semiLepTopAnalysis(TTree *tree, Bool_t isMC, Bool_t sle, Bool_t slm) : topAnalysis(tree, isMC), m_isSL_e(sle), m_isSL_m(slm) {
+semiLepTopAnalysis::semiLepTopAnalysis(TTree *tree, Bool_t isMC, Bool_t sle, Bool_t slm) :
+  topAnalysis(tree, isMC, false, true),
+  m_isSL_e(sle),
+  m_isSL_m(slm) {
 }
 
 semiLepTopAnalysis::~semiLepTopAnalysis() {
@@ -27,6 +30,8 @@ void semiLepTopAnalysis::Reset() {
 int semiLepTopAnalysis::EventSelection() {
   b_step = 0;
   h_cutFlow->Fill(0);
+  h_cutFlowEl->Fill(0);
+  h_cutFlowMu->Fill(0);
 
   //Run for MC
   if (m_isMC) {
@@ -94,6 +99,9 @@ int semiLepTopAnalysis::EventSelection() {
   b_step = 1;
   h_cutFlow->Fill(3);
 
+  TH1D *h_cutFlowLep = (elecs.size() == 1) ? h_cutFlowEl : h_cutFlowMu;
+  h_cutFlowLep->Fill(1);
+  
   if (muons.size() == 1) {
       recolep = muons[0];
       b_channel = CH_MU;
@@ -118,15 +126,18 @@ int semiLepTopAnalysis::EventSelection() {
   
   b_step = 2;
   h_cutFlow->Fill(4);
+  h_cutFlowLep->Fill(2);
 
   if (b_njet > 0) {
     b_step = 3;
     h_cutFlow->Fill(5);
+    h_cutFlowLep->Fill(3);
   } else return b_step;
   
   if (b_nbjet > 0) {
     b_step = 4;
     h_cutFlow->Fill(6);
+    h_cutFlowLep->Fill(4);
   } else return b_step;
 
   return b_step;

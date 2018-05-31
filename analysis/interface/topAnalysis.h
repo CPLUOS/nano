@@ -10,6 +10,8 @@ class topAnalysis : public nanoAnalysis
 protected:
   std::vector<Float_t> b_csvweights;
   float b_btagweight;
+
+  bool isDilep, isSemiLep;
   
 public:
   std::vector<TParticle> muonSelection();
@@ -20,7 +22,7 @@ public:
   std::vector<TParticle> jetSelection();
   std::vector<TParticle> bjetSelection();
 
-  topAnalysis(TTree *tree=0, Bool_t isMC = false);
+  topAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t isDilep = true, Bool_t isSemiLep = false);
   ~topAnalysis() {}
 };
 

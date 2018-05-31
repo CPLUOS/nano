@@ -2,12 +2,17 @@
 
 using std::vector;
 
-topAnalysis::topAnalysis(TTree *tree, Bool_t isMC) : nanoAnalysis(tree, isMC) {}
+topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t _isDilep, Bool_t _isSemiLep) :
+  nanoAnalysis(tree, isMC),
+  isDilep(_isDilep),
+  isSemiLep(_isSemiLep)
+{}
 
 vector<TParticle> topAnalysis::elecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
     if (Electron_pt[i] < 20) continue;
+    if (isSemiLep) { if (Electron_pt[i] < 30) continue; }
     if (std::abs(Electron_eta[i]) > 2.4) continue;
     if (Electron_cutBased[i] < 3) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
@@ -29,7 +34,9 @@ vector<TParticle> topAnalysis::muonSelection() {
   for (UInt_t i = 0; i < nMuon; ++i){
     if (!Muon_tightId[i]) continue;
     if (Muon_pt[i] < 20) continue;
+    if (isSemiLep) { if (Muon_pt[i] < 26) continue; }
     if (std::abs(Muon_eta[i]) > 2.4) continue;
+    if (isSemiLep) { if (std::abs(Muon_eta[i]) > 2.1) continue; }
     if (Muon_pfRelIso04_all[i] > 0.15) continue;
     if (!Muon_globalMu[i]) continue;
     if (!Muon_isPFcand[i]) continue;
@@ -135,24 +142,4 @@ vector<TParticle> topAnalysis::bjetSelection() {
     bjets.push_back(bjet);
   }
   return bjets;
-}
-
-void topAnalysis::Reset() {
-
-  recolep1.Clear(); recolep2.Clear();
-  b_lep1.SetPtEtaPhiM(0,0,0,0); b_lep2.SetPtEtaPhiM(0,0,0,0); b_dilep.SetPtEtaPhiM(0,0,0,0); b_jet1.SetPtEtaPhiM(0,0,0,0); b_jet2.SetPtEtaPhiM(0,0,0,0);
-
-  b_lep1_pid = 0; b_lep2_pid = 0;
-  b_jet1_CSVInclV2 = -1; b_jet2_CSVInclV2 = -1;
-  b_csvweights.clear();
-
-  b_nvertex = -1; b_step = -1; b_channel = 0; b_njet = -1; b_nbjet = -1;
-  b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; b_btagweight = 1;
-  b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
-  b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
-
-  b_tri = 0; b_tri_up = 0; b_tri_dn = 0;
-  b_trig_m = false; b_trig_m2 = false; b_trig_e = false; b_trig_mm = false; b_trig_em = false; b_trig_ee = false;
-
-  recoleps.clear();
 }

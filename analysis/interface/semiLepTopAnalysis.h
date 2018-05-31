@@ -14,6 +14,8 @@ protected:
   TH1D* h_weights;
   TH1D* h_cutFlow;
 
+  TH1D *h_cutFlowEl, *h_cutFlowMu;
+
   //Variables
   TLorentzVector b_lep, b_jet1, b_jet2, b_jet3, b_jet4;
   TParticle recolep;

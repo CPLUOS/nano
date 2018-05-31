@@ -62,6 +62,8 @@ void slCalibAnalysis::setOutput(std::string outFileName)
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
   h_weights = new TH1D("weight", "weight", 1, 0, 1);
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
+  h_cutFlowEl = new TH1D("cutflowEl", ";step;# events", 11, -0.5, 10.5);
+  h_cutFlowMu = new TH1D("cutflowMu", ";step;# events", 11, -0.5, 10.5);
 }
 
 void slCalibAnalysis::MakeBranch(TTree* t)

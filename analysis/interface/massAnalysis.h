@@ -43,13 +43,4 @@ public :
 
 };
 
-massAnalysis::massAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : dilepTopAnalysis(tree, isMC, dl, sle, slm)
-{
-}
-
-
-massAnalysis::~massAnalysis()
-{
-}
-
 #endif
