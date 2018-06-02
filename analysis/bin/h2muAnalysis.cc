@@ -124,6 +124,14 @@ void h2muAnalysis::MakeBranch(TTree* t)
   t->Branch("Mu1", "TLorentzVector", &b_Mu1);
   t->Branch("Mu2", "TLorentzVector", &b_Mu2);
   t->Branch("lep", "TLorentzVector", &b_lep);
+  t->Branch("test_nmuon", &b_test_nmuon, "test_nmuon/F");
+  t->Branch("test_njet", &b_test_njet, "test_njet/F");
+  t->Branch("Jet_pt", "std::vector<float>", &b_Jet_pT);
+  t->Branch("Jet_eta", "std::vector<float>", &b_Jet_Eta);
+  t->Branch("Jet_phi", "std::vector<float>", &b_Jet_Phi);
+  t->Branch("nonbJet_pt", "std::vector<float>", &b_nonbJet_pT);
+  t->Branch("nonbJet_eta", "std::vector<float>", &b_nonbJet_Eta);
+  t->Branch("nonbJet_phi", "std::vector<float>", &b_nonbJet_Phi);
   t->Branch("genweight", &b_genweight, "genweight/F");
   t->Branch("puweight", &b_puweight, "puweight/F");
   t->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
@@ -224,13 +232,18 @@ void h2muAnalysis::ResetBranch()
   b_El_tlv.clear();
   b_Jet_tlv.clear();
   b_bJet_tlv.clear();
+  b_nonbJet_tlv.clear();
+  b_Jet_pT.clear();
+  b_Jet_Eta.clear();
+  b_Jet_Phi.clear();
+  b_nonbJet_pT.clear();
+  b_nonbJet_Eta.clear();
+  b_nonbJet_Phi.clear();
   b_csvweights.clear();
   b_CSVv2.clear();
   b_Event_Total = 1;
   b_channel = -1;
   b_nlep = 0; b_nmuon = 0; b_nelec = 0; b_nnonbjet = 0; b_njet = 0; b_nbjet = 0;
-  b_charge = 0;
-  b_Met_phi = 0; b_Met = 0;
   b_XL = 0; b_nFH4 = 0; b_Out = 0; b_nonB = 0; 
   // BDT //
   b_all_muEtaDiff = 0; b_all_muPtDiff = 0; b_all_muPhiDiff = 0; b_all_muDR = 0;
@@ -249,6 +262,20 @@ bool h2muAnalysis::Analysis()
 {
   h_Event_Tot->Fill(0.5, b_Event_Total);
   h_cutFlow->Fill(0);
+  b_Step = 0;
+/*
+  auto Muons = MuonSelection();
+  auto Elecs = ElectronSelection(Muons);
+  auto Jets = JetSelection(Muons, Elecs);
+  auto BJets = BJetSelection(Muons, Elecs);
+  auto nonbJets = nonbJetSelection(Muons, Elecs);
+  b_nmuon = Muons.size();
+  b_nelec = Elecs.size();
+  b_njet = Jets.size();
+  b_nnonbjet = nonbJets.size();
+  b_nbjet = BJets.size();
+*/
+
   //Run for MC
   if(m_isMC){
     Int_t nvtx = Pileup_nTrueInt;
@@ -262,25 +289,27 @@ bool h2muAnalysis::Analysis()
   } else {
     b_puweight = 1;
     b_genweight = 0;
-    if(!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
+    if(!(m_lumi->LumiCheck(run, luminosityBlock))) return true;
   }
+  b_Step = 1;
   h_cutFlow->Fill(1);
 
-  if (abs(PV_z) >= 24.) return false;
-  if (PV_npvs == 0) return false;
-  if (PV_ndof < 4) return false;
+  if (abs(PV_z) >= 24.) return true;
+  if (PV_npvs == 0) return true;
+  if (PV_ndof < 4) return true;
+  b_Step = 2;
   h_cutFlow->Fill(2);
 
-  auto Muons = MuonSelection();
-  auto Elecs = ElectronSelection(Muons);
-  auto Jets = JetSelection(Muons, Elecs);
-  auto BJets = BJetSelection(Muons, Elecs);
-  auto nonbJets = nonbJetSelection(Muons, Elecs);
+//  auto Muons = MuonSelection();
+//  auto Elecs = ElectronSelection(Muons);
  
-  if (Muons.size() < 2) return false;
+  if (Muons.size() < 2) return true;
+//if (Muons.size() != 2) return true;
 
+  b_Step = 3;
   h_cutFlow->Fill(3);
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
+  if (!(HLT_IsoTkMu24 || HLT_IsoMu24)) return true;
   
   TParticle mu1;
   TParticle mu2; 
@@ -288,7 +317,7 @@ bool h2muAnalysis::Analysis()
   b_Met_phi = PuppiMET_phi;
   Bool_t IsoMu24 = false;
   Bool_t IsoTkMu24 = false;
-  
+
   for (UInt_t i = 0; i < nTrigObj; ++i) {
     if (TrigObj_id[i] != 13) continue; 
     if (TrigObj_pt[i] < 24) continue;
@@ -296,7 +325,8 @@ bool h2muAnalysis::Analysis()
     if (bits & 0x2) IsoMu24 = true;
     if (bits & 0x8) IsoTkMu24 = true;  
   }
-  if (!(IsoMu24 || IsoTkMu24)) return false; 
+  if (!(IsoMu24 || IsoTkMu24)) return true; 
+  b_Step = 4;
   h_cutFlow->Fill(4);
 
   for (UInt_t i = 0; i < Muons.size(); i++) { 
@@ -313,17 +343,26 @@ bool h2muAnalysis::Analysis()
     }
   }
 
-  if (b_charge == 0) return false; 
+  if (b_charge == 0) return true; 
+  b_Step = 5;
   h_cutFlow->Fill(5);
 
+//  auto Jets = JetSelection(Muons, Elecs);
+//  auto BJets = BJetSelection(Muons, Elecs);
+//  auto nonbJets = nonbJetSelection(Muons, Elecs);
+  
+  for (UInt_t i = 0; i < Jets.size(); i++) {
+     b_Jet_pT.push_back(b_Jet_tlv[i].Pt());
+     b_Jet_Eta.push_back(b_Jet_tlv[i].Eta());
+     b_Jet_Phi.push_back(b_Jet_tlv[i].Phi());
+  }
+  for (UInt_t i = 0; i < nonbJets.size(); i++) {
+     b_nonbJet_pT.push_back(b_nonbJet_tlv[i].Pt());
+     b_nonbJet_Eta.push_back(b_nonbJet_tlv[i].Eta());
+     b_nonbJet_Phi.push_back(b_nonbJet_tlv[i].Phi());
+  } 
+
   b_Dilep = b_Mu1 + b_Mu2;
-  b_nlep = Muons.size() + Elecs.size();
-  b_nmuon = Muons.size();
-  b_nelec = Elecs.size();
-  b_njet = Jets.size();
-  b_nnonbjet = nonbJets.size();
-  b_nbjet = BJets.size();
-  b_npvs = PV_npvs;
   // Extra lep //
   if (Muons.size() + Elecs.size()  >= 3 && BJets.size() >= 1) {
      b_XL = 1;
@@ -499,7 +538,6 @@ bool h2muAnalysis::Analysis()
   b_MVA_BDTnoB = bdt_noB->EvaluateMVA("BDT");
   b_MVA_BDTOut = bdt_Out->EvaluateMVA("BDT");
 */
-  cout << "Hello" << endl;
   return true;
 }
 
@@ -599,7 +637,7 @@ vector<TParticle> h2muAnalysis::ElectronSelection(vector<TParticle> leptons)
   for(UInt_t i = 0; i < nElectron; i++) {
     if ( Electron_pt[i] < 10) continue;
     if (abs(Electron_eta[i]) > 2.5 ) continue; //<~~~~~~~~~~~~~~ Higgs Electron pt == 10; Higgs Electron eta > 2.5  
-    //if( Electron_pfRelIso03_all[i] > 0.15 || Electron_cutBased[i] < 3 ) continue; //<~~~~~~~~~~~~~~ Top doesn't use isolation? 
+    if( Electron_pfRelIso03_all[i] > 0.15) continue;
     if (Electron_cutBased[i] < 3) continue;
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
@@ -607,7 +645,7 @@ vector<TParticle> h2muAnalysis::ElectronSelection(vector<TParticle> leptons)
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
 
-    if (hasOverLap(mom, leptons, 0.3 )) continue;
+//    if (hasOverLap(mom, leptons, 0.3 )) continue;
     
     auto elec = TParticle();
     elec.SetPdgCode(11*Electron_charge[i]*-1);
@@ -625,6 +663,8 @@ vector<TParticle> h2muAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
     if (abs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
     if (abs(Jet_eta[i]) < 2.4 &&  Jet_pt[i] < 20) continue;
     if (abs(Jet_eta[i]) > 4.7) continue; 
+ //   if (Jet_pt[i] < 30) continue;
+ //   if (abs(Jet_eta[i]) > 2.4) continue; 
     if (Jet_jetId[i] < 1) continue;
 
     TLorentzVector mom;
@@ -657,6 +697,14 @@ vector<TParticle> h2muAnalysis::BJetSelection(vector<TParticle> Muons, vector<TP
     
     if (hasOverLap(mom, Muons, 0.4)) continue;
     if (hasOverLap(mom, Elecs, 0.4)) continue;
+    if (Jet_pt[i] < 20) continue;
+    if (abs(Jet_eta[i]) > 2.4) continue;
+    
+    TLorentzVector mom;
+    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
+    
+    if (hasOverLap(mom, Muons, 0.4)) continue;
+    if (hasOverLap(mom, Elecs, 0.4)) continue;
     
     auto bjet = TParticle();
     bjet.SetMomentum(mom);
@@ -674,7 +722,8 @@ vector<TParticle> h2muAnalysis::nonbJetSelection(vector<TParticle> Muons, vector
 {
   vector<TParticle> nonbjets;
   for (UInt_t i = 0; i < nJet; i++) {
-    if (Jet_pt[i] < 30) continue;
+    if (abs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
+    if (abs(Jet_eta[i]) < 2.4 &&  Jet_pt[i] < 20) continue;
     if (abs(Jet_eta[i]) > 4.7) continue; 
     if (Jet_jetId[i] < 1) continue;
 
