@@ -122,6 +122,7 @@ int TMVAClassification( TString myMethodList = "" )
    // (it is also possible to use ASCII format as input -> see TMVA Users Guide)
    TFile *input(0);
    TString fname = "./tmva_class_example.root";
+   //TString fname = "/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/batch/Results/results_merged/copt_kps_acb.root";
    if (!gSystem->AccessPathName( fname )) {
       input = TFile::Open( fname ); // check if file in local directory exists
    }
@@ -137,8 +138,8 @@ int TMVAClassification( TString myMethodList = "" )
 
    // Register the training and test trees
 
-   TTree *signalTree     = (TTree*)input->Get("Jpsisig");
-   TTree *background     = (TTree*)input->Get("Jpsibkg");
+   TTree *signalTree     = (TTree*)input->Get("D0sig");
+   TTree *background     = (TTree*)input->Get("D0bkg");
 
    // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
    TString outfileName( "TMVA.root" );
@@ -271,8 +272,11 @@ int TMVAClassification( TString myMethodList = "" )
    //dataloader->SetBackgroundWeightExpression( "weight" );
 
    // Apply additional cuts on the signal and background samples (can be different)
+   //TCut mycuts = "cmeTruth_nMatched==2 && cmeTruth_nTrueDau==2"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   //TCut mycutb = "cmeTruth_nMatched==0"; // for example: TCut mycutb = "abs(var1)<0.5";
    TCut mycuts = ""; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
    TCut mycutb = ""; // for example: TCut mycutb = "abs(var1)<0.5";
+
 
    // Tell the dataloader how to use the training and testing events
    //
@@ -286,7 +290,7 @@ int TMVAClassification( TString myMethodList = "" )
    //    dataloader->PrepareTrainingAndTestTree( mycut,
    //         "NSigTrain=3000:NBkgTrain=3000:NSigTest=3000:NBkgTest=3000:SplitMode=Random:!V" );
    dataloader->PrepareTrainingAndTestTree( mycuts, mycutb,
-                                       "nTrain_Signal=100:nTrain_Background=30:SplitMode=Random:NormMode=NumEvents:!V" );
+                                       "nTrain_Signal=5000:nTrain_Background=70000:SplitMode=Random:NormMode=NumEvents:!V" );
 
    // ### Book MVA methods
    //

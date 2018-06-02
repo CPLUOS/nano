@@ -3,6 +3,4 @@
 
 #include "Events_2016v4.h"
 
-void makeEventsClass (const char* filedir);
-
 #endif

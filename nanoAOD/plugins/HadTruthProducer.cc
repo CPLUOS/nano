@@ -44,6 +44,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<int> ntruedau;
   vector<int> isHadFromTsb;
   vector<uint8_t> isHadFromTop;
+  vector<uint8_t> isHadFromW, isHadFromS, isHadFromC, isHadFromB;
 
   std::map<const reco::GenParticle*, const reco::VertexCompositeCandidate*> matchHad; 
   std::vector<const reco::GenParticle*> matchedGen;
@@ -52,6 +53,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     int count = 0;
     int hadFromQuark = -99;
     bool hadFromTop = false;
+    bool hadFromW = false, hadFromS = false, hadFromB = false, hadFromC = false;
     // for dstar and lambdaB, need to match with grand mother
     // setup output arrays here and check the matching below
     reco::GenParticleRef trueHad;
@@ -104,13 +106,17 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
 
     if (nmatched == 2) {
-      isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
+      isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop, hadFromW, hadFromS, hadFromB, hadFromC);
       matchHad.insert({trueHad.get(), &cand});
       matchedGen.push_back(trueHad.get());
     } else { matchedGen.push_back(nullptr); }
 
     isHadFromTsb.push_back(hadFromQuark);
     isHadFromTop.push_back(hadFromTop);
+    isHadFromW.push_back(hadFromW);
+    isHadFromS.push_back(hadFromS);
+    isHadFromB.push_back(hadFromB);
+    isHadFromC.push_back(hadFromC);
   }
   
   for (auto indices : *hadronIndices) {
@@ -119,6 +125,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     int count=0;
     int hadFromQuark=-99;
     bool hadFromTop=false;
+    bool hadFromW=false, hadFromS=false, hadFromB=false, hadFromC=false;
     reco::GenParticleRef trueHad;
 
     for (auto i = 1; i < (int) indices.size(); i++) {
@@ -135,19 +142,27 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
 
     if (!trueHad.isNull()) {
-      isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop);
+      isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop, hadFromW, hadFromS, hadFromB, hadFromC);
       ntruedau[indices[0]] = trueHad->numberOfDaughters();
     }
     nmatchedv[indices[0]] = nmatched;
     isHadFromTsb[indices[0]] = hadFromQuark;
     isHadFromTop[indices[0]] = hadFromTop;   
+    isHadFromW[indices[0]] = hadFromW;
+    isHadFromS[indices[0]] = hadFromS;
+    isHadFromB[indices[0]] = hadFromB;
+    isHadFromC[indices[0]] = hadFromC;
   }
 
   auto hadTruthTable = make_unique<nanoaod::FlatTable>(hadronCands->size(),"hadTruth",false);
   hadTruthTable->addColumn<int>("nMatched",nmatchedv,"no. of dau match",nanoaod::FlatTable::IntColumn);
   hadTruthTable->addColumn<int>("nTrueDau",ntruedau,"no. of true dau",nanoaod::FlatTable::IntColumn);
   hadTruthTable->addColumn<int>("isHadFromTsb",isHadFromTsb,"Hadron from t->s/b",nanoaod::FlatTable::IntColumn);
-  hadTruthTable->addColumn<uint8_t>("isHadFromTop",isHadFromTop,"Hadron from Top",nanoaod::FlatTable::UInt8Column);  
+  hadTruthTable->addColumn<uint8_t>("isHadFromTop",isHadFromTop,"Hadron from Top",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<uint8_t>("isHadFromW",isHadFromW,"Hadron from W",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<uint8_t>("isHadFromS",isHadFromS,"Hadron from s quark",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<uint8_t>("isHadFromC",isHadFromC,"Hadron from c quark",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<uint8_t>("isHadFromB",isHadFromB,"Hadron from b quark",nanoaod::FlatTable::UInt8Column);
   iEvent.put(move(hadTruthTable),"hadTruth");
 
   auto candidates = make_unique<std::vector<reco::LeafCandidate>>();
@@ -323,8 +338,10 @@ bool HadTruthProducer::isGenHadFrom(const reco::GenParticle* particle, int pdgId
 {
   GenHadFromTop = false;
   if (abs(particle->pdgId()) == pdgId && particle->status() == 62) {
+    auto dau1 = particle->daughter(0);
     auto dau2 = particle->daughter(1);
-    GenHadFromQuark = dau2->pdgId();
+    if (abs(dau1->pdgId()) == 24) GenHadFromQuark = dau2->pdgId();
+    else GenHadFromQuark = dau1->pdgId();
     GenHadFromTop = true;
     return true;
   }
@@ -338,17 +355,26 @@ bool HadTruthProducer::isGenHadFrom(const reco::GenParticle* particle, int pdgId
   return false;
 }
 
-bool HadTruthProducer::isHadFrom(const reco::GenParticleRef& particle, int pdgId, int count, int & hadFromQuark, bool & hadFromTop)
+bool HadTruthProducer::isHadFrom(const reco::GenParticleRef& particle, int pdgId, int count, int & hadFromQuark, bool & hadFromTop, bool & hadFromW, bool & hadFromS, bool & hadFromB, bool & hadFromC)
 {
   if(abs(particle->pdgId()) == pdgId && particle->status() == 62) {
+    auto dau1 = particle->daughter(0);
     auto dau2 = particle->daughter(1);
-    hadFromQuark = dau2->pdgId();
+    if (abs(dau1->pdgId()) == 24) hadFromQuark = dau2->pdgId();
+    else hadFromQuark = dau1->pdgId();
     return hadFromTop = true;
   }
+
+  // hard process status codes (for MC@NLO/Pythia8 at least), should only captue t->s/b+W, W->cs
+  if(abs(particle->pdgId()) == HadronProducer::W_pdgId_ && particle->status() == 22) hadFromW = true;
+  if(abs(particle->pdgId()) == HadronProducer::S_pdgId_ && particle->status() == 23) hadFromS = true;
+  if(abs(particle->pdgId()) == HadronProducer::B_pdgId_ && particle->status() == 23) hadFromB = true;
+  if(abs(particle->pdgId()) == HadronProducer::C_pdgId_ && particle->status() == 23) hadFromC = true;
+  
   count = count + 1;
   for(unsigned int im = 0; im < particle->numberOfMothers(); ++im) {
     const reco::GenParticleRef& mothers = particle->motherRef(im);
-    if( isHadFrom( mothers, pdgId, count, hadFromQuark, hadFromTop) ) {
+    if( isHadFrom( mothers, pdgId, count, hadFromQuark, hadFromTop, hadFromW, hadFromS, hadFromB, hadFromC) ) {
       return hadFromTop = true;
     }
   }

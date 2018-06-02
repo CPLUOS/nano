@@ -184,8 +184,11 @@ HadronProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     if (pfcand.charge() == 0) continue;
     //if ( pfcand.pt() < tkPtCut_ ) continue;
-    if (pfcand.bestTrack() == nullptr) continue;
-    
+    const reco::Track * trk = pfcand.bestTrack();      
+    if (trk == nullptr) continue;
+
+    float ipsigXY = std::abs(trk->dxy(primaryVertexPoint)/trk->dxyError());
+    if (ipsigXY < 2.0) continue;
     reco::Candidate* recoDau = pfcand.clone();
     
     if (abs(recoDau->pdgId()) == 11 || abs(recoDau->pdgId()) == 13)

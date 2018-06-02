@@ -1,38 +1,13 @@
 #ifndef hadAnalysis_H
 #define hadAnalysis_H
 
-#include "topAnalysis.h"
+#include "dilepTopAnalysis.h"
 
-class hadAnalysis : public topAnalysis 
+class hadAnalysis : public dilepTopAnalysis 
 {
-private:
-  TH1D* h_cutFlow;
-  TParticle recolep1, recolep2;
-  TLorentzVector recolep1_tlv, recolep2_tlv;
-  std::vector<TLorentzVector> recoleps;
-
-  struct HadStat {
-    int idx = -1;
-    int pdgId = -99;
-    float x = -1;
-    float dr = -1;
-    int label = -99;
-    int jetIdx = -99;
-    bool isHadJetMatched = false;
-  };
-
-  struct JetStat {
-    int idx = -1;
-    float dr = -1;
-    int matchedQuark = -99;
-  };
-
+protected:
+  //Vriable
   int b_chk = 0;
-
-  int b_channel;
-  int b_njet;
-  float b_met;
-  TLorentzVector b_dilep_tlv;
   TLorentzVector b_had_tlv;
 
   int b_isFrom_had;
@@ -49,35 +24,28 @@ private:
   float  b_area_Jet, b_pt_Jet;
   int b_nConstituents_Jet, b_nElectrons_Jet, b_nMuons_Jet;
 
-  std::map<unsigned int, int> qjMapForMC_;
-  std::vector<int> qMC_;
-  std::vector<int> genJet_;           
-  std::vector<struct JetStat> recoJet_;
-
-  //functions
-  void EventSelection();
-  void ResetBranch();
-
-  void MatchingForMC();
-  void HadronAnalysis();
-
-//  TParticle GetTParticle(int pdgId, int idx);
-  Double_t DeltaR(Double_t deta, Double_t dphi); 
-  Double_t DeltaPhi(Double_t phi1, Double_t phi2);
-  Double_t GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz);
-
-  void MakeBranch(TTree* t);
-
 public:
-//  void MakeTree(std::string outputName);
-  void setOutput(std::string outputName);
+  //Struct
+  struct HadStat {
+    int idx = -1;
+    int pdgId = -99;
+    float x = -1;
+    float dr = -1;
+    int label = -99;
+    int jetIdx = -99;
+    bool isHadJetMatched = false;
+  };
+
+  struct JetStat {
+    int idx = -1;
+    float dr = -1;
+    int matchedQuark = -99;
+  };
+  //Function
+  Double_t GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz);
 
   hadAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~hadAnalysis();
   virtual void     Loop();
 };
-hadAnalysis::hadAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topAnalysis(tree, isMC, dl, sle, slm)
-{ }
-hadAnalysis::~hadAnalysis()
-{ }
 #endif
