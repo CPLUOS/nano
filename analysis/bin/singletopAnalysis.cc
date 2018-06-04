@@ -14,6 +14,9 @@ using namespace std;
 To compile:
 cd $CMSSW_BASE ; scram b -j 8 ; cd -
 
+To throw jobs to condor:
+python makejobs.py nanoAOD j`python batch_nanoAOD.py n 2`
+
 To run:
 singletopAnalysis [LIST_FILE_OF_FILES] ["MC" or "RD"] [idx of the first root file] [(idx+1) of the last root file]
 */
@@ -39,6 +42,7 @@ private:
   int b_nvertex, b_step, b_channel, b_njets, b_nbjets;
   
   TLorentzVector b_gentop1;
+  TLorentzVector b_genW;
   
   TParticle recolep1;
   
@@ -46,12 +50,28 @@ private:
   int b_lep1_pid;
   float b_met, b_met_phi;
   
+  TLorentzVector b_DiffLepMom11;
+  TLorentzVector b_DiffLepMom12;
+  TLorentzVector b_DiffLepMom21;
+  TLorentzVector b_DiffLepMom22;
+  
   TLorentzVector b_top1;
+  TLorentzVector b_top1_lower;
   TLorentzVector b_top1_higher;
   TLorentzVector b_top1_imaginary;
   TLorentzVector b_top1_genneu;
   TLorentzVector b_top1_genWMass;
   TLorentzVector b_top1_genW;
+  TLorentzVector b_top1_genWgenB;
+  
+  TLorentzVector b_recoW_lower;
+  TLorentzVector b_recoW_higher;
+  TLorentzVector b_recoNeu_lower;
+  TLorentzVector b_recoNeu_higher;
+  
+  int b_truthtop1_lowhighOn;
+  int b_truthtop1_imaginaryOn;
+  float b_truthtop1_lowhighNeuPT;
   
   Bool_t b_tri;
   float b_triw, b_tri_up, b_tri_dn;
@@ -111,7 +131,7 @@ public:
 #define MY_FLAG_RECOW_NEU_IN_GEN    4
 #define MY_FLAG_RECOW_W_IN_GEN      5
   
-  TLorentzVector RecoWFromTop(int nFlag = MY_FLAG_RECOW_WRESTRICTION);
+  TLorentzVector RecoWFromTop(double *pdDiffMET, int nFlag = MY_FLAG_RECOW_WRESTRICTION);
   int RecoTop();
   int CalcRecoCosStar();
 };
@@ -158,11 +178,17 @@ void singletopAnalysis::MakeBranch(TTree *t) {
   t->Branch("nbjet", &b_nbjets, "nbjet/I");
   
   t->Branch("gentop1", "TLorentzVector", &b_gentop1);
+  t->Branch("genW", "TLorentzVector", &b_genW);
   
   t->Branch("lep1", "TLorentzVector", &b_lep1);
   t->Branch("jet1", "TLorentzVector", &b_jet1);
   t->Branch("bjet1", "TLorentzVector", &b_bjet1);
   t->Branch("bjet2", "TLorentzVector", &b_bjet2);
+  
+  t->Branch("DiffLepMom11", "TLorentzVector", &b_DiffLepMom11);
+  t->Branch("DiffLepMom12", "TLorentzVector", &b_DiffLepMom12);
+  t->Branch("DiffLepMom21", "TLorentzVector", &b_DiffLepMom21);
+  t->Branch("DiffLepMom22", "TLorentzVector", &b_DiffLepMom22);
   
   t->Branch("lep1_pid", &b_lep1_pid, "lep1_pid/I");
   
@@ -170,11 +196,22 @@ void singletopAnalysis::MakeBranch(TTree *t) {
   t->Branch("met_phi", &b_met_phi, "met_phi/F");
   
   t->Branch("top1", "TLorentzVector", &b_top1);
-  t->Branch("top1", "TLorentzVector", &b_top1_higher);
-  t->Branch("top1", "TLorentzVector", &b_top1_imaginary);
-  t->Branch("top1", "TLorentzVector", &b_top1_genneu);
-  t->Branch("top1", "TLorentzVector", &b_top1_genWMass);
-  t->Branch("top1", "TLorentzVector", &b_top1_genW);
+  t->Branch("top1_lower", "TLorentzVector", &b_top1_lower);
+  t->Branch("top1_higher", "TLorentzVector", &b_top1_higher);
+  t->Branch("top1_imaginary", "TLorentzVector", &b_top1_imaginary);
+  t->Branch("top1_genneu", "TLorentzVector", &b_top1_genneu);
+  t->Branch("top1_genWMass", "TLorentzVector", &b_top1_genWMass);
+  t->Branch("top1_genW", "TLorentzVector", &b_top1_genW);
+  t->Branch("top1_genWgenB", "TLorentzVector", &b_top1_genWgenB);
+  
+  t->Branch("recoW_lower",  "TLorentzVector", &b_recoW_lower);
+  t->Branch("recoW_higher", "TLorentzVector", &b_recoW_higher);
+  t->Branch("recoNeu_lower",  "TLorentzVector", &b_recoNeu_lower);
+  t->Branch("recoNeu_higher", "TLorentzVector", &b_recoNeu_higher);
+  
+  t->Branch("truthtop1_lowhighOn", &b_truthtop1_lowhighOn, "truthtop1_lowhighOn/I");
+  t->Branch("truthtop1_imaginaryOn", &b_truthtop1_imaginaryOn, "truthtop1_imaginaryOn/I");
+  t->Branch("truthtop1_lowhighNeuPT", &b_truthtop1_lowhighNeuPT, "truthtop1_lowhighNeuPT/F");
   
   t->Branch("trigger", &b_triw, "trigger/O");
   t->Branch("tri", &b_triw, "tri/F");
@@ -209,6 +246,7 @@ void singletopAnalysis::resetBranch() {
   b_nbjets = 0;
   
   b_gentop1.SetPtEtaPhiM(0, 0, 0, 0);
+  b_genW.SetPtEtaPhiM(0, 0, 0, 0);
   
   b_lep1.SetPtEtaPhiM(0, 0, 0, 0);
   b_jet1.SetPtEtaPhiM(0, 0, 0, 0);
@@ -218,12 +256,28 @@ void singletopAnalysis::resetBranch() {
   b_met_phi = 0;
   b_lep1_pid = 0;
   
+  b_DiffLepMom11.SetPtEtaPhiM(0, 0, 0, 0);
+  b_DiffLepMom12.SetPtEtaPhiM(0, 0, 0, 0);
+  b_DiffLepMom21.SetPtEtaPhiM(0, 0, 0, 0);
+  b_DiffLepMom22.SetPtEtaPhiM(0, 0, 0, 0);
+  
   b_top1.SetPtEtaPhiM(0, 0, 0, 0);
+  b_top1_lower.SetPtEtaPhiM(0, 0, 0, 0);
   b_top1_higher.SetPtEtaPhiM(0, 0, 0, 0);
   b_top1_imaginary.SetPtEtaPhiM(0, 0, 0, 0);
   b_top1_genneu.SetPtEtaPhiM(0, 0, 0, 0);
   b_top1_genWMass.SetPtEtaPhiM(0, 0, 0, 0);
   b_top1_genW.SetPtEtaPhiM(0, 0, 0, 0);
+  b_top1_genWgenB.SetPtEtaPhiM(0, 0, 0, 0);
+  
+  b_recoW_lower.SetPtEtaPhiM(0, 0, 0, 0);
+  b_recoW_higher.SetPtEtaPhiM(0, 0, 0, 0);
+  b_recoNeu_lower.SetPtEtaPhiM(0, 0, 0, 0);
+  b_recoNeu_higher.SetPtEtaPhiM(0, 0, 0, 0);
+  
+  b_truthtop1_lowhighOn = 0;
+  b_truthtop1_imaginaryOn = 0;
+  b_truthtop1_lowhighNeuPT = 0.0;
   
   b_tri = false;
   b_triw = b_tri_up = b_tri_dn = 1.0;
@@ -292,7 +346,10 @@ int singletopAnalysis::GetIdxGenLepton() {
         
         if ( nParentID == 24 ) {
           int nGrandParentID = abs(GenPart_pdgId[ GenPart_genPartIdxMother[ j ] ]);
-          if ( nGrandParentID == 6 ) nPassW = 1;
+          if ( nGrandParentID == 6 ) {
+            nPassW = 1;
+            m_nIdxGenW = j;
+          }
         }
         
         if ( nPassW == 1 && j == m_nIdxGenTop ) break;
@@ -316,7 +373,7 @@ int singletopAnalysis::GetIdxGenLepton() {
 int singletopAnalysis::GetIdxGenBFromTop() {
   UInt_t i;
   
-  // Finding the lepton from the top quark
+  // Finding the b quark from the top quark
   for ( i = 0 ; i < nGenPart ; i++ ) {
     int nPID = GenPart_pdgId[ i ];
     if ( abs(nPID) != 5 ) continue;
@@ -324,7 +381,7 @@ int singletopAnalysis::GetIdxGenBFromTop() {
     int nIdxMother = GenPart_genPartIdxMother[ i ];
     if ( nIdxMother < 0 ) continue;
     
-    if ( GenPart_pdgId[ nIdxMother ] * nPID != 5 * 6 ) continue;
+    if ( GenPart_pdgId[ nIdxMother ] * nPID != 6 * 5 ) continue;
     
     m_nIdxGenBFromT = i;
     break;
@@ -337,15 +394,15 @@ int singletopAnalysis::GetIdxGenBFromTop() {
 int singletopAnalysis::GetIdxGenWFromTop() {
   UInt_t i;
   
-  // Finding the lepton from the top quark
+  // Finding the W from the top quark
   for ( i = 0 ; i < nGenPart ; i++ ) {
     int nPID = GenPart_pdgId[ i ];
-    if ( abs(nPID) != 5 ) continue;
+    if ( abs(nPID) != 24 ) continue;
     
     int nIdxMother = GenPart_genPartIdxMother[ i ];
     if ( nIdxMother < 0 ) continue;
     
-    if ( GenPart_pdgId[ nIdxMother ] * nPID != 24 * 6 ) continue;
+    if ( GenPart_pdgId[ nIdxMother ] * nPID != 6 * 24 ) continue;
     
     m_nIdxGenW = i;
     break;
@@ -564,7 +621,7 @@ vector<TParticle> singletopAnalysis::bjetSelection(vector<int> &vecIdx) {
 }
 
 
-TLorentzVector singletopAnalysis::RecoWFromTop(int nFlag) {
+TLorentzVector singletopAnalysis::RecoWFromTop(double *pdDiffMET, int nFlag) {
   TLorentzVector vec4W;
   
   double dMW = 80.4;
@@ -577,14 +634,18 @@ TLorentzVector singletopAnalysis::RecoWFromTop(int nFlag) {
   {
     // Calculating the 4-momentum of neutrino
     // The following method comes from 
-    // https://indico.cern.ch/event/472719/contributions/2166641/attachments/1274021/1889392/2016_05_17_toplhc.pdf
+    // https://indico.cern.ch/event/472719/contributions/2166641/attachments/
+    // 1274021/1889392/2016_05_17_toplhc.pdf
+    // But the choosing in two solutions is different; 
+    // the one with smallest deltaR between reco W and reco B.
+    // Prof. Kim pointed out that this method can have a bias on low pT of top. Check it out.
     if ( nFlag == MY_FLAG_RECOW_WMASS_IN_GEN ) {
       dMW = GenPart_mass[ m_nIdxGenW ];
     }
     
     double dELep, dPzLep, dMTSqr;
     double dPtMMul, dDetSqr;
-    double dPtN1, dPtN2, dPtN = 0;
+    double dPzN1, dPzN2, dPzN = 0;
     double dMET, dMETPhi;
     
     dELep = b_lep1.E();
@@ -598,23 +659,30 @@ TLorentzVector singletopAnalysis::RecoWFromTop(int nFlag) {
     dDetSqr = dPtMMul * dPtMMul - dMET * dMET * dMTSqr;
     
     if ( dDetSqr >= 0 ) {
+      if ( dDetSqr > 0 ) b_truthtop1_lowhighOn = 1;
+      
       dDetSqr = sqrt(dDetSqr);
-      dPtN1 = ( dPzLep * dPtMMul + dELep * dDetSqr ) / dMTSqr;
-      dPtN2 = ( dPzLep * dPtMMul - dELep * dDetSqr ) / dMTSqr;
+      dPzN1 = ( dPzLep * dPtMMul + dELep * dDetSqr ) / dMTSqr;
+      dPzN2 = ( dPzLep * dPtMMul - dELep * dDetSqr ) / dMTSqr;
       
       if ( nFlag != MY_FLAG_RECOW_WRESTR_HIGH ) {
-        dPtN = ( abs(dPtN1) < abs(dPtN2) ? dPtN1 : dPtN2 );
+        dPzN = ( abs(dPzN1) < abs(dPzN2) ? dPzN1 : dPzN2 );
       } else {
-        dPtN = ( abs(dPtN1) > abs(dPtN2) ? dPtN1 : dPtN2 );
+        dPzN = ( abs(dPzN1) > abs(dPzN2) ? dPzN1 : dPzN2 );
       }
     } else { // In this case, dDetSqr = 0, but dMET is changed to be adjusted with this
-      dPtN = dPzLep * dPtMMul / dMTSqr; // Just setting dDetSqr = 0
+      dPzN = dPzLep * dPtMMul / dMTSqr; // Just setting dDetSqr = 0
       dMET = dPtMMul / sqrt(dMTSqr);
+      
+      b_truthtop1_imaginaryOn = 1;
     }
+    
+    // Keeping the modified MET to use on correction of the b-jet pT
+    if ( pdDiffMET != NULL ) *pdDiffMET = dMET - b_met;
     
     TLorentzVector vec4Neu;
     vec4Neu.SetPxPyPzE(dMET * cos(dMETPhi), dMET * sin(dMETPhi), 
-      dPtN, sqrt(dMET * dMET + dPtN * dPtN)); // Because m_neutrino ~ 0
+      dPzN, sqrt(dMET * dMET + dPzN * dPzN)); // Because m_neutrino ~ 0
     
     // End of calculating of 4-momentum of neutrino
     
@@ -635,17 +703,48 @@ TLorentzVector singletopAnalysis::RecoWFromTop(int nFlag) {
 
 
 int singletopAnalysis::RecoTop() {
-  TLorentzVector vec4BJet = ( b_nbjets == 1 || b_bjet1.DeltaR(b_lep1) < b_bjet2.DeltaR(b_lep1) ? b_bjet1 : b_bjet2 );
+  TLorentzVector vec4BJet = ( b_nbjets == 1 || 
+    b_bjet1.DeltaR(b_lep1) < b_bjet2.DeltaR(b_lep1) ? b_bjet1 : b_bjet2 );
+  TLorentzVector vec4WLow, vec4WHigh;
+  double dMETMod;
   
-  b_top1 = vec4BJet + RecoWFromTop();
+  vec4WLow =  RecoWFromTop(&dMETMod);
+  vec4WHigh = RecoWFromTop(&dMETMod, MY_FLAG_RECOW_WRESTR_HIGH);
+  
+  b_top1_lower  = vec4BJet + vec4WLow;
+  b_top1_higher = vec4BJet + vec4WHigh;
+  
+  TLorentzVector vec4NeuLow  = vec4WLow  - b_lep1;
+  TLorentzVector vec4NeuHigh = vec4WHigh - b_lep1;
+  
+  // 1 : Low, 2 : High
+  b_DiffLepMom11 = b_lep1 + vec4NeuLow;
+  b_DiffLepMom12 = b_lep1 + vec4NeuLow;
+  b_DiffLepMom21 = b_lep1 + vec4NeuHigh;
+  b_DiffLepMom22 = b_lep1 + vec4NeuHigh;
+  
+  b_DiffLepMom11.Boost(-vec4WLow.BoostVector());
+  b_DiffLepMom12.Boost(-vec4WHigh.BoostVector());
+  b_DiffLepMom21.Boost(-vec4WLow.BoostVector());
+  b_DiffLepMom22.Boost(-vec4WHigh.BoostVector());
   
   if ( m_isMC && m_isSig ) {
-    b_top1_higher = vec4BJet + RecoWFromTop(MY_FLAG_RECOW_WRESTR_HIGH);
-    b_top1_imaginary = vec4BJet + RecoWFromTop(MY_FLAG_RECOW_WRESTR_IMG);
-    b_top1_genWMass  = vec4BJet + RecoWFromTop(MY_FLAG_RECOW_WMASS_IN_GEN);
-    b_top1_genneu = vec4BJet + RecoWFromTop(MY_FLAG_RECOW_NEU_IN_GEN);
-    b_top1_genW = vec4BJet + RecoWFromTop(MY_FLAG_RECOW_W_IN_GEN);
+    b_top1_imaginary = vec4BJet + RecoWFromTop(NULL, MY_FLAG_RECOW_WRESTR_IMG);
+    b_top1_genWMass  = vec4BJet + RecoWFromTop(NULL, MY_FLAG_RECOW_WMASS_IN_GEN);
+    b_top1_genneu = vec4BJet + RecoWFromTop(NULL, MY_FLAG_RECOW_NEU_IN_GEN);
+    b_top1_genW = vec4BJet + RecoWFromTop(NULL, MY_FLAG_RECOW_W_IN_GEN);
+    
+    b_top1_genWgenB = Get4VecGen(m_nIdxGenBFromT) + RecoWFromTop(NULL, MY_FLAG_RECOW_W_IN_GEN);
+    
+    b_truthtop1_lowhighNeuPT = log(b_gentop1.DeltaR(b_top1_lower) / b_gentop1.DeltaR(b_top1_higher));
   }
+  
+  b_top1 = vec4BJet + ( vec4BJet.DeltaR(vec4WLow) < vec4BJet.DeltaR(vec4WHigh) ? vec4WLow : vec4WHigh );
+  
+  b_recoW_lower  = vec4WLow;
+  b_recoW_higher = vec4WHigh;
+  b_recoNeu_lower  = vec4NeuLow;
+  b_recoNeu_higher = vec4NeuHigh;
   
   return 0;
 }
@@ -684,15 +783,17 @@ int singletopAnalysis::RunEvt() {
     
     // Getting the 4-momentum of top quark IN GEN LEVEL; it will be used to back-boost
     // vec4TopRest.Boost(-vec4Top.BoostVector()); // vec4TopRest: Copy of vec4Top, it makes back-boost
-    TLorentzVector vec4Top, vec4Lep, vec4B, vec4AssoQ;
+    TLorentzVector vec4Top, vec4AssoQ, vec4B, vec4W, vec4Lep;
     TLorentzVector vec4AssoQRest, vec4LepRest, vec4BRest;
     
     vec4Top = Get4VecGen(m_nIdxGenTop);
     vec4AssoQ = Get4VecGen(m_nIdxGenAssoQ);
-    vec4Lep = Get4VecGen(m_nIdxGenLep);
     vec4B   = Get4VecGen(m_nIdxGenBFromT);
+    vec4W   = Get4VecGen(m_nIdxGenW);
+    vec4Lep = Get4VecGen(m_nIdxGenLep);
     
     b_gentop1 = vec4Top;
+    b_genW = vec4W;
     
     // Calculating theta*s
     
@@ -758,22 +859,6 @@ int singletopAnalysis::RunEvt() {
   b_njets  = jets.size();
   b_nbjets = bjets.size();
   
-  // Trigger
-  b_tri = HLT_IsoTkMu24 || HLT_IsoMu24;
-  
-  Bool_t IsoMu24 = false;
-  Bool_t IsoTkMu24 = false;
-  
-  for ( i = 0 ; i < nTrigObj ; i++ ) {
-    if ( TrigObj_id[ i ] != 13 ) continue;
-    if ( TrigObj_pt[ i ] < 24 ) continue;
-    Int_t bits = TrigObj_filterBits[ i ];
-    if ( bits & 0x2 ) IsoMu24 = true;
-    if ( bits & 0x8 ) IsoTkMu24 = true;  
-  }
-  
-  if (!(IsoMu24 || IsoTkMu24)) return false;
-  
   // Saving MET
   
   b_met     = MET_pt;
@@ -784,6 +869,22 @@ int singletopAnalysis::RunEvt() {
   RecoTop();
   if ( ( b_njets == 2 && b_nbjets == 1 ) || ( b_njets == 3 && b_nbjets == 2 ) )
     CalcRecoCosStar();
+  
+  // Trigger
+  b_tri = HLT_IsoTkMu24 || HLT_IsoMu24;
+  
+  /*Bool_t IsoMu24 = false;
+  Bool_t IsoTkMu24 = false;
+  
+  for ( i = 0 ; i < nTrigObj ; i++ ) {
+    if ( TrigObj_id[ i ] != 13 ) continue;
+    if ( TrigObj_pt[ i ] < 24 ) continue;
+    Int_t bits = TrigObj_filterBits[ i ];
+    if ( bits & 0x2 ) IsoMu24 = true;
+    if ( bits & 0x8 ) IsoTkMu24 = true;  
+  }
+  
+  if ( !( IsoMu24 || IsoTkMu24 ) ) return 1;*/
   
   return 0;
 }
@@ -822,7 +923,13 @@ int main(int argc, char **argv) {
   bool bIsMC;
   int nIdxStart = 0, nIdxEnd = 1048575 * 1024;
   
-  if ( argc <= 2 ) return 1;
+  if ( argc < 3 ) {
+    printf("Usage: \n"
+      "(on single core) singletopAnalysis [LIST_FILE_OF_FILES] [MC or RD] [idx of the first root file] [(idx+1) of the last root file]\n"
+      "(for grid job (condor; in KISTI) python makejobs.py nanoAOD j`python batch_nanoAOD.py n [# OF FILES PER JOB]`\n");
+    
+    return 1;
+  }
   
   if ( argc >= 4 ) nIdxStart = atoi(argv[ 3 ]);
   if ( argc >= 5 ) nIdxEnd = atoi(argv[ 4 ]);
