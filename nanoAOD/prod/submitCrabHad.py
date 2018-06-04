@@ -60,7 +60,7 @@ from findParents import findParent
 datasets = json.load(open("%s/src/nano/nanoAOD/data/dataset/dataset.json"%os.environ['CMSSW_BASE']))
 for d in datasets:
 
-    if d['name'] != "WZ": continue
+    if d['name'] != "TT_powheg": continue
 
     dataset = d['DataSetName']
     if len( dataset ) == 0: continue

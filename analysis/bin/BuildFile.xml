@@ -6,6 +6,7 @@
   <lib name="EG"/>
   <use name="nano/analysis"/>
 </bin>
+
 <bin name="massAnalysis" file="massAnalysis.cc">
   <use name="root"/>
   <use name="rootxml"/>
@@ -14,10 +15,20 @@
   <use name="nano/analysis"/>
   <flags CXXFLAGS="-lTMVA"/>
 </bin>
+
 <bin name="vtsAnalysis" file="vtsAnalysis.cc">
   <use name="root"/>
   <use name="rootxml"/>
   <lib name="Eve"/>
   <lib name="EG"/>
   <use name="nano/analysis"/>
+</bin>
+
+<bin name="slCalibAnalysis" file="slCalibAnalysis.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+  <flags CXXFLAGS="-g" />
 </bin>

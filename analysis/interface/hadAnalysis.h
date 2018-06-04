@@ -1,9 +1,9 @@
 #ifndef hadAnalysis_H
 #define hadAnalysis_H
 
-#include "topAnalysis.h"
+#include "dilepTopAnalysis.h"
 
-class hadAnalysis : public topAnalysis 
+class hadAnalysis : public dilepTopAnalysis 
 {
 protected:
   //Vriable
