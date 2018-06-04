@@ -65,8 +65,7 @@ void vtsAnalysis::Loop() {
   }
 }
 
-void vtsAnalysis::setOutput(std::string outFileName)
-{
+void vtsAnalysis::setOutput(std::string outFileName) {
   m_output = TFile::Open(outFileName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
 
@@ -78,8 +77,7 @@ void vtsAnalysis::setOutput(std::string outFileName)
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
 }
 
-void vtsAnalysis::MakeBranch(TTree* t)
-{
+void vtsAnalysis::MakeBranch(TTree* t) {
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("met", &b_met, "met/F");
