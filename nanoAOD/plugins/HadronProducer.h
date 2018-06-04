@@ -96,6 +96,8 @@ public:
   explicit HadronProducer(const edm::ParameterSet & iConfig);
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+
+  static const int W_pdgId_ = 24, S_pdgId_ = 3, B_pdgId_ = 5, C_pdgId_ = 4;
   
   static const int pion_pdgId_ = 211, kaon_pdgId_ = 321, proton_pdgId_ = 2212;
   static constexpr float pion_m_ = 0.1396, kaon_m_ = 0.4937, proton_m_ = 0.938272;
