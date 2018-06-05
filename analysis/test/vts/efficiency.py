@@ -1,44 +1,60 @@
-import ROOT, os
+import ROOT, os, copy, array
 
-filedir = "./"
-#filedir = "/cms/ldap_home/tt8888tt/CMSSW_10_0_0_pre2/src/nano/nanoAOD/prod/"
+filedir = "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/hep-tools/hadAOD/"
 
-f = ROOT.TFile(filedir+"nanoAOD.root")
-tree = f.Get("Events")
+#plotvar = "eta"; binning = "12,-2.4,2.4"
+plotvar = "pt"; binning = [40,0,40]
+binning = [0,1,2,3,4,5,6,8,10,15,20,30,50]
 
-cgen = 0; creco = 0;
-for iev, t in enumerate(tree):
-    tree.GetEntry(iev)
-    for j in range(t.ngenHadron):
-        if abs(t.genHadron_pdgId[j]) != 3122: continue
-        #if not t.genHadron_isGenHadFromTop[j]: continue
-        if abs(t.genHadron_isGenHadFromTsb[j]) != 3: continue
-        #if abs(t.genHadron_isGenHadFromTsb[j]) != 3 and abs(t.genHadron_isGenHadFromTsb[j]) != 5: continue
-        cgen += 1
+extracut ="&&genHadron_dau1_pt>0.95&&genHadron_dau2_pt>0.95"
+#extracut = ""
 
-    for i in range(t.nhad):
-        if abs(t.had_pdgId[i]) != 3122: continue
-        if t.hadTruth_nMatched[i] != 2: continue
-        if abs(t.hadTruth_isHadFromTsb[i]) != 3: continue
-        #if not t.hadTruth_isHadFromTop[i]: continue
-        creco+=1
-    #print cgen, creco
+def getHist(filedir, plotvar, binning, cut):
+    f = ROOT.TFile(filedir)
+    if len(binning) == 3:
+        h_tmp = ROOT.TH1D("tmp","tmp",binning[0],binning[1],binning[2])
+    else:
+        h_tmp = ROOT.TH1D("tmp","tmp",len(binning)-1, array.array('f',binning)) 
+    f.Events.Project("tmp", "genHadron_%s"%plotvar, cut)
+    return copy.deepcopy(h_tmp)
 
-print float(creco)/cgen*100
+jetId = 3
+cut = "abs(genHadron_pdgId)==310&&genHadron_isGenHadFromTop&&abs(genHadron_isGenHadFromTsb)==%d"%jetId
 
+h_tot = getHist(filedir+"nanoAOD_0.root", plotvar, binning, cut)
+h_tru = getHist(filedir+"nanoAOD_0.root", plotvar, binning, "genHadron_isMatched&&"+cut+extracut)
+for i in range(1, 200):
+    h_tot.Add(getHist(filedir+"nanoAOD_%d.root"%i, plotvar, binning, cut))
+    h_tru.Add(getHist(filedir+"nanoAOD_%d.root"%i, plotvar, binning, "genHadron_isMatched&&"+cut+extracut))
+teff_s = ROOT.TEfficiency(h_tru,h_tot)
 
-cks = 0; cs = 0;
-for i, t in enumerate(f.Events):
-  t.GetEntry(i)
-  for j in range(t.ngenHadron):
-    if t.genHadron_pdgId[j]!=310: continue
-    if t.genHadron_isGenHadFromTsb[j]==5: cks+=1; break;
-  for j in range(t.ngenHadron):
-    if t.genHadron_pdgId[j]!=310: continue
-    if t.genHadron_isGenHadFromTsb[j]==-5: cks+=1; break;
-  for g in range(t.nGenPart):
-    if t.GenPart_status[g] != 23: continue
-    if abs(t.GenPart_pdgId[g]) != 5: continue
-    cs +=1
-  if i == 100000: break
-print cks, cs, cks/float(cs)
+jetId = 5
+cut = "abs(genHadron_pdgId)==310&&genHadron_isGenHadFromTop&&abs(genHadron_isGenHadFromTsb)==%d"%jetId
+
+h_tot = getHist(filedir+"nanoAOD_0.root", plotvar, binning, cut)
+h_tru = getHist(filedir+"nanoAOD_0.root", plotvar, binning, "genHadron_isMatched&&"+cut+extracut)
+for i in range(1, 200):
+    h_tot.Add(getHist(filedir+"nanoAOD_%d.root"%i, plotvar, binning, cut))
+    h_tru.Add(getHist(filedir+"nanoAOD_%d.root"%i, plotvar, binning, "genHadron_isMatched&&"+cut+extracut))
+teff_b = ROOT.TEfficiency(h_tru,h_tot)
+
+if len(binning) == 3:
+    h_tmp = ROOT.TH1D("tmp","tmp",binning[0],binning[1],binning[2])
+else:
+    h_tmp = ROOT.TH1D("tmp","tmp",len(binning)-1, array.array('f',binning)) 
+
+c = ROOT.TCanvas()
+#c.SetGrid()
+teff_s.SetLineColor(2)
+teff_b.SetLineColor(4)
+h_tmp.SetStats(0)
+h_tmp.SetTitle("efficiency")
+h_tmp.SetMinimum(0)
+h_tmp.SetMaximum(0.22)
+h_tmp.GetYaxis().SetTitle("Efficiency")
+h_tmp.GetXaxis().SetTitle("genHadron %s"%plotvar)
+h_tmp.Draw()
+teff_s.Draw("e1same")
+teff_b.Draw("e1same")
+c.SaveAs("eff_%s.png"%plotvar)
+

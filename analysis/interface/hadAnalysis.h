@@ -40,6 +40,7 @@ public:
     int idx = -1;
     float dr = -1;
     int matchedQuark = -99;
+    JetStat(int idx, float dr, int matchedQuark): idx(idx), dr(dr), matchedQuark(matchedQuark) {}
   };
   //Function
   Double_t GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz);
