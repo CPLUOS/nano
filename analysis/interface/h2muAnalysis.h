@@ -22,6 +22,12 @@ private:
   
   std::vector<Float_t> b_CSVv2;
   std::vector<Float_t> b_csvweights;
+  std::vector<Float_t> b_Jet_pT;
+  std::vector<Float_t> b_Jet_Eta;
+  std::vector<Float_t> b_Jet_Phi;
+  std::vector<Float_t> b_nonbJet_pT;
+  std::vector<Float_t> b_nonbJet_Eta;
+  std::vector<Float_t> b_nonbJet_Phi;
   
   Float_t b_genweight, b_weight;
   Float_t b_puweight, b_puweight_up, b_puweight_dn; 
@@ -29,23 +35,24 @@ private:
   Float_t b_btagweight, b_btagweight_up, b_btagweight_dn;
 
   Int_t b_Event_No, b_Event_Total;
-
+  Float_t b_test_njet, b_test_nmuon;
+  Int_t b_block;
   // BDT Variables
   Float_t b_Central_Jets, b_Forward_Jets; 
   // all
-  Float_t b_Met_phi;
   Float_t b_Met;
   Float_t b_npvs;
-  Float_t b_all_muEtaDiff, b_all_muPtDiff, b_all_muPhiDiff, b_all_muDR;
+  Float_t b_Met_phi;
   Float_t b_all_Dilep_Pt, b_all_Dilep_Eta ,b_all_Dilep_Phi;
+  Float_t b_all_muEtaDiff, b_all_muPtDiff, b_all_muPhiDiff, b_all_muDR;
   Float_t b_DijetM1, b_DijetM2, b_DijetEta1, b_DijetEta2, DijetM_hold, DijetEta_hold;
 
   Float_t b_DiJetM12, b_DiJetM13, b_DiJetM14 ,b_DiJetM23 , b_DiJetM24, b_DiJetM34;
-  Float_t b_minDR1, b_minDR2, b_minDR, b_XlepPt, b_mT2, b_mT;
-  Float_t b_etaJ1, b_etaJ2;
   Float_t b_MVA_BDTXL, b_MVA_BDTFH, b_MVA_BDTnoB, b_MVA_BDTOut;
-  Float_t b_CSV;
+  Float_t b_minDR1, b_minDR2, b_minDR, b_XlepPt, b_mT2, b_mT;
   Float_t DR_Hold, DR_Hold2, MuPT_Hold ,ElPT_Hold, mT_Hold;
+  Float_t b_etaJ1, b_etaJ2;
+  Float_t b_CSV;
   //Step and Cutflow
   TH1D* h_cutFlow;
   Int_t b_Step;
