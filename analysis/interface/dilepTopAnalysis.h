@@ -50,7 +50,8 @@ public:
 
   virtual int EventSelection();
 
-  dilepTopAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  dilepTopAnalysis(TTree *tree = 0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  dilepTopAnalysis(TTree *nano = 0, Bool_t isMC = false, TTree *had = 0, TTree *hadTruth = 0, Bool_t dl = true, Bool_t sle = false, Bool_t slm = false);
   ~dilepTopAnalysis();  
   virtual void Loop() = 0;
 

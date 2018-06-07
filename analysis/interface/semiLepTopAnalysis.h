@@ -46,7 +46,9 @@ public:
 
   void Reset();
 
-  semiLepTopAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false);
+  semiLepTopAnalysis(TTree *tree = 0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false);
+  semiLepTopAnalysis(TTree *nano = 0, Bool_t isMC = false, TTree *had = 0, TTree *hadTruth = 0, Bool_t isDilep = true, Bool_t isSemiLep = false);
+
   ~semiLepTopAnalysis();  
   virtual void Loop() = 0;
 };

@@ -37,7 +37,7 @@ public :
   void setOutput(std::string outputName);
   void collectTMVAvalues();
   void cmesonSelection();
-  massAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  massAnalysis(TTree *tree = 0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~massAnalysis();
   virtual void     Loop();
 
