@@ -572,21 +572,15 @@ void h2muAnalysis::Loop()
   if (fChain == 0) return;
 
   Long64_t nentries = fChain->GetEntries();
-  Long64_t nbytes = 0, nb = 0;
   
-  for (Long64_t jentry=0; jentry<nentries;jentry++) {
-    //Prepare for new loop
+  // Events loop
+  for (Long64_t iev=0; iev<nentries; iev++) {
     ResetBranch();
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry);   nbytes += nb;
-
+    fChain->GetEntry(iev);
     bool keep = Analysis();
-    if (keep) {
-      m_tree->Fill();
-    }
+    if (keep) { m_tree->Fill(); }
   }
-  
+
 }
 
 int main(Int_t argc, Char_t** argv)

@@ -18,17 +18,13 @@ void massAnalysis::Loop() {
   if (fChain == 0) return;
 
   Long64_t nentries = fChain->GetEntries();
-  Long64_t nbytes = 0, nb = 0;
   
-  for (Long64_t jentry = 0; jentry < nentries; jentry++) {
-    //Prepare for new loop
+  // Events loop
+  for (Long64_t iev=0; iev<nentries; iev++) {
     Reset();
     resetBranch();
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry);
-    nbytes += nb;
-    int keep = EventSelection(); 
+    fChain->GetEntry(iev);
+    int keep = EventSelection();
     cmesonSelection();
     if (keep != 0) {
       collectTMVAvalues();
