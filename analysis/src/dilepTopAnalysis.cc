@@ -7,6 +7,11 @@ dilepTopAnalysis::dilepTopAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t s
   m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm) {
 }
 
+dilepTopAnalysis::dilepTopAnalysis(TTree *nano, Bool_t isMC, TTree *had, TTree *hadTruth, Bool_t dl, Bool_t sle, Bool_t slm) :
+  topAnalysis(nano, isMC, had, hadTruth, true, false),
+  m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm) {
+}
+
 dilepTopAnalysis::~dilepTopAnalysis() {
 }
 

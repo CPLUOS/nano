@@ -8,6 +8,14 @@ topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t _isDilep, Bool_t _isSe
   isSemiLep(_isSemiLep)
 {}
 
+topAnalysis::topAnalysis(TTree *nano, Bool_t isMC, TTree *had, TTree *hadTruth, Bool_t _isDilep, Bool_t _isSemiLep) :
+  nanoAnalysis(nano, isMC),
+  HadEvents(had),
+  HadTruthEvents(hadTruth),
+  isDilep(_isDilep),
+  isSemiLep(_isSemiLep)
+{}
+
 vector<TParticle> topAnalysis::elecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
@@ -112,6 +120,7 @@ vector<TParticle> topAnalysis::jetSelection() {
     if (hasOverLap) continue;
     auto jet = TParticle();
     jet.SetMomentum(mom);
+    jet.SetFirstMother(i);
     jets.push_back(jet);
     for (UInt_t iu = 0; iu < 19; iu++) {
      // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);

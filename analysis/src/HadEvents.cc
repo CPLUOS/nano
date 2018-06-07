@@ -1,11 +1,11 @@
-#define HadTruthEvents_cxx
-#include "nano/analysis/interface/HadTruthEvents.h"
+#define HadEvents_cxx
+#include "nano/analysis/interface/HadEvents.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 
-//void HadTruthEvents::Loop()
-//{
+//void HadTruthEvents::Loop() {}
+/*{
 //   In a ROOT session, you can do:
 //      root> .L HadTruthEvents.C
 //      root> HadTruthEvents t
@@ -29,17 +29,16 @@
 // METHOD2: replace line
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
-/*
-   if (fChain == 0) return;
+   if (ht_fChain == 0) return;
 
-   Long64_t nentries = fChain->GetEntriesFast();
+   Long64_t nentries = ht_fChain->GetEntriesFast();
 
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
-      nb = fChain->GetEntry(jentry);   nbytes += nb;
+      nb = ht_fChain->GetEntry(jentry);   nbytes += nb;
       // if (Cut(ientry) < 0) continue;
    }
+}
 */
-//}

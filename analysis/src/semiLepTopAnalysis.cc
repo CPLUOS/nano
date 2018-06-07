@@ -8,6 +8,12 @@ semiLepTopAnalysis::semiLepTopAnalysis(TTree *tree, Bool_t isMC, Bool_t sle, Boo
   m_isSL_m(slm) {
 }
 
+semiLepTopAnalysis::semiLepTopAnalysis(TTree *nano, Bool_t isMC, TTree *had, TTree *hadTruth, Bool_t sle, Bool_t slm) :
+  topAnalysis(nano, isMC, had, hadTruth, false, true),
+  m_isSL_e(sle),
+  m_isSL_m(slm) {
+}
+
 semiLepTopAnalysis::~semiLepTopAnalysis() {
 }
 

@@ -16,11 +16,40 @@ int main(Int_t argc, Char_t** argv) {
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    vtsAnalysis ana(inTree,true,false,false,false);
+    vtsAnalysis ana(inTree,true,0, 0, false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
-  }
-  else{
+  } else if ( (argc - 4) <= 1) {
+    for (auto i = 0;  i < argc; ++i)       cout << "[ " << i << " ] : " << argv[i] << endl;
+
+    auto inFileName = argv[1]; // NANOAOD
+    TFile *inFile = TFile::Open(inFileName, "READ");
+    TTree *inTree = (TTree*) inFile->Get("Events");
+    auto hadFileName = argv[3]; // HADAOD
+    TFile *hadFile = TFile::Open(hadFileName, "READ");
+    TTree *hadTree = (TTree*) hadFile->Get("Events");
+    TFile *hadTruthFile;
+    TTree *hadTruthTree;
+    if (argc == 5) {
+      auto hadTruthFileName = argv[4]; // HADTURTHAOD
+      hadTruthFile = TFile::Open(hadTruthFileName, "READ");
+      hadTruthTree = (TTree*) hadFile->Get("Events");
+    } else {
+      delete hadTruthFile;
+      hadTruthTree = 0;
+    }
+
+    Bool_t isMC = false;
+    auto temp = string(inFileName);
+    auto found = temp.find("run");
+    auto found2 = temp.find("NANOAOD");
+    if (found == std::string::npos || found2 == std::string::npos) isMC = true;
+
+    vtsAnalysis ana(inTree,isMC,hadTree,hadTruthTree,false,false,false);
+    auto outName = argv[2];
+    ana.setOutput(outName);
+    ana.Loop();
+  } else{
     string jobName    = string(argv[1]);
     string sampleName = string(argv[2]);
 
@@ -31,11 +60,12 @@ int main(Int_t argc, Char_t** argv) {
     if (found == std::string::npos) isMC = true;
 
     string outFileDir = hostDir+getenv("USER")+"/"+jobName+"/"+sampleName;
+    for (Int_t i =0; i < argc; ++i) cout << "[ " << i << " ] : " << argv[i] << " argc : " << argc << endl; 
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      vtsAnalysis ana(inTree,isMC,false,false,false);
+      vtsAnalysis ana(inTree,isMC,0,0,false,false,false);
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
       ana.Loop();
@@ -46,18 +76,42 @@ int main(Int_t argc, Char_t** argv) {
 void vtsAnalysis::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
-
   // Events loop
   for (Long64_t iev=0; iev<nentries; iev++) {
     fChain->GetEntry(iev);
+    if(h_fChain != NULL) h_fChain->GetEntry(iev);
+    if(ht_fChain != NULL) ht_fChain->GetEntry(iev);
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
+
+    if (h_fChain != NULL) {
+      if (h_event != event || h_run != run || h_luminosityBlock != luminosityBlock) {
+        std::cout << "Bad sync between NANO and HAD ! " 
+                  << " event : " << event << ", " << h_event 
+                  << " run : " << run << ", " << h_run
+                  << " luminosityBlock : " << luminosityBlock << ", " << h_luminosityBlock
+                  << std::endl;
+        exit(1);
+      }
+    }
+    if (ht_fChain != NULL) {
+      if (ht_event != event || ht_run != run || ht_luminosityBlock != luminosityBlock) {
+        std::cout << "Bad sync between NANO and HADTRUTH ! " 
+                  << " event : " << event << ", " << ht_event 
+                  << " run : " << run << ", " << ht_run
+                  << " luminosityBlock : " << luminosityBlock << ", " << ht_luminosityBlock
+                  << std::endl;
+        exit(1);
+      }
+    }
+
     ResetBranch();
     int PassedStep = EventSelection();
     if (PassedStep >= 0) {
       MatchingForMC();
       HadronAnalysis();
+      m_tree->Fill();
     }
-    m_tree->Fill();
+//    m_tree->Fill();
   }
 }
 
@@ -144,7 +198,9 @@ void vtsAnalysis::MatchingForMC() {
   //Find s quark from Gen Info.  
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_status[i] - 25) >= 5 ) continue;
-    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5) qMC_.push_back(i);
+    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5) {
+      if (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && GenPart_status[GenPart_genPartIdxMother[i]] == 62 ) qMC_.push_back(i);
+    }
   }
 
   if (qMC_.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
@@ -157,12 +213,15 @@ void vtsAnalysis::MatchingForMC() {
   q2_tlv.SetPtEtaPhiM(GenPart_pt[q2], GenPart_eta[q2], GenPart_phi[q2], GenPart_mass[q2]);
 
   //Gen Particle & Reco Jet matching
-  for (unsigned int j=0; j<nJet;++j) {
+//  for (unsigned int j=0; j<nJet;++j) {
+  auto selectedJet = jetSelection();
+  for (unsigned int j=0; j<selectedJet.size();++j) {
+    j = selectedJet[j].GetFirstMother();
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
     auto qIdx = q1;
-    auto dr = q1_tlv.DeltaR(jet_tlv); 
-    auto dr_ = q2_tlv.DeltaR(jet_tlv); 
+    auto dr = q1_tlv.DeltaR(jet_tlv);
+    auto dr_ = q2_tlv.DeltaR(jet_tlv);
     if ( dr_ < dr) {
       dr = dr_;
       qIdx = q2;
@@ -198,7 +257,10 @@ void vtsAnalysis::HadronAnalysis() {
   struct HadStat Stat;
 
   //Reco Jet & Reco KS matching 
-  for (unsigned int j=0; j<nJet; ++j){
+//  for (unsigned int j=0; j<nJet; ++j){
+  auto selectedJet = jetSelection();
+  for (unsigned int j=0; j<selectedJet.size();++j) {
+    j = selectedJet[j].GetFirstMother();
     Had.clear();
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]); 
@@ -278,5 +340,9 @@ void vtsAnalysis::HadronAnalysis() {
     b_nElectrons_Jet = Jet_nElectrons[jidx];
     b_nMuons_Jet = Jet_nMuons[jidx];
   }
+}
+
+void vtsAnalysis::hadronAnalysisWithHadTruth() {
+
 }
 

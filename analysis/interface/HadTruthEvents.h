@@ -15,16 +15,27 @@
 // Header file for the classes stored in the TTree if any.
 
 class HadTruthEvents {
+private :
+   virtual Int_t    Cut(Long64_t entry);
+   virtual Int_t    GetEntry(Long64_t entry);
+
+   virtual Long64_t ht_LoadTree(Long64_t entry);
+//   virtual void     Init(TTree *tree);
+
+   virtual Bool_t   Notify();
+   virtual void     Show(Long64_t entry = -1);
+
 public :
-   TTree          *fChain;   //!pointer to the analyzed TTree or TChain
+   TTree          *ht_fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
-   UInt_t          run;
-   UInt_t          luminosityBlock;
-   ULong64_t       event;
+   UInt_t          ht_run;
+   UInt_t          ht_luminosityBlock;
+   ULong64_t       ht_event;
+/*
    UInt_t          nGenPart;
    Float_t         GenPart_eta[5000];   //[nGenPart]
    Float_t         GenPart_mass[5000];   //[nGenPart]
@@ -89,6 +100,7 @@ public :
    UChar_t         genHadron_inVol[50];   //[ngenHadron]
    UChar_t         genHadron_isMatching[50];   //[ngenHadron]
    UChar_t         genHadron_isMatched[50];   //[ngenHadron]
+*/
    UInt_t          nhadTruth;
    Int_t           hadTruth_nMatched[250];   //[nhadTruth]
    Int_t           hadTruth_nTrueDau[250];   //[nhadTruth]
@@ -98,6 +110,7 @@ public :
    UChar_t         hadTruth_isHadFromS[250];   //[nhadTruth]
    UChar_t         hadTruth_isHadFromC[250];   //[nhadTruth]
    UChar_t         hadTruth_isHadFromB[250];   //[nhadTruth]
+/*
    UInt_t          nOtherPV;
    Float_t         OtherPV_z[5];   //[nOtherPV]
    Float_t         PV_ndof;
@@ -760,11 +773,13 @@ public :
    Bool_t          Flag_trkPOG_toomanystripclus53X;
    Bool_t          Flag_trkPOG_logErrorTooManyClusters;
    Bool_t          Flag_METFilters;
+*/
 
    // List of branches
-   TBranch        *b_run;   //!
-   TBranch        *b_luminosityBlock;   //!
-   TBranch        *b_event;   //!
+   TBranch        *b_ht_run;   //!
+   TBranch        *b_ht_luminosityBlock;   //!
+   TBranch        *b_ht_event;   //!
+/*
    TBranch        *b_nGenPart;   //!
    TBranch        *b_GenPart_eta;   //!
    TBranch        *b_GenPart_mass;   //!
@@ -829,6 +844,7 @@ public :
    TBranch        *b_genHadron_inVol;   //!
    TBranch        *b_genHadron_isMatching;   //!
    TBranch        *b_genHadron_isMatched;   //!
+*/
    TBranch        *b_nhadTruth;   //!
    TBranch        *b_hadTruth_nMatched;   //!
    TBranch        *b_hadTruth_nTrueDau;   //!
@@ -838,6 +854,7 @@ public :
    TBranch        *b_hadTruth_isHadFromS;   //!
    TBranch        *b_hadTruth_isHadFromC;   //!
    TBranch        *b_hadTruth_isHadFromB;   //!
+/*
    TBranch        *b_nOtherPV;   //!
    TBranch        *b_OtherPV_z;   //!
    TBranch        *b_PV_ndof;   //!
@@ -1500,22 +1517,22 @@ public :
    TBranch        *b_Flag_trkPOG_toomanystripclus53X;   //!
    TBranch        *b_Flag_trkPOG_logErrorTooManyClusters;   //!
    TBranch        *b_Flag_METFilters;   //!
-
+*/
    HadTruthEvents(TTree *tree=0);
    virtual ~HadTruthEvents();
-   virtual Int_t    Cut(Long64_t entry);
-   virtual Int_t    GetEntry(Long64_t entry);
-   virtual Long64_t LoadTree(Long64_t entry);
+//   virtual Int_t    Cut(Long64_t entry);
+//   virtual Int_t    GetEntry(Long64_t entry);
+//   virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
-   virtual void     Loop();
-   virtual Bool_t   Notify();
-   virtual void     Show(Long64_t entry = -1);
+//   virtual void     Loop();
+//   virtual Bool_t   Notify();
+//   virtual void     Show(Long64_t entry = -1);
 };
 
 #endif
 
 #ifdef HadTruthEvents_cxx
-HadTruthEvents::HadTruthEvents(TTree *tree) : fChain(0) 
+HadTruthEvents::HadTruthEvents(TTree *tree) : ht_fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -1532,24 +1549,24 @@ HadTruthEvents::HadTruthEvents(TTree *tree) : fChain(0)
 
 HadTruthEvents::~HadTruthEvents()
 {
-   if (!fChain) return;
-   delete fChain->GetCurrentFile();
+   if (!ht_fChain) return;
+   delete ht_fChain->GetCurrentFile();
 }
 
 Int_t HadTruthEvents::GetEntry(Long64_t entry)
 {
 // Read contents of entry.
-   if (!fChain) return 0;
-   return fChain->GetEntry(entry);
+   if (!ht_fChain) return 0;
+   return ht_fChain->GetEntry(entry);
 }
-Long64_t HadTruthEvents::LoadTree(Long64_t entry)
+Long64_t HadTruthEvents::ht_LoadTree(Long64_t entry)
 {
 // Set the environment to read one entry
-   if (!fChain) return -5;
-   Long64_t centry = fChain->LoadTree(entry);
+   if (!ht_fChain) return -5;
+   Long64_t centry = ht_fChain->LoadTree(entry);
    if (centry < 0) return centry;
-   if (fChain->GetTreeNumber() != fCurrent) {
-      fCurrent = fChain->GetTreeNumber();
+   if (ht_fChain->GetTreeNumber() != fCurrent) {
+      fCurrent = ht_fChain->GetTreeNumber();
       Notify();
    }
    return centry;
@@ -1567,119 +1584,123 @@ void HadTruthEvents::Init(TTree *tree)
 
    // Set branch addresses and branch pointers
    if (!tree) return;
-   fChain = tree;
+   ht_fChain = tree;
    fCurrent = -1;
-   fChain->SetMakeClass(1);
+   ht_fChain->SetMakeClass(1);
 
-   fChain->SetBranchAddress("run", &run, &b_run);
-   fChain->SetBranchAddress("luminosityBlock", &luminosityBlock, &b_luminosityBlock);
-   fChain->SetBranchAddress("event", &event, &b_event);
-   fChain->SetBranchAddress("nGenPart", &nGenPart, &b_nGenPart);
-   fChain->SetBranchAddress("GenPart_eta", GenPart_eta, &b_GenPart_eta);
-   fChain->SetBranchAddress("GenPart_mass", GenPart_mass, &b_GenPart_mass);
-   fChain->SetBranchAddress("GenPart_phi", GenPart_phi, &b_GenPart_phi);
-   fChain->SetBranchAddress("GenPart_pt", GenPart_pt, &b_GenPart_pt);
-   fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
-   fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
-   fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
-   fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
-   fChain->SetBranchAddress("nhad_jet", &nhad_jet, &b_nhad_jet);
-   fChain->SetBranchAddress("had_jet_btagCMVA", had_jet_btagCMVA, &b_had_jet_btagCMVA);
-   fChain->SetBranchAddress("had_jet_btagCSVV2", had_jet_btagCSVV2, &b_had_jet_btagCSVV2);
-   fChain->SetBranchAddress("had_jet_btagDeepB", had_jet_btagDeepB, &b_had_jet_btagDeepB);
-   fChain->SetBranchAddress("had_jet_btagDeepC", had_jet_btagDeepC, &b_had_jet_btagDeepC);
-   fChain->SetBranchAddress("had_jet_eta", had_jet_eta, &b_had_jet_eta);
-   fChain->SetBranchAddress("had_jet_mass", had_jet_mass, &b_had_jet_mass);
-   fChain->SetBranchAddress("had_jet_phi", had_jet_phi, &b_had_jet_phi);
-   fChain->SetBranchAddress("had_jet_pt", had_jet_pt, &b_had_jet_pt);
-   fChain->SetBranchAddress("nhad", &nhad, &b_nhad);
-   fChain->SetBranchAddress("had_jetDR", had_jetDR, &b_had_jetDR);
-   fChain->SetBranchAddress("had_legDR", had_legDR, &b_had_legDR);
-   fChain->SetBranchAddress("had_diffMass", had_diffMass, &b_had_diffMass);
-   fChain->SetBranchAddress("had_lxy", had_lxy, &b_had_lxy);
-   fChain->SetBranchAddress("had_lxyErr", had_lxyErr, &b_had_lxyErr);
-   fChain->SetBranchAddress("had_l3D", had_l3D, &b_had_l3D);
-   fChain->SetBranchAddress("had_l3DErr", had_l3DErr, &b_had_l3DErr);
-   fChain->SetBranchAddress("had_dca", had_dca, &b_had_dca);
-   fChain->SetBranchAddress("had_angleXY", had_angleXY, &b_had_angleXY);
-   fChain->SetBranchAddress("had_angleXYZ", had_angleXYZ, &b_had_angleXYZ);
-   fChain->SetBranchAddress("had_dau1_chi2", had_dau1_chi2, &b_had_dau1_chi2);
-   fChain->SetBranchAddress("had_dau1_nHits", had_dau1_nHits, &b_had_dau1_nHits);
-   fChain->SetBranchAddress("had_dau1_pt", had_dau1_pt, &b_had_dau1_pt);
-   fChain->SetBranchAddress("had_dau1_ipsigXY", had_dau1_ipsigXY, &b_had_dau1_ipsigXY);
-   fChain->SetBranchAddress("had_dau1_ipsigZ", had_dau1_ipsigZ, &b_had_dau1_ipsigZ);
-   fChain->SetBranchAddress("had_dau2_chi2", had_dau2_chi2, &b_had_dau2_chi2);
-   fChain->SetBranchAddress("had_dau2_nHits", had_dau2_nHits, &b_had_dau2_nHits);
-   fChain->SetBranchAddress("had_dau2_pt", had_dau2_pt, &b_had_dau2_pt);
-   fChain->SetBranchAddress("had_dau2_ipsigXY", had_dau2_ipsigXY, &b_had_dau2_ipsigXY);
-   fChain->SetBranchAddress("had_dau2_ipsigZ", had_dau2_ipsigZ, &b_had_dau2_ipsigZ);
-   fChain->SetBranchAddress("had_nJet", had_nJet, &b_had_nJet);
-   fChain->SetBranchAddress("had_nDau", had_nDau, &b_had_nDau);
-   fChain->SetBranchAddress("had_dau1_charge", had_dau1_charge, &b_had_dau1_charge);
-   fChain->SetBranchAddress("had_dau2_charge", had_dau2_charge, &b_had_dau2_charge);
-   fChain->SetBranchAddress("had_idx", had_idx, &b_had_idx);
-   fChain->SetBranchAddress("had_dau1_idx", had_dau1_idx, &b_had_dau1_idx);
-   fChain->SetBranchAddress("had_dau2_idx", had_dau2_idx, &b_had_dau2_idx);
-   fChain->SetBranchAddress("ngenHadron", &ngenHadron, &b_ngenHadron);
-   fChain->SetBranchAddress("genHadron_dau1_pt", genHadron_dau1_pt, &b_genHadron_dau1_pt);
-   fChain->SetBranchAddress("genHadron_dau2_pt", genHadron_dau2_pt, &b_genHadron_dau2_pt);
-   fChain->SetBranchAddress("genHadron_dau1_eta", genHadron_dau1_eta, &b_genHadron_dau1_eta);
-   fChain->SetBranchAddress("genHadron_dau2_eta", genHadron_dau2_eta, &b_genHadron_dau2_eta);
-   fChain->SetBranchAddress("genHadron_dau1_phi", genHadron_dau1_phi, &b_genHadron_dau1_phi);
-   fChain->SetBranchAddress("genHadron_dau2_phi", genHadron_dau2_phi, &b_genHadron_dau2_phi);
-   fChain->SetBranchAddress("genHadron_vx", genHadron_vx, &b_genHadron_vx);
-   fChain->SetBranchAddress("genHadron_vy", genHadron_vy, &b_genHadron_vy);
-   fChain->SetBranchAddress("genHadron_vz", genHadron_vz, &b_genHadron_vz);
-   fChain->SetBranchAddress("genHadron_isGenHadFromTsb", genHadron_isGenHadFromTsb, &b_genHadron_isGenHadFromTsb);
-   fChain->SetBranchAddress("genHadron_dau1_pdgId", genHadron_dau1_pdgId, &b_genHadron_dau1_pdgId);
-   fChain->SetBranchAddress("genHadron_dau2_pdgId", genHadron_dau2_pdgId, &b_genHadron_dau2_pdgId);
-   fChain->SetBranchAddress("genHadron_isGenParticle", genHadron_isGenParticle, &b_genHadron_isGenParticle);
-   fChain->SetBranchAddress("genHadron_isGenHadFromTop", genHadron_isGenHadFromTop, &b_genHadron_isGenHadFromTop);
-   fChain->SetBranchAddress("genHadron_inVol", genHadron_inVol, &b_genHadron_inVol);
-   fChain->SetBranchAddress("genHadron_isMatching", genHadron_isMatching, &b_genHadron_isMatching);
-   fChain->SetBranchAddress("genHadron_isMatched", genHadron_isMatched, &b_genHadron_isMatched);
-   fChain->SetBranchAddress("nhadTruth", &nhadTruth, &b_nhadTruth);
-   fChain->SetBranchAddress("hadTruth_nMatched", hadTruth_nMatched, &b_hadTruth_nMatched);
-   fChain->SetBranchAddress("hadTruth_nTrueDau", hadTruth_nTrueDau, &b_hadTruth_nTrueDau);
-   fChain->SetBranchAddress("hadTruth_isHadFromTsb", hadTruth_isHadFromTsb, &b_hadTruth_isHadFromTsb);
-   fChain->SetBranchAddress("hadTruth_isHadFromTop", hadTruth_isHadFromTop, &b_hadTruth_isHadFromTop);
-   fChain->SetBranchAddress("hadTruth_isHadFromW", hadTruth_isHadFromW, &b_hadTruth_isHadFromW);
-   fChain->SetBranchAddress("hadTruth_isHadFromS", hadTruth_isHadFromS, &b_hadTruth_isHadFromS);
-   fChain->SetBranchAddress("hadTruth_isHadFromC", hadTruth_isHadFromC, &b_hadTruth_isHadFromC);
-   fChain->SetBranchAddress("hadTruth_isHadFromB", hadTruth_isHadFromB, &b_hadTruth_isHadFromB);
-   fChain->SetBranchAddress("nOtherPV", &nOtherPV, &b_nOtherPV);
-   fChain->SetBranchAddress("OtherPV_z", OtherPV_z, &b_OtherPV_z);
-   fChain->SetBranchAddress("PV_ndof", &PV_ndof, &b_PV_ndof);
-   fChain->SetBranchAddress("PV_x", &PV_x, &b_PV_x);
-   fChain->SetBranchAddress("PV_y", &PV_y, &b_PV_y);
-   fChain->SetBranchAddress("PV_z", &PV_z, &b_PV_z);
-   fChain->SetBranchAddress("PV_chi2", &PV_chi2, &b_PV_chi2);
-   fChain->SetBranchAddress("PV_score", &PV_score, &b_PV_score);
-   fChain->SetBranchAddress("PV_npvs", &PV_npvs, &b_PV_npvs);
-   fChain->SetBranchAddress("PV_npvsGood", &PV_npvsGood, &b_PV_npvsGood);
-   fChain->SetBranchAddress("nSV", &nSV, &b_nSV);
-   fChain->SetBranchAddress("SV_dlen", SV_dlen, &b_SV_dlen);
-   fChain->SetBranchAddress("SV_dlenSig", SV_dlenSig, &b_SV_dlenSig);
-   fChain->SetBranchAddress("SV_pAngle", SV_pAngle, &b_SV_pAngle);
-   fChain->SetBranchAddress("had_chi2", had_chi2, &b_had_chi2);
-   fChain->SetBranchAddress("had_eta", had_eta, &b_had_eta);
-   fChain->SetBranchAddress("had_mass", had_mass, &b_had_mass);
-   fChain->SetBranchAddress("had_phi", had_phi, &b_had_phi);
-   fChain->SetBranchAddress("had_pt", had_pt, &b_had_pt);
-   fChain->SetBranchAddress("had_x", had_x, &b_had_x);
-   fChain->SetBranchAddress("had_y", had_y, &b_had_y);
-   fChain->SetBranchAddress("had_z", had_z, &b_had_z);
-   fChain->SetBranchAddress("had_ndof", had_ndof, &b_had_ndof);
-   fChain->SetBranchAddress("had_pdgId", had_pdgId, &b_had_pdgId);
-   fChain->SetBranchAddress("genHadron_eta", genHadron_eta, &b_genHadron_eta);
-   fChain->SetBranchAddress("genHadron_mass", genHadron_mass, &b_genHadron_mass);
-   fChain->SetBranchAddress("genHadron_phi", genHadron_phi, &b_genHadron_phi);
-   fChain->SetBranchAddress("genHadron_pt", genHadron_pt, &b_genHadron_pt);
-   fChain->SetBranchAddress("genHadron_x", genHadron_x, &b_genHadron_x);
-   fChain->SetBranchAddress("genHadron_y", genHadron_y, &b_genHadron_y);
-   fChain->SetBranchAddress("genHadron_z", genHadron_z, &b_genHadron_z);
-   fChain->SetBranchAddress("genHadron_pdgId", genHadron_pdgId, &b_genHadron_pdgId);
-   fChain->SetBranchAddress("L1simulation_step", &L1simulation_step, &b_L1simulation_step);
+   ht_fChain->SetBranchAddress("run", &ht_run, &b_ht_run);
+   ht_fChain->SetBranchAddress("luminosityBlock", &ht_luminosityBlock, &b_ht_luminosityBlock);
+   ht_fChain->SetBranchAddress("event", &ht_event, &b_ht_event);
+/*
+   ht_fChain->SetBranchAddress("nGenPart", &nGenPart, &b_nGenPart);
+   ht_fChain->SetBranchAddress("GenPart_eta", GenPart_eta, &b_GenPart_eta);
+   ht_fChain->SetBranchAddress("GenPart_mass", GenPart_mass, &b_GenPart_mass);
+   ht_fChain->SetBranchAddress("GenPart_phi", GenPart_phi, &b_GenPart_phi);
+   ht_fChain->SetBranchAddress("GenPart_pt", GenPart_pt, &b_GenPart_pt);
+   ht_fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
+   ht_fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
+   ht_fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
+   ht_fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
+   ht_fChain->SetBranchAddress("nhad_jet", &nhad_jet, &b_nhad_jet);
+   ht_fChain->SetBranchAddress("had_jet_btagCMVA", had_jet_btagCMVA, &b_had_jet_btagCMVA);
+   ht_fChain->SetBranchAddress("had_jet_btagCSVV2", had_jet_btagCSVV2, &b_had_jet_btagCSVV2);
+   ht_fChain->SetBranchAddress("had_jet_btagDeepB", had_jet_btagDeepB, &b_had_jet_btagDeepB);
+   ht_fChain->SetBranchAddress("had_jet_btagDeepC", had_jet_btagDeepC, &b_had_jet_btagDeepC);
+   ht_fChain->SetBranchAddress("had_jet_eta", had_jet_eta, &b_had_jet_eta);
+   ht_fChain->SetBranchAddress("had_jet_mass", had_jet_mass, &b_had_jet_mass);
+   ht_fChain->SetBranchAddress("had_jet_phi", had_jet_phi, &b_had_jet_phi);
+   ht_fChain->SetBranchAddress("had_jet_pt", had_jet_pt, &b_had_jet_pt);
+   ht_fChain->SetBranchAddress("nhad", &nhad, &b_nhad);
+   ht_fChain->SetBranchAddress("had_jetDR", had_jetDR, &b_had_jetDR);
+   ht_fChain->SetBranchAddress("had_legDR", had_legDR, &b_had_legDR);
+   ht_fChain->SetBranchAddress("had_diffMass", had_diffMass, &b_had_diffMass);
+   ht_fChain->SetBranchAddress("had_lxy", had_lxy, &b_had_lxy);
+   ht_fChain->SetBranchAddress("had_lxyErr", had_lxyErr, &b_had_lxyErr);
+   ht_fChain->SetBranchAddress("had_l3D", had_l3D, &b_had_l3D);
+   ht_fChain->SetBranchAddress("had_l3DErr", had_l3DErr, &b_had_l3DErr);
+   ht_fChain->SetBranchAddress("had_dca", had_dca, &b_had_dca);
+   ht_fChain->SetBranchAddress("had_angleXY", had_angleXY, &b_had_angleXY);
+   ht_fChain->SetBranchAddress("had_angleXYZ", had_angleXYZ, &b_had_angleXYZ);
+   ht_fChain->SetBranchAddress("had_dau1_chi2", had_dau1_chi2, &b_had_dau1_chi2);
+   ht_fChain->SetBranchAddress("had_dau1_nHits", had_dau1_nHits, &b_had_dau1_nHits);
+   ht_fChain->SetBranchAddress("had_dau1_pt", had_dau1_pt, &b_had_dau1_pt);
+   ht_fChain->SetBranchAddress("had_dau1_ipsigXY", had_dau1_ipsigXY, &b_had_dau1_ipsigXY);
+   ht_fChain->SetBranchAddress("had_dau1_ipsigZ", had_dau1_ipsigZ, &b_had_dau1_ipsigZ);
+   ht_fChain->SetBranchAddress("had_dau2_chi2", had_dau2_chi2, &b_had_dau2_chi2);
+   ht_fChain->SetBranchAddress("had_dau2_nHits", had_dau2_nHits, &b_had_dau2_nHits);
+   ht_fChain->SetBranchAddress("had_dau2_pt", had_dau2_pt, &b_had_dau2_pt);
+   ht_fChain->SetBranchAddress("had_dau2_ipsigXY", had_dau2_ipsigXY, &b_had_dau2_ipsigXY);
+   ht_fChain->SetBranchAddress("had_dau2_ipsigZ", had_dau2_ipsigZ, &b_had_dau2_ipsigZ);
+   ht_fChain->SetBranchAddress("had_nJet", had_nJet, &b_had_nJet);
+   ht_fChain->SetBranchAddress("had_nDau", had_nDau, &b_had_nDau);
+   ht_fChain->SetBranchAddress("had_dau1_charge", had_dau1_charge, &b_had_dau1_charge);
+   ht_fChain->SetBranchAddress("had_dau2_charge", had_dau2_charge, &b_had_dau2_charge);
+   ht_fChain->SetBranchAddress("had_idx", had_idx, &b_had_idx);
+   ht_fChain->SetBranchAddress("had_dau1_idx", had_dau1_idx, &b_had_dau1_idx);
+   ht_fChain->SetBranchAddress("had_dau2_idx", had_dau2_idx, &b_had_dau2_idx);
+   ht_fChain->SetBranchAddress("ngenHadron", &ngenHadron, &b_ngenHadron);
+   ht_fChain->SetBranchAddress("genHadron_dau1_pt", genHadron_dau1_pt, &b_genHadron_dau1_pt);
+   ht_fChain->SetBranchAddress("genHadron_dau2_pt", genHadron_dau2_pt, &b_genHadron_dau2_pt);
+   ht_fChain->SetBranchAddress("genHadron_dau1_eta", genHadron_dau1_eta, &b_genHadron_dau1_eta);
+   ht_fChain->SetBranchAddress("genHadron_dau2_eta", genHadron_dau2_eta, &b_genHadron_dau2_eta);
+   ht_fChain->SetBranchAddress("genHadron_dau1_phi", genHadron_dau1_phi, &b_genHadron_dau1_phi);
+   ht_fChain->SetBranchAddress("genHadron_dau2_phi", genHadron_dau2_phi, &b_genHadron_dau2_phi);
+   ht_fChain->SetBranchAddress("genHadron_vx", genHadron_vx, &b_genHadron_vx);
+   ht_fChain->SetBranchAddress("genHadron_vy", genHadron_vy, &b_genHadron_vy);
+   ht_fChain->SetBranchAddress("genHadron_vz", genHadron_vz, &b_genHadron_vz);
+   ht_fChain->SetBranchAddress("genHadron_isGenHadFromTsb", genHadron_isGenHadFromTsb, &b_genHadron_isGenHadFromTsb);
+   ht_fChain->SetBranchAddress("genHadron_dau1_pdgId", genHadron_dau1_pdgId, &b_genHadron_dau1_pdgId);
+   ht_fChain->SetBranchAddress("genHadron_dau2_pdgId", genHadron_dau2_pdgId, &b_genHadron_dau2_pdgId);
+   ht_fChain->SetBranchAddress("genHadron_isGenParticle", genHadron_isGenParticle, &b_genHadron_isGenParticle);
+   ht_fChain->SetBranchAddress("genHadron_isGenHadFromTop", genHadron_isGenHadFromTop, &b_genHadron_isGenHadFromTop);
+   ht_fChain->SetBranchAddress("genHadron_inVol", genHadron_inVol, &b_genHadron_inVol);
+   ht_fChain->SetBranchAddress("genHadron_isMatching", genHadron_isMatching, &b_genHadron_isMatching);
+   ht_fChain->SetBranchAddress("genHadron_isMatched", genHadron_isMatched, &b_genHadron_isMatched);
+*/
+   ht_fChain->SetBranchAddress("nhadTruth", &nhadTruth, &b_nhadTruth);
+   ht_fChain->SetBranchAddress("hadTruth_nMatched", hadTruth_nMatched, &b_hadTruth_nMatched);
+   ht_fChain->SetBranchAddress("hadTruth_nTrueDau", hadTruth_nTrueDau, &b_hadTruth_nTrueDau);
+   ht_fChain->SetBranchAddress("hadTruth_isHadFromTsb", hadTruth_isHadFromTsb, &b_hadTruth_isHadFromTsb);
+   ht_fChain->SetBranchAddress("hadTruth_isHadFromTop", hadTruth_isHadFromTop, &b_hadTruth_isHadFromTop);
+   ht_fChain->SetBranchAddress("hadTruth_isHadFromW", hadTruth_isHadFromW, &b_hadTruth_isHadFromW);
+   ht_fChain->SetBranchAddress("hadTruth_isHadFromS", hadTruth_isHadFromS, &b_hadTruth_isHadFromS);
+   ht_fChain->SetBranchAddress("hadTruth_isHadFromC", hadTruth_isHadFromC, &b_hadTruth_isHadFromC);
+   ht_fChain->SetBranchAddress("hadTruth_isHadFromB", hadTruth_isHadFromB, &b_hadTruth_isHadFromB);
+/*
+   ht_fChain->SetBranchAddress("nOtherPV", &nOtherPV, &b_nOtherPV);
+   ht_fChain->SetBranchAddress("OtherPV_z", OtherPV_z, &b_OtherPV_z);
+   ht_fChain->SetBranchAddress("PV_ndof", &PV_ndof, &b_PV_ndof);
+   ht_fChain->SetBranchAddress("PV_x", &PV_x, &b_PV_x);
+   ht_fChain->SetBranchAddress("PV_y", &PV_y, &b_PV_y);
+   ht_fChain->SetBranchAddress("PV_z", &PV_z, &b_PV_z);
+   ht_fChain->SetBranchAddress("PV_chi2", &PV_chi2, &b_PV_chi2);
+   ht_fChain->SetBranchAddress("PV_score", &PV_score, &b_PV_score);
+   ht_fChain->SetBranchAddress("PV_npvs", &PV_npvs, &b_PV_npvs);
+   ht_fChain->SetBranchAddress("PV_npvsGood", &PV_npvsGood, &b_PV_npvsGood);
+   ht_fChain->SetBranchAddress("nSV", &nSV, &b_nSV);
+   ht_fChain->SetBranchAddress("SV_dlen", SV_dlen, &b_SV_dlen);
+   ht_fChain->SetBranchAddress("SV_dlenSig", SV_dlenSig, &b_SV_dlenSig);
+   ht_fChain->SetBranchAddress("SV_pAngle", SV_pAngle, &b_SV_pAngle);
+   ht_fChain->SetBranchAddress("had_chi2", had_chi2, &b_had_chi2);
+   ht_fChain->SetBranchAddress("had_eta", had_eta, &b_had_eta);
+   ht_fChain->SetBranchAddress("had_mass", had_mass, &b_had_mass);
+   ht_fChain->SetBranchAddress("had_phi", had_phi, &b_had_phi);
+   ht_fChain->SetBranchAddress("had_pt", had_pt, &b_had_pt);
+   ht_fChain->SetBranchAddress("had_x", had_x, &b_had_x);
+   ht_fChain->SetBranchAddress("had_y", had_y, &b_had_y);
+   ht_fChain->SetBranchAddress("had_z", had_z, &b_had_z);
+   ht_fChain->SetBranchAddress("had_ndof", had_ndof, &b_had_ndof);
+   ht_fChain->SetBranchAddress("had_pdgId", had_pdgId, &b_had_pdgId);
+   ht_fChain->SetBranchAddress("genHadron_eta", genHadron_eta, &b_genHadron_eta);
+   ht_fChain->SetBranchAddress("genHadron_mass", genHadron_mass, &b_genHadron_mass);
+   ht_fChain->SetBranchAddress("genHadron_phi", genHadron_phi, &b_genHadron_phi);
+   ht_fChain->SetBranchAddress("genHadron_pt", genHadron_pt, &b_genHadron_pt);
+   ht_fChain->SetBranchAddress("genHadron_x", genHadron_x, &b_genHadron_x);
+   ht_fChain->SetBranchAddress("genHadron_y", genHadron_y, &b_genHadron_y);
+   ht_fChain->SetBranchAddress("genHadron_z", genHadron_z, &b_genHadron_z);
+   ht_fChain->SetBranchAddress("genHadron_pdgId", genHadron_pdgId, &b_genHadron_pdgId);
+   ht_fChain->SetBranchAddress("L1simulation_step", &L1simulation_step, &b_L1simulation_step);
+*/
    Notify();
 }
 
@@ -1698,8 +1719,8 @@ void HadTruthEvents::Show(Long64_t entry)
 {
 // Print contents of entry.
 // If entry is not specified, print current entry
-   if (!fChain) return;
-   fChain->Show(entry);
+   if (!ht_fChain) return;
+   ht_fChain->Show(entry);
 }
 Int_t HadTruthEvents::Cut(Long64_t entry)
 {

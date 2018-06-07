@@ -3,6 +3,9 @@
 hadAnalysis::hadAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : dilepTopAnalysis(tree, isMC, dl, sle, slm)
 { }
 
+hadAnalysis::hadAnalysis(TTree *nano, Bool_t isMC, TTree *had, TTree *hadTruth, Bool_t dl, Bool_t sle, Bool_t slm) : dilepTopAnalysis(nano, isMC, had, hadTruth, dl, sle, slm)
+{ }
+
 hadAnalysis::~hadAnalysis()
 { }
 

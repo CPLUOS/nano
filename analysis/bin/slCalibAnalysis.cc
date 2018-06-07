@@ -47,9 +47,9 @@ void slCalibAnalysis::Loop() {
 			     << (hadt ? hadt->GetCurrentFile()->GetName() : "")
 			     << endl;
     if (hadt) {
-      if (had.event != event || had.run != run || had.luminosityBlock != luminosityBlock) {
-	std::cout << "Bad sync! " << event << " " << had.event << " " << run << " " << had.run
-		  << " " << luminosityBlock << " " << had.luminosityBlock
+      if (had.ht_event != event || had.ht_run != run || had.ht_luminosityBlock != luminosityBlock) {
+	std::cout << "Bad sync! " << event << " " << had.ht_event << " " << run << " " << had.ht_run
+		  << " " << luminosityBlock << " " << had.ht_luminosityBlock
 		  << std::endl;
 	exit(1);
       }

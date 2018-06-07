@@ -32,3 +32,4 @@
   <use name="nano/analysis"/>
   <flags CXXFLAGS="-g" />
 </bin>
+
