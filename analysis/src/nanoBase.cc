@@ -1,9 +1,8 @@
-#include "nano/analysis/interface/nanoAnalysis.h"
+#include "nano/analysis/interface/nanoBase.h"
 
 using std::string;
 
-nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC)
-{
+nanoBase::nanoBase(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC) {
   m_pileUp = new pileUpTool();
   string env = getenv("CMSSW_BASE");
   string username = getenv("USER");
@@ -15,10 +14,9 @@ nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC
   m_btagSF.load(calib, BTagEntry::FLAV_B, "mujets");
 }
 
-nanoAnalysis::~nanoAnalysis()
-{
+nanoBase::~nanoBase() {
  m_output->Write();
  m_output->Close();
 }
 
-void nanoAnalysis::Loop(){};
+void nanoBase::Loop(){};

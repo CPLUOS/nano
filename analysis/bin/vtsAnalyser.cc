@@ -2,7 +2,7 @@
 #include <vector>
 #include <TLorentzVector.h>
 
-#include "nano/analysis/interface/vtsAnalysis.h"
+#include "nano/analysis/interface/vtsAnalyser.h"
 #include "TFile.h"
 #include "TTree.h"
 
@@ -16,7 +16,7 @@ int main(Int_t argc, Char_t** argv) {
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    vtsAnalysis ana(inTree,true,false,false,false);
+    vtsAnalyser ana(inTree,true,false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
   }
@@ -35,7 +35,7 @@ int main(Int_t argc, Char_t** argv) {
       auto inFileName = argv[i];
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      vtsAnalysis ana(inTree,isMC,false,false,false);
+      vtsAnalyser ana(inTree,isMC,false,false,false);
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
       ana.Loop();
@@ -43,30 +43,25 @@ int main(Int_t argc, Char_t** argv) {
   }
 }
 
-void vtsAnalysis::Loop() {
+void vtsAnalyser::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
 
   // Events loop
   for (Long64_t iev=0; iev<nentries; iev++) {
-    Long64_t entry = LoadTree(iev);
-    fChain->GetEntry(entry);
+    fChain->GetEntry(iev);
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
-    Reset(); 
     ResetBranch();
     int PassedStep = EventSelection();
     if (PassedStep >= 0) {
       MatchingForMC();
       HadronAnalysis();
-      m_tree->Fill();
-    } else {
-      m_tree->Fill();
     }
+    m_tree->Fill();
   }
 }
 
-void vtsAnalysis::setOutput(std::string outFileName)
-{
+void vtsAnalyser::setOutput(std::string outFileName) {
   m_output = TFile::Open(outFileName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
 
@@ -78,8 +73,7 @@ void vtsAnalysis::setOutput(std::string outFileName)
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
 }
 
-void vtsAnalysis::MakeBranch(TTree* t)
-{
+void vtsAnalyser::MakeBranch(TTree* t) {
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("met", &b_met, "met/F");
@@ -129,7 +123,8 @@ void vtsAnalysis::MakeBranch(TTree* t)
 
 }
 
-void vtsAnalysis::ResetBranch() {
+void vtsAnalyser::ResetBranch() {
+  Reset(); 
   b_had_tlv.SetPtEtaPhiM(0,0,0,0);
   b_isFrom_had = -99;
   b_isHadJetMatched_had = false;
@@ -145,20 +140,14 @@ void vtsAnalysis::ResetBranch() {
   qjMapForMC_.clear(); qMC_.clear(); genJet_.clear(); recoJet_.clear();
 }
 
-void vtsAnalysis::MatchingForMC() {
+void vtsAnalyser::MatchingForMC() {
   //Find s quark from Gen Info.  
   for (unsigned int i=0; i<nGenPart; ++i) {
-    if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 3) {
-      qMC_.push_back(i);
-    }
-    if (std::abs(GenPart_status[i] - 25) < 5 && abs(GenPart_pdgId[i]) == 5) {
-      qMC_.push_back(i);
-    }
+    if (std::abs(GenPart_status[i] - 25) >= 5 ) continue;
+    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5) qMC_.push_back(i);
   }
-  if (qMC_.size() == 0) {
-    ++b_chk;
-    return;
-  }
+
+  if (qMC_.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
 
   auto q1 = qMC_[0];
   TLorentzVector q1_tlv; 
@@ -169,48 +158,41 @@ void vtsAnalysis::MatchingForMC() {
 
   //Gen Particle & Reco Jet matching
   for (unsigned int j=0; j<nJet;++j) {
-    struct JetStat Stat;
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-    if (q1_tlv.DeltaR(jet_tlv) < q2_tlv.DeltaR(jet_tlv)) {
-      auto dR = q1_tlv.DeltaR(jet_tlv);
-      if (dR < 0.3) {
-        qjMapForMC_.insert({j, GenPart_pdgId[q1]});
-        Stat.idx = j;
-        Stat.dr = q1_tlv.DeltaR(jet_tlv);
-        Stat.matchedQuark = qjMapForMC_[j];
-        recoJet_.push_back(Stat);
-      } else {
-        qjMapForMC_.insert({j, -9});
-      }
-    } else { 
-      auto dR = q2_tlv.DeltaR(jet_tlv);
-      if (dR < 0.3) {
-        qjMapForMC_.insert({j, GenPart_pdgId[q2]});
-        Stat.idx = j;
-        Stat.dr = q2_tlv.DeltaR(jet_tlv);
-        Stat.matchedQuark = qjMapForMC_[j];
-        recoJet_.push_back(Stat);
-      } else {
-        qjMapForMC_.insert({j, -9});
-      }
+    auto qIdx = q1;
+    auto dr = q1_tlv.DeltaR(jet_tlv); 
+    auto dr_ = q2_tlv.DeltaR(jet_tlv); 
+    if ( dr_ < dr) {
+      dr = dr_;
+      qIdx = q2;
+    }
+
+    if (dr > 0.3) qjMapForMC_.insert({j, -9});
+    else {
+      qjMapForMC_.insert({j, GenPart_pdgId[qIdx]});
+      JetStat stat(j, dr, qjMapForMC_[j]);
+      recoJet_.push_back(stat);
     }
   }
+
   if (recoJet_.size() == 0) return;
+
   else if (recoJet_.size() > 1) {
-    sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) {return ((a.matchedQuark > b.matchedQuark));});
-    sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) {return ((a.dr < b.dr) && (a.matchedQuark == b.matchedQuark));});
-    for (unsigned int i=0; i<recoJet_.size(); ++i) {
-      if (recoJet_[0].matchedQuark == recoJet_[i].matchedQuark && i != 0) qjMapForMC_[recoJet_[i].idx] = -9;
-      else if (recoJet_[0].matchedQuark != recoJet_[i].matchedQuark) {
-        for (unsigned int idx = 1; idx<(recoJet_.size()-i); ++idx) qjMapForMC_[recoJet_[i+idx].idx] = -9;
-        break;
-      }
+    sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) { return (a.dr < b.dr); } );
+
+    bool idChanged = false;
+    for (unsigned int i=1;i<recoJet_.size(); ++i) {
+        if (idChanged) qjMapForMC_[recoJet_[i].idx] = -9;
+        else { 
+            if (recoJet_[0].matchedQuark != recoJet_[i].matchedQuark) idChanged = true;
+            else qjMapForMC_[recoJet_[i].idx] = -9;
+        }
     }
   }
 }
 
-void vtsAnalysis::HadronAnalysis() {
+void vtsAnalyser::HadronAnalysis() {
   std::vector<std::vector<struct HadStat>> JetCollection;
   std::vector<struct HadStat> Had;
   struct HadStat Stat;
