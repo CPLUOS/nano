@@ -45,8 +45,8 @@ public:
   //Function
   Double_t GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz);
 
-  hadAnalyser(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   hadAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  hadAnalyser(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : hadAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
   ~hadAnalyser();
   virtual void     Loop();
 };

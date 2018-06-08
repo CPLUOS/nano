@@ -35,7 +35,7 @@ int main(Int_t argc, Char_t** argv) {
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    vtsAnalyser ana(inTree,0,0,true,false,false,false);
+    vtsAnalyser ana(inTree,inTree,0,true,false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
   } else if (argc == 5) {
@@ -77,9 +77,9 @@ int main(Int_t argc, Char_t** argv) {
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
       TFile *hadFile;
-      TTree *hadTree = 0;
+      TTree *hadTree=0;
       TFile *hadTruthFile;
-      TTree *hadTruthTree = 0;
+      TTree *hadTruthTree=0;
       TString hadFileName = dirName + "/HADAOD/" + fileName;
       TString hadTruthFileName = dirName + "/HADTRUTHAOD/" + fileName;
       if (found2 == std::string::npos) {
@@ -88,6 +88,7 @@ int main(Int_t argc, Char_t** argv) {
         hadTruthFile = TFile::Open(hadTruthFileName, "READ");
         hadTruthTree = (TTree*) hadTruthFile->Get("Events");
       }
+      cout << "dirName : " << dirName << " fileName : " << fileName << endl;
       cout << "tree chk : had : " << hadTree << " , hadTruth : " << hadTruthTree << endl;
       vtsAnalyser ana(inTree,hadTree,hadTruthTree,isMC,false,false,false);
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";

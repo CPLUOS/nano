@@ -2,12 +2,6 @@
 
 using std::vector;
 
-topObjectSelection::topObjectSelection(TTree *tree, Bool_t isMC, Bool_t _isDilep, Bool_t _isSemiLep) :
-  nanoBase(tree, isMC),
-  isDilep(_isDilep),
-  isSemiLep(_isSemiLep)
-{}
-
 topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t _isDilep, Bool_t _isSemiLep) :
   nanoBase(tree, had, hadTruth, isMC),
   isDilep(_isDilep),
