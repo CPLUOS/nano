@@ -1,0 +1,40 @@
+#!/bin/bash
+# Moving into data folder #
+if [ "$HOSTNAME" == "ui10.sdfarm.kr" ] || [ "$HOSTNAME" == "ui20.sdfarm.kr" ]
+then
+   cd $CMSSW_BASE/src/nano/analysis/data/
+   # Downloading Lumimask txt #
+   echo "Downloading LumiMask text file into : `pwd`"
+   wget https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
+
+   # Copying Rochester txt #
+   echo "Copying Rochester correction txt file into : `pwd`"
+   cp -r /cms/scratch/UOS/Roccor/rcdata.2016.v3 ./
+
+   # Moving into Btag SF folder #
+   cd $CMSSW_BASE/src/nano/analysis/data/btagSF/
+   # Copying b-jet SF csv #
+   echo "Downloading b-tag scalefactor csv file (CSVv2_Moriond17_B_H.csv) into : `pwd`"  
+   cp  /cms/scratch/UOS/BTagSF/CSVv2_Moriond17_B_H.csv ./
+
+elif [ "$HOSTNAME" == "gate.sscc.uos.ac.kr" ]
+then
+   cd $CMSSW_BASE/src/nano/analysis/data/
+   # Downloading Lumimask txt #
+   echo "Downloading LumiMask text file into : `pwd`"
+   wget https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
+
+   # Copying Rochester txt #
+   echo "Copying Rochester correction txt file into : `pwd`"
+   cp -r /home/scratch/Nano/Roccor/rcdata.2016.v3 ./
+
+   # Moving into Btag SF folder #
+   cd $CMSSW_BASE/src/nano/analysis/data/btagSF/
+   # Copying b-jet SF csv #
+   echo "Downloading b-tag scalefactor csv file (CSVv2_Moriond17_B_H.csv) into : `pwd`" 
+   cp  /home/scratch/Nano/BTagSF/CSVv2_Moriond17_B_H.csv ./
+else 
+   echo "You are not in one of the two (kisti or Gate) supported servers.
+Please manually download the required files.
+Links to the locations can be found in the Wiki of the git repository"
+fi 
