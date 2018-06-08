@@ -2,6 +2,11 @@
 
 using std::vector;
 
+topEventSelectionDL::topEventSelectionDL(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :
+  topObjectSelection(tree, isMC, true, false),
+  m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm) {
+}
+
 topEventSelectionDL::topEventSelectionDL(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :
   topObjectSelection(tree, had, hadTruth, isMC, true, false),
   m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm) {

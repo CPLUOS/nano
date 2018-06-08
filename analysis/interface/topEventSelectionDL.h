@@ -50,6 +50,7 @@ public:
 
   virtual int EventSelection();
 
+  topEventSelectionDL(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   topEventSelectionDL(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~topEventSelectionDL();  
   virtual void Loop() = 0;

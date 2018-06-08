@@ -1,5 +1,8 @@
 #include "nano/analysis/interface/hadAnalyser.h"
 
+hadAnalyser::hadAnalyser(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, isMC, dl, sle, slm)
+{ }
+
 hadAnalyser::hadAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, had, hadTruth, isMC, dl, sle, slm)
 { }
 
