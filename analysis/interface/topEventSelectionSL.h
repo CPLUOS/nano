@@ -46,7 +46,7 @@ public:
 
   void Reset();
 
-  topEventSelectionSL(TTree *tree=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false);
+  topEventSelectionSL(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false);
   ~topEventSelectionSL();  
   virtual void Loop() = 0;
 };

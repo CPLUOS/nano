@@ -6,7 +6,7 @@
 #include <cstdlib>
 using namespace std;
 
-massAnalyser::massAnalyser(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, isMC, dl, sle, slm)
+massAnalyser::massAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, had, hadTruth, isMC, dl, sle, slm)
 {
 }
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
       temp = argv[i];   
       found = temp.find_last_of('/');
       std::string outPutName = dirName + temp.substr(found);
-      massAnalyser t(tree, isMC, isDL, isSL_e, isSL_m);
+      massAnalyser t(tree, 0, 0, isMC, isDL, isSL_e, isSL_m);
       
       t.setOutput(outPutName);
       t.Loop();
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     TTree *tree;
     f->GetObject("Events", tree);
 
-    massAnalyser t(tree, true);
+    massAnalyser t(tree, 0, 0, true);
     t.setOutput("test.root");
     t.Loop();
   }

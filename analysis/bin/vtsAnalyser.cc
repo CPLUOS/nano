@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <vector>
 #include <TLorentzVector.h>
 
@@ -8,6 +9,24 @@
 
 using namespace std;
 
+string getFileName(const string& s) {
+ char sep = '/';
+ size_t i = s.rfind(sep, s.length());
+ if (i != string::npos) {
+    return(s.substr(i+1, s.length() - i));
+ }
+ return("");
+}
+string getDir (const string& path){
+  size_t found = path.find_last_of("/\\");
+  return(path.substr(0, found));
+}
+string getType (const string& path){
+  size_t found = path.find("tt");
+  return(path.substr(found));
+}
+
+
 int main(Int_t argc, Char_t** argv) {
 
   string hostDir = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/";
@@ -16,11 +35,10 @@ int main(Int_t argc, Char_t** argv) {
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    vtsAnalyser ana(inTree,true,false,false,false);
+    vtsAnalyser ana(inTree,0,0,true,false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
-  }
-  else{
+  } else{
     string jobName    = string(argv[1]);
     string sampleName = string(argv[2]);
 
@@ -33,9 +51,30 @@ int main(Int_t argc, Char_t** argv) {
     string outFileDir = hostDir+getenv("USER")+"/"+jobName+"/"+sampleName;
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
+    // temp
+      auto fileName = getFileName(argv[i]);
+      auto dirName = getDir(getDir(argv[i]));
+      auto sampleType = getType(dirName);
+      //NANO
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      vtsAnalyser ana(inTree,isMC,false,false,false);
+      auto sampleCheck = string(inFileName).find("NANOAOD");
+      TFile *hadFile(0);
+      TTree *hadTree = 0;
+      TFile *hadTruthFile(0);
+      TTree *hadTruthTree = 0;
+      TString hadFileName = dirName + "/HADAOD/" + fileName;
+      TString hadTruthFileName = dirName + "/HADTRUTHAOD/" + fileName;
+      if (sampleCheck == std::string::npos) {
+        hadFile = TFile::Open(hadFileName, "READ");
+        hadTree = (TTree*) hadFile->Get("Events");
+        hadTruthFile = TFile::Open(hadTruthFileName, "READ");
+        hadTruthTree = (TTree*) hadTruthFile->Get("Events");
+      } else {
+        delete hadFile;
+        delete hadTruthFile;
+      }
+      vtsAnalyser ana(inTree,hadTree,hadTruthTree,isMC,false,false,false);
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
       ana.Loop();
