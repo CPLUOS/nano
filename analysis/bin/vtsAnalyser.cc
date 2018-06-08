@@ -38,7 +38,24 @@ int main(Int_t argc, Char_t** argv) {
     vtsAnalyser ana(inTree,0,0,true,false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
-  } else{
+  } else if (argc == 5) {
+    auto trn1 = argv[1];
+    auto trn2 = argv[2];
+    auto trn3 = argv[3];
+    auto outn = argv[4]; 
+    
+    TFile *f1 = TFile::Open(trn1, "READ");
+    TFile *f2 = TFile::Open(trn2, "READ");
+    TFile *f3 = TFile::Open(trn3, "READ");
+    TTree *t1 = (TTree*)f1->Get("Events");
+    TTree *t2 = (TTree*)f2->Get("Events");
+    TTree *t3 = (TTree*)f3->Get("Events");
+   
+    cout << t1 << " , " << t2 << " , " << t3 << endl; 
+    vtsAnalyser ana(t1,t2,t3,true,false,false,false);
+    ana.setOutput(outn);
+    ana.Loop();
+  } else {
     string jobName    = string(argv[1]);
     string sampleName = string(argv[2]);
 
@@ -71,9 +88,8 @@ int main(Int_t argc, Char_t** argv) {
         hadTruthFile = TFile::Open(hadTruthFileName, "READ");
         hadTruthTree = (TTree*) hadTruthFile->Get("Events");
       } else {
-        delete hadFile;
-        delete hadTruthFile;
       }
+      cout << "tree chk : had : " << hadTree << " , hadTruth : " << hadTruthTree << endl;
       vtsAnalyser ana(inTree,hadTree,hadTruthTree,isMC,false,false,false);
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
@@ -89,6 +105,11 @@ void vtsAnalyser::Loop() {
   // Events loop
   for (Long64_t iev=0; iev<nentries; iev++) {
     fChain->GetEntry(iev);
+    if (h_fChain) h_fChain->GetEntry(iev);
+    if (ht_fChain) ht_fChain->GetEntry(iev);
+    cout << "event : " << iev << endl;
+    cout << "nhadTruth : " << nhadTruth << endl;
+    cout << "nhad      : " << nhad << endl;
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
     ResetBranch();
     int PassedStep = EventSelection();
