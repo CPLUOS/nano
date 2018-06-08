@@ -1,6 +1,6 @@
-//#define nanoAnalysis_cxx
+//#define nanoAnalyser_cxx
 #define Events_cxx
-#include "nano/analysis/interface/nanoAnalysis.h"
+#include "nano/analysis/interface/nanoBase.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -14,15 +14,15 @@ using namespace std;
 To compile:
 cd $CMSSW_BASE ; scram b -j 8 ; cd -
 
+To run:
+singletopAnalyser [LIST_FILE_OF_FILES] ["MC" or "RD"] [idx of the first root file] [(idx+1) of the last root file]
+
 To throw jobs to condor:
 python makejobs.py nanoAOD j`python batch_nanoAOD.py n 2`
-
-To run:
-singletopAnalysis [LIST_FILE_OF_FILES] ["MC" or "RD"] [idx of the first root file] [(idx+1) of the last root file]
 */
 
 
-class singletopAnalysis : public nanoAnalysis {
+class singletopAnalyser : public nanoBase {
 private: 
   TH1F *m_h1CosS;
   TH1F *m_h1CosSReco;
@@ -96,8 +96,8 @@ public:
   void resetBranch();
   void LoadModules(pileUpTool* pileUp, lumiTool* lumi);
   //void collectTMVAvalues();
-  singletopAnalysis(TTree *tree=0, Bool_t flag = false, Bool_t isSig = false, Bool_t isFullGen = false);
-  ~singletopAnalysis();
+  singletopAnalyser(TTree *tree=0, Bool_t flag = false, Bool_t isSig = false, Bool_t isFullGen = false);
+  ~singletopAnalyser();
   virtual void     Loop();
   
   int DoMoreGenLvl(TLorentzVector &vec4Top, TLorentzVector &vec4Lep, TLorentzVector &vec4AssoQ);
@@ -137,7 +137,7 @@ public:
 };
 
 
-singletopAnalysis::singletopAnalysis(TTree *tree, Bool_t flag, Bool_t isSig, Bool_t isFullGen) : nanoAnalysis(tree, flag), 
+singletopAnalyser::singletopAnalyser(TTree *tree, Bool_t flag, Bool_t isSig, Bool_t isFullGen) : nanoBase(tree, flag), 
   m_isSig(isSig), m_isFullGen(isFullGen)
 {
   m_output = NULL;
@@ -147,7 +147,7 @@ singletopAnalysis::singletopAnalysis(TTree *tree, Bool_t flag, Bool_t isSig, Boo
 }
 
 
-singletopAnalysis::~singletopAnalysis() {
+singletopAnalyser::~singletopAnalyser() {
   if ( m_output != NULL ) {
     m_output->Write();
     m_output->Close();
@@ -155,7 +155,7 @@ singletopAnalysis::~singletopAnalysis() {
 }
 
 
-void singletopAnalysis::setOutput(std::string outputName) {
+void singletopAnalyser::setOutput(std::string outputName) {
   m_output = TFile::Open(outputName.c_str(), "recreate");
   
   m_tree = new TTree("event", "event");
@@ -168,7 +168,7 @@ void singletopAnalysis::setOutput(std::string outputName) {
 }
 
 
-void singletopAnalysis::MakeBranch(TTree *t) {
+void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("onlyGen", &b_onlyGen, "onlyGen/I");
   
   t->Branch("nvertex", &b_nvertex, "nvertex/I");
@@ -236,7 +236,7 @@ void singletopAnalysis::MakeBranch(TTree *t) {
 }
 
 
-void singletopAnalysis::resetBranch() {
+void singletopAnalyser::resetBranch() {
   b_onlyGen = 0;
   
   b_nvertex = 0;
@@ -298,7 +298,7 @@ void singletopAnalysis::resetBranch() {
 ////////////////////////////////////////////////////////////////////////////////
 
   
-int singletopAnalysis::GetIdxGenTop() {
+int singletopAnalyser::GetIdxGenTop() {
   UInt_t i;
   
   // Finding the top quark
@@ -315,7 +315,7 @@ int singletopAnalysis::GetIdxGenTop() {
 }
 
 
-int singletopAnalysis::GetIdxGenAssoQuark() {
+int singletopAnalyser::GetIdxGenAssoQuark() {
   UInt_t i;
   
   for ( i = 0 ; i < nGenPart ; i++ ) {
@@ -331,7 +331,7 @@ int singletopAnalysis::GetIdxGenAssoQuark() {
 }
 
 
-int singletopAnalysis::GetIdxGenLepton() {
+int singletopAnalyser::GetIdxGenLepton() {
   UInt_t i;
   Int_t j;
   
@@ -370,7 +370,7 @@ int singletopAnalysis::GetIdxGenLepton() {
 }
 
 
-int singletopAnalysis::GetIdxGenBFromTop() {
+int singletopAnalyser::GetIdxGenBFromTop() {
   UInt_t i;
   
   // Finding the b quark from the top quark
@@ -391,7 +391,7 @@ int singletopAnalysis::GetIdxGenBFromTop() {
 }
 
 
-int singletopAnalysis::GetIdxGenWFromTop() {
+int singletopAnalyser::GetIdxGenWFromTop() {
   UInt_t i;
   
   // Finding the W from the top quark
@@ -412,7 +412,7 @@ int singletopAnalysis::GetIdxGenWFromTop() {
 }
 
 
-int singletopAnalysis::GetIdxGenNeutrino() {
+int singletopAnalyser::GetIdxGenNeutrino() {
   UInt_t i;
   Int_t j;
   
@@ -448,7 +448,7 @@ int singletopAnalysis::GetIdxGenNeutrino() {
 }
 
 
-int singletopAnalysis::DoMoreGenLvl(TLorentzVector &vec4Top, TLorentzVector &vec4Lep, TLorentzVector &vec4AssoQ) {
+int singletopAnalyser::DoMoreGenLvl(TLorentzVector &vec4Top, TLorentzVector &vec4Lep, TLorentzVector &vec4AssoQ) {
   if ( GetIdxGenNeutrino() != 0 ) return 1;
   
   
@@ -457,7 +457,7 @@ int singletopAnalysis::DoMoreGenLvl(TLorentzVector &vec4Top, TLorentzVector &vec
 }
 
 
-TLorentzVector singletopAnalysis::Get4VecGen(int nIdx) {
+TLorentzVector singletopAnalyser::Get4VecGen(int nIdx) {
   TLorentzVector vec4Res;
   
   vec4Res.SetPtEtaPhiM(GenPart_pt[ nIdx ], GenPart_eta[ nIdx ], 
@@ -472,7 +472,7 @@ TLorentzVector singletopAnalysis::Get4VecGen(int nIdx) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-bool singletopAnalysis::hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad) {
+bool singletopAnalyser::hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad) {
   for ( auto obj: objects ) {
     TLorentzVector mom;
     obj.Momentum(mom);
@@ -482,7 +482,7 @@ bool singletopAnalysis::hasOverLap(TLorentzVector cand, vector<TParticle> object
 }
 
 
-Double_t singletopAnalysis::roccoR(TLorentzVector m, int &q, int &nGen, int &nTrackerLayers) {
+Double_t singletopAnalyser::roccoR(TLorentzVector m, int &q, int &nGen, int &nTrackerLayers) {
   Float_t u1 = gRandom->Rndm();
   Float_t u2 = gRandom->Rndm();
   
@@ -500,7 +500,7 @@ Double_t singletopAnalysis::roccoR(TLorentzVector m, int &q, int &nGen, int &nTr
 }
 
 
-vector<TParticle> singletopAnalysis::muonSelection() {
+vector<TParticle> singletopAnalyser::muonSelection() {
   UInt_t i;
   
   vector<TParticle> muons;
@@ -529,7 +529,7 @@ vector<TParticle> singletopAnalysis::muonSelection() {
 }
 
 
-vector<TParticle> singletopAnalysis::elecSelection() {
+vector<TParticle> singletopAnalyser::elecSelection() {
   UInt_t i;
   
   vector<TParticle> elecs;
@@ -559,7 +559,7 @@ vector<TParticle> singletopAnalysis::elecSelection() {
 }
 
 
-vector<TParticle> singletopAnalysis::jetSelection(vector<int> &vecIdx) {
+vector<TParticle> singletopAnalyser::jetSelection(vector<int> &vecIdx) {
   UInt_t i, j;
   
   vector<TParticle> jets; 
@@ -594,7 +594,7 @@ vector<TParticle> singletopAnalysis::jetSelection(vector<int> &vecIdx) {
 }
 
 
-vector<TParticle> singletopAnalysis::bjetSelection(vector<int> &vecIdx) {
+vector<TParticle> singletopAnalyser::bjetSelection(vector<int> &vecIdx) {
   UInt_t i, j;
   
   vector<TParticle> bjets; 
@@ -621,7 +621,7 @@ vector<TParticle> singletopAnalysis::bjetSelection(vector<int> &vecIdx) {
 }
 
 
-TLorentzVector singletopAnalysis::RecoWFromTop(double *pdDiffMET, int nFlag) {
+TLorentzVector singletopAnalyser::RecoWFromTop(double *pdDiffMET, int nFlag) {
   TLorentzVector vec4W;
   
   double dMW = 80.4;
@@ -702,7 +702,7 @@ TLorentzVector singletopAnalysis::RecoWFromTop(double *pdDiffMET, int nFlag) {
 }
 
 
-int singletopAnalysis::RecoTop() {
+int singletopAnalyser::RecoTop() {
   TLorentzVector vec4BJet = ( b_nbjets == 1 || 
     b_bjet1.DeltaR(b_lep1) < b_bjet2.DeltaR(b_lep1) ? b_bjet1 : b_bjet2 );
   TLorentzVector vec4WLow, vec4WHigh;
@@ -750,7 +750,7 @@ int singletopAnalysis::RecoTop() {
 }
 
 
-int singletopAnalysis::CalcRecoCosStar() {
+int singletopAnalyser::CalcRecoCosStar() {
   TLorentzVector vec4LepRest = b_lep1, vec4JetRest = b_jet1;
   
   vec4LepRest.Boost(-b_top1.BoostVector());
@@ -768,7 +768,7 @@ int singletopAnalysis::CalcRecoCosStar() {
 }
 
 
-int singletopAnalysis::RunEvt() {
+int singletopAnalyser::RunEvt() {
   UInt_t i;
   
   // Begin of jobs IN GEN LEVEL
@@ -890,7 +890,7 @@ int singletopAnalysis::RunEvt() {
 }
 
 
-void singletopAnalysis::Loop() {
+void singletopAnalyser::Loop() {
   int nRes;
   
   if (fChain == 0) return;
@@ -925,7 +925,7 @@ int main(int argc, char **argv) {
   
   if ( argc < 3 ) {
     printf("Usage: \n"
-      "(on single core) singletopAnalysis [LIST_FILE_OF_FILES] [MC or RD] [idx of the first root file] [(idx+1) of the last root file]\n"
+      "(on single core) singletopAnalyser [LIST_FILE_OF_FILES] [MC or RD] [idx of the first root file] [(idx+1) of the last root file]\n"
       "(for grid job (condor; in KISTI) python makejobs.py nanoAOD j`python batch_nanoAOD.py n [# OF FILES PER JOB]`\n");
     
     return 1;
@@ -961,7 +961,7 @@ int main(int argc, char **argv) {
     strOutput = strOutput + std::to_string(i) + ".root";
     
     cout << "Start : " << strLine << endl;
-    singletopAnalysis t(treeEvents, bIsMC, strLine.find("ST_t-channel") != std::string::npos, true);
+    singletopAnalyser t(treeEvents, bIsMC, strLine.find("ST_t-channel") != std::string::npos, true);
     t.setOutput(strOutput);
     t.Loop();
     cout << "End   : " << strLine << endl;

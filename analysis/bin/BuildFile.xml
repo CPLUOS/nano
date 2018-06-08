@@ -33,7 +33,7 @@
   <flags CXXFLAGS="-g" />
 </bin>
 
-<bin name="singletopAnalysis" file="singletopAnalysis.cc">
+<bin name="singletopAnalyser" file="singletopAnalyser.cc">
   <use name="root"/>
   <use name="rootxml"/>
   <lib name="Eve"/>
