@@ -2,7 +2,7 @@
 #include <vector>
 #include <TLorentzVector.h>
 
-#include "nano/analysis/interface/vtsAnalysis.h"
+#include "nano/analysis/interface/vtsAnalyser.h"
 #include "TFile.h"
 #include "TTree.h"
 
@@ -16,7 +16,7 @@ int main(Int_t argc, Char_t** argv) {
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    vtsAnalysis ana(inTree,true,false,false,false);
+    vtsAnalyser ana(inTree,true,false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
   }
@@ -35,7 +35,7 @@ int main(Int_t argc, Char_t** argv) {
       auto inFileName = argv[i];
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      vtsAnalysis ana(inTree,isMC,false,false,false);
+      vtsAnalyser ana(inTree,isMC,false,false,false);
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
       ana.Loop();
@@ -43,7 +43,7 @@ int main(Int_t argc, Char_t** argv) {
   }
 }
 
-void vtsAnalysis::Loop() {
+void vtsAnalyser::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
 
@@ -61,7 +61,7 @@ void vtsAnalysis::Loop() {
   }
 }
 
-void vtsAnalysis::setOutput(std::string outFileName) {
+void vtsAnalyser::setOutput(std::string outFileName) {
   m_output = TFile::Open(outFileName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
 
@@ -73,7 +73,7 @@ void vtsAnalysis::setOutput(std::string outFileName) {
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
 }
 
-void vtsAnalysis::MakeBranch(TTree* t) {
+void vtsAnalyser::MakeBranch(TTree* t) {
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("met", &b_met, "met/F");
@@ -123,7 +123,7 @@ void vtsAnalysis::MakeBranch(TTree* t) {
 
 }
 
-void vtsAnalysis::ResetBranch() {
+void vtsAnalyser::ResetBranch() {
   Reset(); 
   b_had_tlv.SetPtEtaPhiM(0,0,0,0);
   b_isFrom_had = -99;
@@ -140,7 +140,7 @@ void vtsAnalysis::ResetBranch() {
   qjMapForMC_.clear(); qMC_.clear(); genJet_.clear(); recoJet_.clear();
 }
 
-void vtsAnalysis::MatchingForMC() {
+void vtsAnalyser::MatchingForMC() {
   //Find s quark from Gen Info.  
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_status[i] - 25) >= 5 ) continue;
@@ -192,7 +192,7 @@ void vtsAnalysis::MatchingForMC() {
   }
 }
 
-void vtsAnalysis::HadronAnalysis() {
+void vtsAnalyser::HadronAnalysis() {
   std::vector<std::vector<struct HadStat>> JetCollection;
   std::vector<struct HadStat> Had;
   struct HadStat Stat;
