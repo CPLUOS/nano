@@ -28,7 +28,6 @@ void massAnalyser::Loop() {
     cmesonSelection();
     if (keep != 0) {
       collectTMVAvalues();
-      m_tree->Fill();
     }
   }
 }
@@ -121,6 +120,7 @@ void massAnalyser::collectTMVAvalues() {
     b_cme_pdgId = had_pdgId[i];
     b_cme_tmva_bdtg = bdtg->EvaluateMVA("BDTG");
     //b_cme_nMatched = hadTruth_nMatched[i];
+    if (abs(b_cme_pdgId) != 421) continue;
     if (b_cme_tmva_bdtg > b_bdtg) {
         b_maxbIdx = i;
         b_bdtg = b_cme_tmva_bdtg;
