@@ -690,11 +690,11 @@ vector<TParticle> h2muAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
 {
   vector<TParticle> jets;
   for (UInt_t i = 0; i < nJet; i++) {
- //   if (fabs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
- //   if (fabs(Jet_eta[i]) < 2.4 &&  Jet_pt[i] < 20) continue;
+//  if (fabs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
+//    if (fabs(Jet_eta[i]) < 2.4 &&  Jet_pt[i] < 20) continue;
     if (Jet_pt[i] < 30) continue;
-    if (fabs(Jet_eta[i]) > 2.4) continue; 
-   // if (fabs(Jet_eta[i]) > 4.7) continue; 
+//    if (fabs(Jet_eta[i]) > 2.4) continue; 
+    if (fabs(Jet_eta[i]) > 4.7) continue; 
     if (Jet_jetId[i] < 1) continue;
 
     TLorentzVector mom;
