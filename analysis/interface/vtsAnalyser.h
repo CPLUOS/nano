@@ -20,12 +20,12 @@ private:
 public:
   void setOutput(std::string outputName);
 
-  vtsAnalyser(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   ~vtsAnalyser();
   virtual void     Loop();
 };
 
-vtsAnalyser::vtsAnalyser(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : hadAnalyser(tree, isMC, dl, sle, slm)
+vtsAnalyser::vtsAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : hadAnalyser(tree, had, hadTruth, isMC, dl, sle, slm)
 { }
 
 vtsAnalyser::~vtsAnalyser()

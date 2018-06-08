@@ -28,7 +28,7 @@
 class nanoBase : public Events
 {
 public:
-  nanoBase(TTree *tree=0, Bool_t isMC=false);
+  nanoBase(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC=false);
   virtual ~nanoBase();
   virtual void Loop() = 0;
 

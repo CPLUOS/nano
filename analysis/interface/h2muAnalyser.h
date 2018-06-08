@@ -95,13 +95,13 @@ private:
 
 public:
   //set output file
-  h2muAnalyser(TTree *tree=0, Bool_t isMc = false);
+  h2muAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMc = false);
   ~h2muAnalyser();
   void SetOutput(std::string outputName);
   virtual void Loop();
 };
 
-h2muAnalyser::h2muAnalyser(TTree *tree, Bool_t isMC) : nanoBase(tree, isMC)
+h2muAnalyser::h2muAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) : nanoBase(tree, had, hadTruth, isMC)
 {
   std::string env = getenv("CMSSW_BASE");
   m_rocCor = new RoccoR(env+"/src/nano/analysis/data/rcdata.2016.v3/");

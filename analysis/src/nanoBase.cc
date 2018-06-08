@@ -2,7 +2,7 @@
 
 using std::string;
 
-nanoBase::nanoBase(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC) {
+nanoBase::nanoBase(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) : Events(tree, had, hadTruth), m_isMC(isMC) {
   m_pileUp = new pileUpTool();
   string env = getenv("CMSSW_BASE");
   string username = getenv("USER");
