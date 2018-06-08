@@ -1,11 +1,11 @@
-#ifndef semiLepTopAnalysis_H
-#define semiLepTopAnalysis_H
+#ifndef topEventSelectionSL_H
+#define topEventSelectionSL_H
 
-#include "topAnalysis.h"
+#include "topObjectSelection.h"
 #include "nano/external/interface/TopTriggerSF.h"
 //#include "nano/external/interface/TTbarModeDefs.h"
 
-class semiLepTopAnalysis : public topAnalysis
+class topEventSelectionSL : public topObjectSelection
 {
 protected:
   //Histogram
@@ -46,8 +46,8 @@ public:
 
   void Reset();
 
-  semiLepTopAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false);
-  ~semiLepTopAnalysis();  
+  topEventSelectionSL(TTree *tree=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false);
+  ~topEventSelectionSL();  
   virtual void Loop() = 0;
 };
 
