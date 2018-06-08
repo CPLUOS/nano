@@ -1,4 +1,4 @@
-#include "nano/analysis/interface/h2muAnalysis.h"
+#include "nano/analysis/interface/h2muAnalyser.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -8,10 +8,10 @@
 using namespace std;
 /*
 To compile:
-g++ `root-config --cflags --glibs` -lEG h2muAnalysis.cc -o h2muAnalysis
+g++ `root-config --cflags --glibs` -lEG h2muAnalyser.cc -o h2muAnalyser
 */
 
-void h2muAnalysis::SetOutput(string outputName)
+void h2muAnalyser::SetOutput(string outputName)
 {
   m_output = TFile::Open(outputName.c_str(), "recreate");
   // TMVA Booking //
@@ -116,7 +116,7 @@ void h2muAnalysis::SetOutput(string outputName)
   h_Non = new TH1D("Non", "Non", 1, 0, 1);
 
 }
-void h2muAnalysis::MakeBranch(TTree* t)
+void h2muAnalyser::MakeBranch(TTree* t)
 {
   t->Branch("Event_No", &b_Event_No, "Event_No/I");
   t->Branch("Step", &b_Step, "Step/I");
@@ -239,7 +239,7 @@ void h2muAnalysis::MakeBranch(TTree* t)
   t->Branch("CSV", &b_CSV, "CSV/F");
 }
 
-void h2muAnalysis::ResetBranch()
+void h2muAnalyser::ResetBranch()
 {  
   b_Event_No = 0;
   b_Step = 0;
@@ -285,7 +285,7 @@ void h2muAnalysis::ResetBranch()
   b_test_nmuon = 0;
 }
 
-bool h2muAnalysis::Analysis()
+bool h2muAnalyser::Analysis()
 {
   h_Event_Tot->Fill(0.5, b_Event_Total);
   h_cutFlow->Fill(0);
@@ -567,26 +567,20 @@ bool h2muAnalysis::Analysis()
 }
 
 
-void h2muAnalysis::Loop()
+void h2muAnalyser::Loop()
 {
   if (fChain == 0) return;
 
   Long64_t nentries = fChain->GetEntries();
-  Long64_t nbytes = 0, nb = 0;
   
-  for (Long64_t jentry=0; jentry<nentries;jentry++) {
-    //Prepare for new loop
+  // Events loop
+  for (Long64_t iev=0; iev<nentries; iev++) {
     ResetBranch();
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry);   nbytes += nb;
-
+    fChain->GetEntry(iev);
     bool keep = Analysis();
-    if (keep) {
-      m_tree->Fill();
-    }
+    if (keep) { m_tree->Fill(); }
   }
-  
+
 }
 
 int main(Int_t argc, Char_t** argv)
@@ -610,7 +604,7 @@ int main(Int_t argc, Char_t** argv)
       temp = argv[i];
       found = temp.find_last_of('/');
       string outPutName = dirName+temp.substr(found);
-      h2muAnalysis t(tree, isMC);
+      h2muAnalyser t(tree, isMC);
       t.SetOutput(outPutName);
       t.Loop();
     }
@@ -625,7 +619,7 @@ int main(Int_t argc, Char_t** argv)
     if(found == string::npos) isMC = true;
     f->GetObject("Events", tree);
     
-    h2muAnalysis t(tree, isMC);
+    h2muAnalyser t(tree, isMC);
     t.SetOutput("test.root");
     t.Loop();
   }
@@ -634,7 +628,7 @@ int main(Int_t argc, Char_t** argv)
 }
 
 //Object Selections
-vector<TParticle> h2muAnalysis::MuonSelection()
+vector<TParticle> h2muAnalyser::MuonSelection()
 {
   vector<TParticle> muons;
   for (UInt_t i = 0; i < nMuon; i++) {
@@ -661,7 +655,7 @@ vector<TParticle> h2muAnalysis::MuonSelection()
   return muons;
 }
 
-vector<TParticle> h2muAnalysis::ElectronSelection(vector<TParticle> leptons)
+vector<TParticle> h2muAnalyser::ElectronSelection(vector<TParticle> leptons)
 {
   vector<TParticle> electrons;
   for(UInt_t i = 0; i < nElectron; i++) {
@@ -686,7 +680,7 @@ vector<TParticle> h2muAnalysis::ElectronSelection(vector<TParticle> leptons)
   }
   return electrons;
 }
-vector<TParticle> h2muAnalysis::JetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
+vector<TParticle> h2muAnalyser::JetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> jets;
   for (UInt_t i = 0; i < nJet; i++) {
@@ -711,7 +705,7 @@ vector<TParticle> h2muAnalysis::JetSelection(vector<TParticle> Muons, vector<TPa
   return jets;
 }
 
-vector<TParticle> h2muAnalysis::BJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
+vector<TParticle> h2muAnalyser::BJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> bJets;
   b_btagweight = 1.0;
@@ -740,7 +734,7 @@ vector<TParticle> h2muAnalysis::BJetSelection(vector<TParticle> Muons, vector<TP
   return bJets;
 }
 
-vector<TParticle> h2muAnalysis::nonbJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
+vector<TParticle> h2muAnalyser::nonbJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> nonbjets;
   for (UInt_t i = 0; i < nJet; i++) {
@@ -765,7 +759,7 @@ vector<TParticle> h2muAnalysis::nonbJetSelection(vector<TParticle> Muons, vector
   }
   return nonbjets;
 }
-bool h2muAnalysis::hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad)
+bool h2muAnalyser::hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad)
 {
   for (auto obj: objects) {
     TLorentzVector mom;
@@ -777,7 +771,7 @@ bool h2muAnalysis::hasOverLap(TLorentzVector cand, vector<TParticle> objects, Fl
   return false;
 }
 
-Double_t h2muAnalysis::roccoR(TLorentzVector m, int &q, int &nGen, int &nTrackerLayers)
+Double_t h2muAnalyser::roccoR(TLorentzVector m, int &q, int &nGen, int &nTrackerLayers)
 {
   Float_t u1 = gRandom->Rndm();
   Float_t u2 = gRandom->Rndm();
