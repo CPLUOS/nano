@@ -3,7 +3,7 @@
 using std::vector;
 
 topObjectSelection::topObjectSelection(TTree *tree, Bool_t isMC, Bool_t _isDilep, Bool_t _isSemiLep) :
-  nanoAnalyser(tree, isMC),
+  nanoBase(tree, isMC),
   isDilep(_isDilep),
   isSemiLep(_isSemiLep)
 {}

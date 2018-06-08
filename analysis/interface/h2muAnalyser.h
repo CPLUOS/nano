@@ -1,8 +1,8 @@
 #ifndef h2muAnalyser_H
 #define h2muAnalyser_H
-#include "nanoAnalyser.h"
+#include "nanoBase.h"
 
-class h2muAnalyser : public nanoAnalyser {
+class h2muAnalyser : public nanoBase {
 private: 
   //histogram
   TH1D* h_Event_Tot;
@@ -101,7 +101,7 @@ public:
   virtual void Loop();
 };
 
-h2muAnalyser::h2muAnalyser(TTree *tree, Bool_t isMC) : nanoAnalyser(tree, isMC)
+h2muAnalyser::h2muAnalyser(TTree *tree, Bool_t isMC) : nanoBase(tree, isMC)
 {
   std::string env = getenv("CMSSW_BASE");
   m_rocCor = new RoccoR(env+"/src/nano/analysis/data/rcdata.2016.v3/");

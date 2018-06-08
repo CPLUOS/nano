@@ -1,11 +1,11 @@
 #ifndef topObjectSelection_H
 #define topObjectSelection_H
 
-#include "nanoAnalyser.h"
+#include "nanoBase.h"
 #include "nano/external/interface/TopTriggerSF.h"
 //#include "nano/external/interface/TTbarModeDefs.h"
 
-class topObjectSelection : public nanoAnalyser
+class topObjectSelection : public nanoBase
 {
 protected:
   std::vector<Float_t> b_csvweights;
