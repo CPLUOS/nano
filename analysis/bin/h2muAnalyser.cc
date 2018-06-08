@@ -604,7 +604,7 @@ int main(Int_t argc, Char_t** argv)
       temp = argv[i];
       found = temp.find_last_of('/');
       string outPutName = dirName+temp.substr(found);
-      h2muAnalyser t(tree,0 ,0 , isMC);
+      h2muAnalyser t(tree, isMC);
       t.SetOutput(outPutName);
       t.Loop();
     }
@@ -618,8 +618,8 @@ int main(Int_t argc, Char_t** argv)
     Size_t found = temp.find("Run");
     if(found == string::npos) isMC = true;
     f->GetObject("Events", tree);
-    
-    h2muAnalyser t(tree, 0, 0, isMC);
+
+      h2muAnalyser t(tree, isMC);    
     t.SetOutput("test.root");
     t.Loop();
   }

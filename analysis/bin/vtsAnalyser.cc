@@ -63,7 +63,8 @@ int main(Int_t argc, Char_t** argv) {
     Bool_t isMC = false;
     std::string temp = argv[1];
     Size_t found = temp.find("run");
-    if (found == std::string::npos) isMC = true;
+    Size_t found2 = temp.find("NANOAOD");
+    if (found == std::string::npos || found2 == std::string::npos) isMC = true;
 
     string outFileDir = hostDir+getenv("USER")+"/"+jobName+"/"+sampleName;
     for (Int_t i = 3; i < argc; i++) {
@@ -75,19 +76,17 @@ int main(Int_t argc, Char_t** argv) {
       //NANO
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      auto sampleCheck = string(inFileName).find("NANOAOD");
-      TFile *hadFile(0);
+      TFile *hadFile;
       TTree *hadTree = 0;
-      TFile *hadTruthFile(0);
+      TFile *hadTruthFile;
       TTree *hadTruthTree = 0;
       TString hadFileName = dirName + "/HADAOD/" + fileName;
       TString hadTruthFileName = dirName + "/HADTRUTHAOD/" + fileName;
-      if (sampleCheck == std::string::npos) {
+      if (found2 == std::string::npos) {
         hadFile = TFile::Open(hadFileName, "READ");
         hadTree = (TTree*) hadFile->Get("Events");
         hadTruthFile = TFile::Open(hadTruthFileName, "READ");
         hadTruthTree = (TTree*) hadTruthFile->Get("Events");
-      } else {
       }
       cout << "tree chk : had : " << hadTree << " , hadTruth : " << hadTruthTree << endl;
       vtsAnalyser ana(inTree,hadTree,hadTruthTree,isMC,false,false,false);
