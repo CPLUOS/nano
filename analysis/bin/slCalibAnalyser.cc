@@ -30,7 +30,7 @@ public:
   void setOutput(std::string outputName);
   void setHadInput(TTree *t) { hadt = t; had.Init(hadt); }
 
-  slCalibAnalyser(TTree *tree=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false) : topEventSelectionSL(tree, isMC, sle, slm) {}
+  slCalibAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false) : topEventSelectionSL(tree, had, hadTruth, isMC, sle, slm) {}
   ~slCalibAnalyser() {}
   virtual void Loop();
 };
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    slCalibAnalyser ana(inTree,true,false,false);
+    slCalibAnalyser ana(inTree,0,0,true,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
   } else if (argc > 4) {
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
       hadTree->Add(argv[3]);
     }
     cout << "Running " << inTree.GetEntries() << " entries from " << inTree.GetListOfFiles()->GetEntries() << " files: " << inName << endl;
-    slCalibAnalyser ana(&inTree,isMC,false,false);
+    slCalibAnalyser ana(&inTree,0,0,isMC,false,false);
     if (hadTree) ana.setHadInput(hadTree);
     ana.setOutput(outName);
     ana.Loop();
