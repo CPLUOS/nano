@@ -8,7 +8,7 @@ install:
 
 before_script:
   - docker exec -t cmssw bash -c 'cd ~ && source /opt/cms/cmsset_default.sh &&  scram project CMSSW CMSSW_9_4_6'
-  - docker exec -t cmssw bash -c 'mkdir ~/CMSSW_9_4_6/src/nano && ln -s /travis ~/CMSSW_9_4_6/src/nano/testrepo'
+  - docker exec -t cmssw bash -c 'ln -s /travis ~/CMSSW_9_4_6/src/nano'
   
 script:
   - docker exec -it cmssw bash -c 'cd ~/CMSSW_9_4_6/src && source /opt/cms/cmsset_default.sh; eval `scram runtime -sh` && scram build'
