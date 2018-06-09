@@ -1,0 +1,14 @@
+sudo: required
+services:
+  - docker
+
+install:
+  - docker run -d --name cmssw -v $(pwd):/travis watsonianj/cmssw:CMSSW_9_4_6_slim tail -f /dev/null
+  - docker ps
+
+before_script:
+  - docker exec -t cmssw bash -c 'cd ~ && source /opt/cms/cmsset_default.sh &&  scram project CMSSW CMSSW_9_4_6'
+  - docker exec -t cmssw bash -c 'ln -s /travis ~/CMSSW_9_4_6/src/nano'
+  
+script:
+  - docker exec -it cmssw bash -c 'cd ~/CMSSW_9_4_6/src && source /opt/cms/cmsset_default.sh; eval `scram runtime -sh` && scram build'
