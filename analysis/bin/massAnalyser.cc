@@ -240,9 +240,9 @@ void massAnalyser::cmesonSelection() {
   if (nhad < 1) return;
 
   TLorentzVector vecSumDMLep1, vecSumDMLep2;
-  float fMDMLep1, fMDMLep2;
+  /*float fMDMLep1, fMDMLep2;
   float fDeltaEta, fDeltaPhi;
-  float fSqrtdRMLep1, fSqrtdRMLep2;
+  float fSqrtdRMLep1, fSqrtdRMLep2;*/
 
   for (UInt_t i = 0; i < nhad; ++i) {
     TLorentzVector d0_tlv;
