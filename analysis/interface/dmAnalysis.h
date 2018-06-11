@@ -1,8 +1,8 @@
 #ifndef dmAnalysis_H
 #define dmAnalysis_H
-#include "nanoAnalysis.h"
+#include "nanoBase.h"
 
-class dmAnalysis : public nanoAnalysis { 
+class dmAnalysis : public nanoBase { 
 private:
   TFile* m_output;
   TTree* m_tree;
@@ -55,7 +55,7 @@ public:
 
 };
 
-dmAnalysis::dmAnalysis(TTree *tree, Bool_t isMC) : nanoAnalysis(tree, isMC)
+dmAnalysis::dmAnalysis(TTree *tree, Bool_t isMC) : nanoBase(tree, isMC)
 {
 
   std::string env = getenv("CMSSW_BASE");
