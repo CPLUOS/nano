@@ -28,7 +28,6 @@ void massAnalyser::Loop() {
     cmesonSelection();
     if (keep != 0) {
       collectTMVAvalues();
-      m_tree->Fill();
     }
   }
 }
@@ -87,6 +86,8 @@ int main(int argc, char* argv[]) {
 
 void massAnalyser::collectTMVAvalues() {
   for (UInt_t i=0; i < nhad; ++i) {
+    if (abs(had_pdgId[i]) != 421) continue;
+    b_cme_pdgId = had_pdgId[i];
     b_cme_lxy = had_lxy[i];
     b_cme_lxyE = had_lxy[i] / had_lxyErr[i];
     b_cme_l3D = had_l3D[i];
@@ -118,7 +119,6 @@ void massAnalyser::collectTMVAvalues() {
     b_cme_dau2_nHits = had_dau2_nHits[i];
     b_cme_dau2_pt = had_dau2_pt[i];
     b_cme_mass = had_mass[i];
-    b_cme_pdgId = had_pdgId[i];
     b_cme_tmva_bdtg = bdtg->EvaluateMVA("BDTG");
     //b_cme_nMatched = hadTruth_nMatched[i];
     if (b_cme_tmva_bdtg > b_bdtg) {
@@ -188,10 +188,10 @@ void massAnalyser::MakeBranch(TTree* t) {
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("nbjet", &b_nbjet, "nbjet/I");
   
-  m_tree->Branch("lep1", "TLorentzVector", &b_lep1);
-  m_tree->Branch("lep1_pid", &b_lep1_pid, "lep1_pid/I");    
-  m_tree->Branch("lep2", "TLorentzVector", &b_lep2);
-  m_tree->Branch("lep2_pid", &b_lep2_pid, "lep2_pid/I");    
+  t->Branch("lep1", "TLorentzVector", &b_lep1);
+  t->Branch("lep1_pid", &b_lep1_pid, "lep1_pid/I");    
+  t->Branch("lep2", "TLorentzVector", &b_lep2);
+  t->Branch("lep2_pid", &b_lep2_pid, "lep2_pid/I");    
   t->Branch("dilep", "TLorentzVector", &b_dilep);
   t->Branch("tri", &b_tri, "tri/F");
   t->Branch("tri_up", &b_tri_up, "tri_up/F");
@@ -252,7 +252,7 @@ void massAnalyser::cmesonSelection() {
     sort(d0s.begin(), d0s.end(), [](const TLorentzVector& a, const TLorentzVector& b){return a.Pt() > b.Pt();});
     d0s.erase(d0s.begin()+1, d0s.end());
     b_d0 = d0s[0];
-
+    /*
     vecSumDMLep1 = b_lep1 + b_d0;
     vecSumDMLep2 = b_lep2 + b_d0;
     fMDMLep1 = vecSumDMLep1.M();
@@ -266,6 +266,6 @@ void massAnalyser::cmesonSelection() {
     fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
 
     b_d0_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
-    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
+    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));*/
   }
 }
