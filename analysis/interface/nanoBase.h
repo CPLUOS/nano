@@ -1,5 +1,5 @@
-#ifndef nanoAnalysis_H
-#define nanoAnalysis_H
+#ifndef nanoBase_H
+#define nanoBase_H
 
 #include "Events.h"
 
@@ -25,11 +25,12 @@
 #include "TMVA/DataLoader.h"
 #include "TMVA/MethodCuts.h"
 
-class nanoAnalysis : public Events
+class nanoBase : public Events
 {
 public:
-  nanoAnalysis(TTree *tree=0, Bool_t isMC=false);
-  virtual ~nanoAnalysis();
+  nanoBase(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC=false);
+  nanoBase(TTree *tree, Bool_t isMC=false) : nanoBase(tree,0,0,isMC) {}
+  virtual ~nanoBase();
   virtual void Loop() = 0;
 
   //Output Variables

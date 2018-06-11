@@ -1,17 +1,17 @@
-#include "nano/analysis/interface/semiLepTopAnalysis.h"
+#include "nano/analysis/interface/topEventSelectionSL.h"
 
 using std::vector;
 
-semiLepTopAnalysis::semiLepTopAnalysis(TTree *tree, Bool_t isMC, Bool_t sle, Bool_t slm) :
-  topAnalysis(tree, isMC, false, true),
+topEventSelectionSL::topEventSelectionSL(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t sle, Bool_t slm) :
+  topObjectSelection(tree, had, hadTruth, isMC, false, true),
   m_isSL_e(sle),
   m_isSL_m(slm) {
 }
 
-semiLepTopAnalysis::~semiLepTopAnalysis() {
+topEventSelectionSL::~topEventSelectionSL() {
 }
 
-void semiLepTopAnalysis::Reset() {
+void topEventSelectionSL::Reset() {
   b_step = 0;
 
   b_channel = -9; 
@@ -28,7 +28,7 @@ void semiLepTopAnalysis::Reset() {
   b_csvweights.clear();
 }
 
-int semiLepTopAnalysis::EventSelection() {
+int topEventSelectionSL::EventSelection() {
   b_step = 0;
   h_cutFlow->Fill(0);
   h_cutFlowEl->Fill(0);

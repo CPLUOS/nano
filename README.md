@@ -1,4 +1,9 @@
+# CPLUOS NanoAOD Analysers
+
+[![Build Status](https://travis-ci.org/CPLUOS/nano.svg?branch=master)](https://travis-ci.org/CPLUOS/nano)
+
 # nanoAOD setup
+
 quick setup for analysis
 ```
 scram p -n nanoAOD CMSSW CMSSW_9_4_4

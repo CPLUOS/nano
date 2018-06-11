@@ -1,12 +1,10 @@
-#include "nano/analysis/interface/nanoAnalysis.h"
+#include "nano/analysis/interface/nanoBase.h"
 
 using std::string;
 
-nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC)
-{
+nanoBase::nanoBase(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) : Events(tree, had, hadTruth), m_isMC(isMC) {
   m_pileUp = new pileUpTool();
   string env = getenv("CMSSW_BASE");
-  string username = getenv("USER");
   m_lumi = new lumiTool(env+"/src/nano/analysis/data/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt");
   string csvFileName = "CSVv2_Moriond17_B_H.csv";
   std::string csvFile = env+"/src/nano/analysis/data/btagSF/"+csvFileName;
@@ -15,10 +13,9 @@ nanoAnalysis::nanoAnalysis(TTree *tree, Bool_t isMC) : Events(tree), m_isMC(isMC
   m_btagSF.load(calib, BTagEntry::FLAV_B, "mujets");
 }
 
-nanoAnalysis::~nanoAnalysis()
-{
+nanoBase::~nanoBase() {
  m_output->Write();
  m_output->Close();
 }
 
-void nanoAnalysis::Loop(){};
+void nanoBase::Loop(){};
