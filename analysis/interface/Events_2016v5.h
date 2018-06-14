@@ -26,8 +26,9 @@ public :
    // Declaration of leaf types
    UInt_t          run;
    UInt_t          luminosityBlock;
-   Float_t         btagWeight_CSVV2;
    ULong64_t       event;
+   Float_t         btagWeight_CSVV2;
+   Float_t         btagWeight_CMVA;
    Float_t         CaloMET_phi;
    Float_t         CaloMET_pt;
    Float_t         CaloMET_sumEt;
@@ -1030,8 +1031,9 @@ public :
    // List of branches
    TBranch        *b_run;   //!
    TBranch        *b_luminosityBlock;   //!
-   TBranch        *b_btagWeight_CSVV2;   //!
    TBranch        *b_event;   //!
+   TBranch        *b_btagWeight_CSVV2;   //!
+   TBranch        *b_btagWeight_CMVA;   //!
    TBranch        *b_CaloMET_phi;   //!
    TBranch        *b_CaloMET_pt;   //!
    TBranch        *b_CaloMET_sumEt;   //!
@@ -2106,8 +2108,9 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
 
    fChain->SetBranchAddress("run", &run, &b_run);
    fChain->SetBranchAddress("luminosityBlock", &luminosityBlock, &b_luminosityBlock);
-   fChain->SetBranchAddress("btagWeight_CSVV2", &btagWeight_CSVV2, &b_btagWeight_CSVV2);
    fChain->SetBranchAddress("event", &event, &b_event);
+   fChain->SetBranchAddress("btagWeight_CSVV2", &btagWeight_CSVV2, &b_btagWeight_CSVV2);
+   fChain->SetBranchAddress("btagWeight_CMVA", &btagWeight_CMVA, &b_btagWeight_CMVA);
    fChain->SetBranchAddress("CaloMET_phi", &CaloMET_phi, &b_CaloMET_phi);
    fChain->SetBranchAddress("CaloMET_pt", &CaloMET_pt, &b_CaloMET_pt);
    fChain->SetBranchAddress("CaloMET_sumEt", &CaloMET_sumEt, &b_CaloMET_sumEt);
