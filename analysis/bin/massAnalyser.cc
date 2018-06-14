@@ -6,7 +6,7 @@
 #include <cstdlib>
 using namespace std;
 
-massAnalyser::massAnalyser(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, isMC, dl, sle, slm)
+massAnalyser::massAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, had, hadTruth, isMC, dl, sle, slm)
 {
 }
 

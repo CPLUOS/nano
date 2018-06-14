@@ -612,8 +612,8 @@ int main(Int_t argc, Char_t** argv)
     Size_t found = temp.find("Run");
     if(found == string::npos) isMC = true;
     f->GetObject("Events", tree);
-    
-    h2muAnalyser t(tree, isMC);
+
+      h2muAnalyser t(tree, isMC);    
     t.SetOutput("test.root");
     t.Loop();
   }
