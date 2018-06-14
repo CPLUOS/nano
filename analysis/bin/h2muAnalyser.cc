@@ -134,7 +134,6 @@ void h2muAnalyser::MakeBranch(TTree* t)
  
   t->Branch("nonbJet_eta", "std::vector<float>", &b_nonbJet_Eta);
   t->Branch("nonbJet_phi", "std::vector<float>", &b_nonbJet_Phi);
-  t->Branch("btagweight", &b_btagweight, "btagweight/F");
   t->Branch("genweight", &b_genweight, "genweight/F");
   t->Branch("puweight", &b_puweight, "puweight/F");
   
@@ -289,7 +288,6 @@ bool h2muAnalyser::Analysis()
     b_puweight = m_pileUp->getWeight(nvtx);
     b_puweight_up = m_pileUp->getWeight(nvtx, 1);
     b_puweight_dn = m_pileUp->getWeight(nvtx, -1);
-    b_btagweight = btagWeight_CSVV2;
     b_genweight = genWeight;
     h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
@@ -297,7 +295,6 @@ bool h2muAnalyser::Analysis()
   } else {
     b_puweight = 1;
     b_genweight = 0;
-    b_btagweight = 0;
     if (!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
   }
   b_Step = 1;
