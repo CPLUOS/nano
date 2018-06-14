@@ -27,7 +27,7 @@ private:
   void resetBranch();
   bool analysis();
 
-  enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU, CH_ZJets, CH_WJets };
+  enum DMChannel { CH_NOLL = 0, CH_ZJets, CH_WJets };
 
   Bool_t LumiCheck();
   std::vector<TParticle> muonSelection();
@@ -48,7 +48,7 @@ public:
 
 };
 
-dmAnalysis::dmAnalysis(TTree *tree, Bool_t isMC) : nanoBase(tree, isMC)
+dmAnalysis::dmAnalysis(TTree *tree, Bool_t isMC) : nanoBase(tree, 0, 0, isMC)
 {
   std::string env = getenv("CMSSW_BASE");
 }

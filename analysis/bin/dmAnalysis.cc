@@ -119,8 +119,10 @@ vector<TParticle> dmAnalysis::bjetvetoSelection()
 
 bool dmAnalysis::analysis()
 {
-
+  //bool m_isMC;
+  //cout << m_isMC << endl;
   if (m_isMC) {
+    cout << genWeight << endl;
     Int_t nvtx = Pileup_nTrueInt;
     b_puweight = m_pileUp->getWeight(nvtx);
 
@@ -128,13 +130,16 @@ bool dmAnalysis::analysis()
     h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
     h_weights->Fill(0.5, b_weight);
+    
   }
   else
   {
     b_puweight = 1;
     b_genweight = 0;
-    if (!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
+    //if (!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
+    //cout << "nono: " << b_puweight << ", " <<  b_genweight << endl;
   }
+  //cout << "np" << endl;
   h_nevents->Fill(0.5,b_genweight*b_puweight);
 
   // if (std::abs(PV_z) >= 24.) return false;
@@ -184,8 +189,9 @@ bool dmAnalysis::analysis()
   // Triggers
   b_trigger_dm = HLT_PFMETNoMu120_PFMHTNoMu120_IDTight;
 
-  if (!(b_trigger_dm)) return false;
-  
+  //Bool_t PFMETNoMu120_PFMHTNoMu120_IDTight = false; 
+  //if (!(b_trigger_dm)) return false;
+  //if (!PFMETNoMu120_PFMHTNoMu120_IDTight) return false;
   if (b_channel == CH_ZJets) {
     if (abs(b_dimu.M()-90) > 30) return false; 
   }
@@ -236,35 +242,35 @@ bool dmAnalysis::analysis()
   }
 
   // CR2
-  if (b_mpt < 250) return false;
-  b_step6 = true;
-  if (b_step == 5){
-    ++b_step;
-  }
+  //if (b_mpt < 250) return false;
+  //b_step6 = true;
+  //if (b_step == 5){
+  //  ++b_step;
+  //}
 
-  // CR3
-  recojet1 = jets[0]; 
-  recojet2 = jets[1];
+  //// CR3
+  //recojet1 = jets[0]; 
+  //recojet2 = jets[1];
 
-  recojet1.Momentum(b_jet1);
-  recojet2.Momentum(b_jet2);
+  //recojet1.Momentum(b_jet1);
+  //recojet2.Momentum(b_jet2);
 
 
-  recojets.push_back(b_jet1);
-  recojets.push_back(b_jet2);
+  //recojets.push_back(b_jet1);
+  //recojets.push_back(b_jet2);
 
-  b_dijet = b_jet1 + b_jet2;
+  //b_dijet = b_jet1 + b_jet2;
  
-  b_eta2 = recojet1.Eta()*recojet2.Eta();
-  b_dEta = recojet1.Eta()-recojet2.Eta();
+  //b_eta2 = recojet1.Eta()*recojet2.Eta();
+  //b_dEta = recojet1.Eta()-recojet2.Eta();
 
-  if (b_eta2 >= 0) return false;
-  if (abs(b_dEta) < 3.8) return false;
-  if (b_dijet.M() < 1000) return false; 
-  b_step7 = true;
-  if (b_step == 6){
-    ++b_step;
-  }
+  //if (b_eta2 >= 0) return false;
+  //if (abs(b_dEta) < 3.8) return false;
+  //if (b_dijet.M() < 1000) return false; 
+  //b_step7 = true;
+  //if (b_step == 6){
+  //  ++b_step;
+  //}
 
   return true;
 }
@@ -280,11 +286,13 @@ void dmAnalysis::Loop()
     resetBranch();
     fChain->GetEntry(iev);
     bool keep = analysis();
-    //cout << keep << endl;
+    if (keep ==1 ) cout << keep << endl;
     if (keep){
-      m_tree->Fill();
+    m_tree->Fill();
     }
   }
+
+  //m_output->Write();
 }
 
 
@@ -318,8 +326,8 @@ int main(Int_t argc, Char_t** argv)
 
   else
   {
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
-    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/VBF-C1N2_WZ_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUSummer16Fast_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_151009/0000/nanoAOD_167.root", "read");
+    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/VBF-C1N2_WZ_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUSummer16Fast_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_151009/0000/nanoAOD_167.root", "read");
     TTree *tree;
     Bool_t isMC = false;
     string temp = "Run";
