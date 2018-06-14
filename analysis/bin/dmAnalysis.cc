@@ -2,7 +2,6 @@
 #include "nano/analysis/interface/dmAnalysis.h"
 #include <TH2.h>
 #include <TCanvas.h>
-#include <TCanvas.h>
 #include <iostream>
 #include <cstdlib>
 
@@ -63,6 +62,7 @@ vector<TParticle> dmAnalysis::tauvetoSelection()
         if (mom.TLorentzVector::DeltaR(lep) < 0.3) hasOverLap = true;
     }
     if (hasOverLap) continue;
+    recoleps.push_back(mom);
     auto tauveto = TParticle();
     tauveto.SetPdgCode(15*Tau_charge[i]*-1);
     tauveto.SetMomentum(mom);
@@ -122,17 +122,18 @@ bool dmAnalysis::analysis()
 
   if (m_isMC) {
     Int_t nvtx = Pileup_nTrueInt;
-    b_puweight = dm_pileUp->getWeight(nvtx);
+    b_puweight = m_pileUp->getWeight(nvtx);
 
     b_genweight = genWeight;
     h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
+    h_weights->Fill(0.5, b_weight);
   }
   else
   {
     b_puweight = 1;
     b_genweight = 0;
-    if (!(dm_lumi->LumiCheck(run, luminosityBlock))) return false;
+    if (!(m_lumi->LumiCheck(run, luminosityBlock))) return false;
   }
   h_nevents->Fill(0.5,b_genweight*b_puweight);
 
@@ -268,24 +269,16 @@ bool dmAnalysis::analysis()
   return true;
 }
 
-void dmAnalysis::LoadModules(pileUpTool* pileUp, lumiTool* lumi)
-{
-  dm_lumi = lumi;
-  dm_pileUp = pileUp;
-}
 
 void dmAnalysis::Loop()
 {
   if (fChain == 0) return;
+  
   Long64_t nentries = fChain->GetEntries();
-  Long64_t nbytes = 0, nb = 0;
 
-  for (Long64_t jentry=0; jentry<nentries;jentry++){
+  for (Long64_t iev=0; iev<nentries; iev++){
     resetBranch();
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry); nbytes += nb;
-    
+    fChain->GetEntry(iev);
     bool keep = analysis();
     //cout << keep << endl;
     if (keep){
@@ -295,18 +288,18 @@ void dmAnalysis::Loop()
 }
 
 
-int main(int argc, char* argv[])
+int main(Int_t argc, Char_t** argv)
+//int main(int argc, char* argv[])
 {
   string env = getenv("CMSSW_BASE");
   string username = getenv("USER");
-  lumiTool* lumi = new lumiTool(env+"/src/nano/analysis/data/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt");
-  pileUpTool* pileUp = new pileUpTool();
   
   if(argc != 1){
-    std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/"+username+"/nanoAOD/"+std::string(argv[1])+"/"+std::string(argv[2]);
-    std::string temp = argv[2];
+    string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/"+username+"/nanoAOD/"+std::string(argv[1])+"/"+std::string(argv[2]);
+    string temp = argv[2];
     Bool_t isMC = false;
     Size_t found = temp.find("Run");
+    if(found == string::npos) isMC = true;
     for(Int_t i = 3; i < argc; i++){
       TFile *f = TFile::Open(argv[i], "read");
       TTree *tree;
@@ -317,7 +310,7 @@ int main(int argc, char* argv[])
       std::string outPutName = dirName+temp.substr(found);
       dmAnalysis t(tree, isMC);
 
-      t.LoadModules(pileUp, lumi);
+      //t.LoadModules(pileUp, lumi);
       t.setOutput(outPutName);
       t.Loop();
     }
@@ -325,12 +318,17 @@ int main(int argc, char* argv[])
 
   else
   {
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_581.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
+    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/VBF-C1N2_WZ_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUSummer16Fast_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_151009/0000/nanoAOD_167.root", "read");
     TTree *tree;
+    Bool_t isMC = false;
+    string temp = "Run";
+    Size_t found = temp.find("Run");
+    if(found == string::npos) isMC = true;
     f->GetObject("Events", tree);
 
-    dmAnalysis t(tree, true);
-    t.LoadModules(pileUp, lumi);
+    dmAnalysis t(tree, isMC);
+    //t.LoadModules(pileUp, lumi);
     t.setOutput("test.root");
     t.Loop();
   }
@@ -361,34 +359,33 @@ void dmAnalysis::MakeBranch(TTree* t)
   t->Branch("ntau", &b_ntau, "ntau/I");
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("nbjet", &b_nbjet, "nbjet/I");
-  t->Branch("step1", &b_step1, "step1/I");
-  t->Branch("step2", &b_step2, "step2/I");
-  t->Branch("step3", &b_step3, "step3/I");
-  t->Branch("step4", &b_step4, "step4/I");
-  t->Branch("step5", &b_step5, "step5/I");
-  t->Branch("step6", &b_step6, "step6/I");
-  t->Branch("step7", &b_step7, "step7/I");
-  t->Branch("tri", &b_trigger_dm, "tri/F");
+  t->Branch("step1", &b_step1, "step1/O");
+  t->Branch("step2", &b_step2, "step2/O");
+  t->Branch("step3", &b_step3, "step3/O");
+  t->Branch("step4", &b_step4, "step4/O");
+  t->Branch("step5", &b_step5, "step5/O");
+  t->Branch("step6", &b_step6, "step6/O");
+  t->Branch("step7", &b_step7, "step7/O");
+  t->Branch("tri", &b_trigger_dm, "tri/O");
   t->Branch("mpt", &b_mpt, "mpt/F");
   t->Branch("eta2", &b_eta2, "eta2/F");
   t->Branch("dEta", &b_dEta, "dEta/F");
 
-  m_tree->Branch("mu1", "TLorentzVector", &b_mu1);
-  m_tree->Branch("mu2", "TLorentzVector", &b_mu2);
-  m_tree->Branch("met1", "TLorentzVector", &b_met1);
-  m_tree->Branch("elec", "TLorentzVector", &b_elec);
+  t->Branch("mu1", "TLorentzVector", &b_mu1);
+  t->Branch("mu2", "TLorentzVector", &b_mu2);
+  t->Branch("met1", "TLorentzVector", &b_met1);
+  t->Branch("elec", "TLorentzVector", &b_elec);
   t->Branch("dimu", "TLorentzVector", &b_dimu);
   t->Branch("mume", "TLorentzVector", &b_mume);
   
-  m_tree->Branch("jet1", "TLorentzVector", &b_jet1);
-  m_tree->Branch("jet2", "TLorentzVector", &b_jet2);
+  t->Branch("jet1", "TLorentzVector", &b_jet1);
+  t->Branch("jet2", "TLorentzVector", &b_jet2);
   t->Branch("dijet", "TLorentzVector", &b_dijet);
 
   t->Branch("weight", &b_weight, "weight/F");
   t->Branch("puweight", &b_puweight, "puweight/F");
   t->Branch("genweight", &b_genweight, "genweight/F");
   t->Branch("csvweight", &b_csvweights, "csvweight/F");
-  t->Branch("genweight", &b_genweight, "genweight/F");
   //dm->Branch("PV_npvs", &PV_npvs, "PV_npvs/F");
 }
 

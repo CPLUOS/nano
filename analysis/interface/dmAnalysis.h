@@ -4,8 +4,6 @@
 
 class dmAnalysis : public nanoBase { 
 private:
-  TFile* m_output;
-  TTree* m_tree;
 
   TH1D* h_nevents;  
   TH1D* h_genweights;  
@@ -25,14 +23,11 @@ private:
   Bool_t b_trigger_dm;
 
 
-  pileUpTool* dm_pileUp;
-  lumiTool* dm_lumi;
-
   void MakeBranch(TTree* t);
   void resetBranch();
   bool analysis();
 
-  enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_ZJets, CH_WJets };
+  enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU, CH_ZJets, CH_WJets };
 
   Bool_t LumiCheck();
   std::vector<TParticle> muonSelection();
@@ -46,24 +41,19 @@ private:
 
 public:
 
-  void setOutput(std::string outputName);
-  void LoadModules(pileUpTool* pileUp, lumiTool* lumi);
-  
   dmAnalysis(TTree *tree=0, Bool_t isMC = false);
   ~dmAnalysis();
+  void setOutput(std::string outputName);
   virtual void Loop();
 
 };
 
 dmAnalysis::dmAnalysis(TTree *tree, Bool_t isMC) : nanoBase(tree, isMC)
 {
-
   std::string env = getenv("CMSSW_BASE");
 }
 
 dmAnalysis::~dmAnalysis()
 {
-  // m_output->Write();
-  // m_output->Close();
 }
 #endif
