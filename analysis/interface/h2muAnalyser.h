@@ -22,6 +22,7 @@ private:
   
   std::vector<Float_t> b_CSVv2;
   std::vector<Float_t> b_csvweights;
+  std::vector<Float_t> b_Jet_pu;
   std::vector<Float_t> b_Jet_pT;
   std::vector<Float_t> b_Jet_Eta;
   std::vector<Float_t> b_Jet_Phi;
@@ -35,8 +36,6 @@ private:
   Float_t b_btagweight, b_btagweight_up, b_btagweight_dn;
 
   Int_t b_Event_No, b_Event_Total;
-  Float_t b_test_njet, b_test_nmuon;
-  Int_t b_block;
   // BDT Variables
   Float_t b_Central_Jets, b_Forward_Jets; 
   // all
