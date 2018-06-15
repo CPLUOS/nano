@@ -9,7 +9,12 @@ inline bool exists_test (string& name) {
   return f.good();
 }
 
-nanoBase::nanoBase(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) : Events(tree, had, hadTruth), m_isMC(isMC) {
+nanoBase::nanoBase(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) :
+  Events(tree, had, hadTruth),
+  m_output(0),
+  m_tree(0),
+  m_isMC(isMC)
+{
   m_pileUp = new pileUpTool();
   string env = getenv("CMSSW_BASE");
   string lumi = env+"/src/nano/analysis/data/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt";
@@ -26,9 +31,14 @@ nanoBase::nanoBase(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) : Even
   m_btagSF.load(calib, BTagEntry::FLAV_B, "mujets");
 }
 
-nanoBase::~nanoBase() {
- m_output->Write();
- m_output->Close();
+nanoBase::~nanoBase()
+{
+  if (m_output) {
+    m_output->Write();
+    m_output->Close();
+  }
 }
 
-void nanoBase::Loop(){};
+void nanoBase::Loop()
+{
+}
