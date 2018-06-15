@@ -33,9 +33,9 @@ public:
   virtual ~nanoBase();
   virtual void Loop() = 0;
 
-  //Output Variables
+  // Output Variables
   TFile* m_output;
-  //Tree
+  // Tree
   TTree* m_tree;
 
   pileUpTool* m_pileUp;

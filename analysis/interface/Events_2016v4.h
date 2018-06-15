@@ -3048,6 +3048,7 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
    fChain->SetBranchAddress("Flag_trkPOG_toomanystripclus53X", &Flag_trkPOG_toomanystripclus53X, &b_Flag_trkPOG_toomanystripclus53X);
    fChain->SetBranchAddress("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, &b_Flag_trkPOG_logErrorTooManyClusters);
    fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
+   nhad = 0;
    if (h_fChain) {
      h_fChain->SetBranchAddress("nhad_jet", &nhad_jet, &b_nhad_jet);
      h_fChain->SetBranchAddress("had_jet_btagCMVA", had_jet_btagCMVA, &b_had_jet_btagCMVA);

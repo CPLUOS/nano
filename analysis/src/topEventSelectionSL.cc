@@ -4,14 +4,22 @@ using std::vector;
 
 topEventSelectionSL::topEventSelectionSL(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t sle, Bool_t slm) :
   topObjectSelection(tree, had, hadTruth, isMC, false, true),
+  h_nevents(0),
+  h_genweights(0),
+  h_cutFlow(0),
+  h_cutFlowEl(0),
+  h_cutFlowMu(0),
   m_isSL_e(sle),
-  m_isSL_m(slm) {
+  m_isSL_m(slm)
+{
 }
 
-topEventSelectionSL::~topEventSelectionSL() {
+topEventSelectionSL::~topEventSelectionSL()
+{
 }
 
-void topEventSelectionSL::Reset() {
+void topEventSelectionSL::Reset()
+{
   b_step = 0;
 
   b_channel = -9; 
@@ -28,11 +36,12 @@ void topEventSelectionSL::Reset() {
   b_csvweights.clear();
 }
 
-int topEventSelectionSL::EventSelection() {
+int topEventSelectionSL::EventSelection()
+{
   b_step = 0;
-  h_cutFlow->Fill(0);
-  h_cutFlowEl->Fill(0);
-  h_cutFlowMu->Fill(0);
+  if (h_cutFlow) h_cutFlow->Fill(0);
+  if (h_cutFlowEl) h_cutFlowEl->Fill(0);
+  if (h_cutFlowMu) h_cutFlowMu->Fill(0);
 
   //Run for MC
   if (m_isMC) {
@@ -40,7 +49,7 @@ int topEventSelectionSL::EventSelection() {
     b_puweight = m_pileUp->getWeight(nvtx);
 
     b_genweight = genWeight;
-    h_genweights->Fill(0.5, b_genweight);
+    if (h_genweights) h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
   } else {
     b_puweight = 1;
@@ -48,15 +57,15 @@ int topEventSelectionSL::EventSelection() {
     if (!(m_lumi->LumiCheck(run, luminosityBlock))) return b_step;
   }
 
-  h_nevents->Fill(0.5, b_genweight*b_puweight);
+  if (h_nevents) h_nevents->Fill(0.5, b_genweight*b_puweight);
 
-  h_cutFlow->Fill(1);
+  if (h_cutFlow) h_cutFlow->Fill(1);
 
   if (std::abs(PV_z) >= 24.) return b_step;
   if (PV_npvs == 0) return b_step;
   if (PV_ndof < 4) return b_step;
 
-  h_cutFlow->Fill(2);
+  if (h_cutFlow) h_cutFlow->Fill(2);
 
   //Triggers
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
@@ -99,10 +108,10 @@ int topEventSelectionSL::EventSelection() {
 
   if (muons.size() + elecs.size() != 1) return b_step;
   b_step = 1;
-  h_cutFlow->Fill(3);
+  if (h_cutFlow) h_cutFlow->Fill(3);
 
-  TH1D *h_cutFlowLep = (elecs.size() == 1) ? h_cutFlowEl : h_cutFlowMu;
-  h_cutFlowLep->Fill(1);
+  TH1D * h_cutFlowLep = (elecs.size() == 1) ? h_cutFlowEl : h_cutFlowMu;
+  if (h_cutFlowLep) h_cutFlowLep->Fill(1);
   
   if (muons.size() == 1) {
       recolep = muons[0];
@@ -127,19 +136,19 @@ int topEventSelectionSL::EventSelection() {
     return b_step;
   
   b_step = 2;
-  h_cutFlow->Fill(4);
-  h_cutFlowLep->Fill(2);
+  if (h_cutFlow) h_cutFlow->Fill(4);
+  if (h_cutFlowLep) h_cutFlowLep->Fill(2);
 
   if (b_njet > 0) {
     b_step = 3;
-    h_cutFlow->Fill(5);
-    h_cutFlowLep->Fill(3);
+    if (h_cutFlow) h_cutFlow->Fill(5);
+    if (h_cutFlowLep) h_cutFlowLep->Fill(3);
   } else return b_step;
   
   if (b_nbjet > 0) {
     b_step = 4;
-    h_cutFlow->Fill(6);
-    h_cutFlowLep->Fill(4);
+    if (h_cutFlow) h_cutFlow->Fill(6);
+    if (h_cutFlowLep) h_cutFlowLep->Fill(4);
   } else return b_step;
 
   return b_step;
