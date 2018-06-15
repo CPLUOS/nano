@@ -1,4 +1,4 @@
-#include "nano/analysis/interface/massAnalysis.h"
+#include "nano/analysis/interface/massAnalyser.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -6,29 +6,25 @@
 #include <cstdlib>
 using namespace std;
 
-massAnalysis::massAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : dilepTopAnalysis(tree, isMC, dl, sle, slm)
+massAnalyser::massAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, had, hadTruth, isMC, dl, sle, slm)
 {
 }
 
-massAnalysis::~massAnalysis()
+massAnalyser::~massAnalyser()
 {
 }
 
-void massAnalysis::Loop() {
+void massAnalyser::Loop() {
   if (fChain == 0) return;
 
   Long64_t nentries = fChain->GetEntries();
-  Long64_t nbytes = 0, nb = 0;
   
-  for (Long64_t jentry = 0; jentry < nentries; jentry++) {
-    //Prepare for new loop
+  // Events loop
+  for (Long64_t iev=0; iev<nentries; iev++) {
     Reset();
     resetBranch();
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry);
-    nbytes += nb;
-    int keep = EventSelection(); 
+    fChain->GetEntry(iev);
+    int keep = EventSelection();
     cmesonSelection();
     if (keep != 0) {
       collectTMVAvalues();
@@ -70,7 +66,7 @@ int main(int argc, char* argv[]) {
       temp = argv[i];   
       found = temp.find_last_of('/');
       std::string outPutName = dirName + temp.substr(found);
-      massAnalysis t(tree, isMC, isDL, isSL_e, isSL_m);
+      massAnalyser t(tree, isMC, isDL, isSL_e, isSL_m);
       
       t.setOutput(outPutName);
       t.Loop();
@@ -82,14 +78,14 @@ int main(int argc, char* argv[]) {
     TTree *tree;
     f->GetObject("Events", tree);
 
-    massAnalysis t(tree, true);
+    massAnalyser t(tree, true);
     t.setOutput("test.root");
     t.Loop();
   }
   return 0;
 }
 
-void massAnalysis::collectTMVAvalues() {
+void massAnalyser::collectTMVAvalues() {
   for (UInt_t i=0; i < nhad; ++i) {
     b_cme_lxy = had_lxy[i];
     b_cme_lxyE = had_lxy[i] / had_lxyErr[i];
@@ -139,7 +135,7 @@ void massAnalysis::collectTMVAvalues() {
 }
 
 
-void massAnalysis::setOutput(std::string outputName) {
+void massAnalyser::setOutput(std::string outputName) {
   m_output = TFile::Open(outputName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
   MakeBranch(m_tree);
@@ -185,7 +181,7 @@ void massAnalysis::setOutput(std::string outputName) {
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
 }
 
-void massAnalysis::MakeBranch(TTree* t) {
+void massAnalyser::MakeBranch(TTree* t) {
   t->Branch("nvertex", &b_nvertex, "nvertex/I");
   t->Branch("step", &b_step, "step/I");
   t->Branch("channel", &b_channel, "channel/I");
@@ -227,7 +223,7 @@ void massAnalysis::MakeBranch(TTree* t) {
 }
 
 
-void massAnalysis::resetBranch() {
+void massAnalyser::resetBranch() {
   d0s.clear();
 
   b_cme_mass = -999;
@@ -240,7 +236,7 @@ void massAnalysis::resetBranch() {
   b_d0_lepSV_correctM.clear();
 }
 
-void massAnalysis::cmesonSelection() {
+void massAnalyser::cmesonSelection() {
   if (nhad < 1) return;
 
   TLorentzVector vecSumDMLep1, vecSumDMLep2;

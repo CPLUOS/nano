@@ -1,9 +1,9 @@
-#ifndef hadAnalysis_H
-#define hadAnalysis_H
+#ifndef hadAnalyser_H
+#define hadAnalyser_H
 
-#include "dilepTopAnalysis.h"
+#include "topEventSelectionDL.h"
 
-class hadAnalysis : public dilepTopAnalysis 
+class hadAnalyser : public topEventSelectionDL 
 {
 protected:
   //Vriable
@@ -40,12 +40,14 @@ public:
     int idx = -1;
     float dr = -1;
     int matchedQuark = -99;
+    JetStat(int idx, float dr, int matchedQuark): idx(idx), dr(dr), matchedQuark(matchedQuark) {}
   };
   //Function
   Double_t GetD(float pt, float eta, float phi, float m, float vx, float vy, float vz);
 
-  hadAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
-  ~hadAnalysis();
+  hadAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  hadAnalyser(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : hadAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
+  ~hadAnalyser();
   virtual void     Loop();
 };
 #endif

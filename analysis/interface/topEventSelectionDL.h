@@ -1,11 +1,11 @@
-#ifndef dilepTopAnalysis_H
-#define dilepTopAnalysis_H
+#ifndef topEventSelectionDL_H
+#define topEventSelectionDL_H
 
-#include "topAnalysis.h"
+#include "topObjectSelection.h"
 #include "nano/external/interface/TopTriggerSF.h"
 //#include "nano/external/interface/TTbarModeDefs.h"
 
-class dilepTopAnalysis : public topAnalysis
+class topEventSelectionDL : public topObjectSelection
 {
 protected:
   //Histogram
@@ -50,8 +50,9 @@ public:
 
   virtual int EventSelection();
 
-  dilepTopAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
-  ~dilepTopAnalysis();  
+  topEventSelectionDL(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = true, Bool_t sle = false, Bool_t slm = false);
+  topEventSelectionDL(TTree *tree=0, Bool_t isMC=false, Bool_t dl=true, Bool_t sle=false, Bool_t slm=false) : topEventSelectionDL(tree, 0, 0, isMC, dl, sle, slm) {}
+  ~topEventSelectionDL();  
   virtual void Loop() = 0;
 
   void Reset();

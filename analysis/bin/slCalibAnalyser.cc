@@ -2,8 +2,8 @@
 #include <vector>
 #include <TLorentzVector.h>
 
-#include "nano/analysis/interface/semiLepTopAnalysis.h"
-#include "nano/analysis/interface/hadAnalysis.h"
+#include "nano/analysis/interface/topEventSelectionSL.h"
+#include "nano/analysis/interface/hadAnalyser.h"
 #include "nano/analysis/interface/HadTruthEvents.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class slCalibAnalysis : public semiLepTopAnalysis
+class slCalibAnalyser : public topEventSelectionSL
 {
 private:
   //functions
@@ -30,12 +30,12 @@ public:
   void setOutput(std::string outputName);
   void setHadInput(TTree *t) { hadt = t; had.Init(hadt); }
 
-  slCalibAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false) : semiLepTopAnalysis(tree, isMC, sle, slm) {}
-  ~slCalibAnalysis() {}
+  slCalibAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false) : topEventSelectionSL(tree, had, hadTruth, isMC, sle, slm) {}
+  ~slCalibAnalyser() {}
   virtual void Loop();
 };
 
-void slCalibAnalysis::Loop() {
+void slCalibAnalyser::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
 
@@ -66,7 +66,7 @@ void slCalibAnalysis::Loop() {
   }
 }
 
-void slCalibAnalysis::setOutput(std::string outFileName)
+void slCalibAnalyser::setOutput(std::string outFileName)
 {
   m_output = TFile::Open(outFileName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
@@ -81,7 +81,7 @@ void slCalibAnalysis::setOutput(std::string outFileName)
   h_cutFlowMu = new TH1D("cutflowMu", ";step;# events", 11, -0.5, 10.5);
 }
 
-void slCalibAnalysis::MakeBranch(TTree* t)
+void slCalibAnalyser::MakeBranch(TTree* t)
 {
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("step", &b_step, "step/I");
@@ -104,12 +104,12 @@ void slCalibAnalysis::MakeBranch(TTree* t)
   t->Branch("jet_nConstituents", &m_jet_nConstituents, "jet_nConstituents/I");
 }
 
-void slCalibAnalysis::HadronAnalysis()
+void slCalibAnalyser::HadronAnalysis()
 {
   
-  std::vector<hadAnalysis::HadStat> JetCollection;
-  std::vector<hadAnalysis::HadStat> Had;
-  hadAnalysis::HadStat Stat;
+  std::vector<hadAnalyser::HadStat> JetCollection;
+  std::vector<hadAnalyser::HadStat> Had;
+  hadAnalyser::HadStat Stat;
 
   for (unsigned j=0; j < nJet; ++j) {
     Had.clear();
@@ -146,13 +146,13 @@ void slCalibAnalysis::HadronAnalysis()
     }
 
     if (Had.size() != 0 ) {
-      if (Had.size() > 1) sort(Had.begin(), Had.end(), [](hadAnalysis::HadStat a, hadAnalysis::HadStat b) {return a.x > b.x;}); // pick hadron with highest x in the jet
+      if (Had.size() > 1) sort(Had.begin(), Had.end(), [](hadAnalyser::HadStat a, hadAnalyser::HadStat b) {return a.x > b.x;}); // pick hadron with highest x in the jet
       JetCollection.push_back(Had[0]);
     }    
   }
 
   if (JetCollection.size() != 0 ) {
-    if (JetCollection.size() > 1) sort(JetCollection.begin(), JetCollection.end(), [](hadAnalysis::HadStat a, hadAnalysis::HadStat b) {return a.x > b.x;}); // pick jet-hadron pair with highest x
+    if (JetCollection.size() > 1) sort(JetCollection.begin(), JetCollection.end(), [](hadAnalyser::HadStat a, hadAnalyser::HadStat b) {return a.x > b.x;}); // pick jet-hadron pair with highest x
     auto idx = JetCollection[0].idx;
     auto jidx = JetCollection[0].jetIdx;
     m_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
-    slCalibAnalysis ana(inTree,true,false,false);
+    slCalibAnalyser ana(inTree,0,0,true,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
   } else if (argc > 4) {
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
       hadTree->Add(argv[3]);
     }
     cout << "Running " << inTree.GetEntries() << " entries from " << inTree.GetListOfFiles()->GetEntries() << " files: " << inName << endl;
-    slCalibAnalysis ana(&inTree,isMC,false,false);
+    slCalibAnalyser ana(&inTree,0,0,isMC,false,false);
     if (hadTree) ana.setHadInput(hadTree);
     ana.setOutput(outName);
     ana.Loop();

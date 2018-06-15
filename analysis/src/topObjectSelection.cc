@@ -1,14 +1,14 @@
-#include "nano/analysis/interface/topAnalysis.h"
+#include "nano/analysis/interface/topObjectSelection.h"
 
 using std::vector;
 
-topAnalysis::topAnalysis(TTree *tree, Bool_t isMC, Bool_t _isDilep, Bool_t _isSemiLep) :
-  nanoAnalysis(tree, isMC),
+topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t _isDilep, Bool_t _isSemiLep) :
+  nanoBase(tree, had, hadTruth, isMC),
   isDilep(_isDilep),
   isSemiLep(_isSemiLep)
 {}
 
-vector<TParticle> topAnalysis::elecSelection() {
+vector<TParticle> topObjectSelection::elecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
     if (Electron_pt[i] < 20) continue;
@@ -29,7 +29,7 @@ vector<TParticle> topAnalysis::elecSelection() {
   return elecs;
 }
 
-vector<TParticle> topAnalysis::muonSelection() {
+vector<TParticle> topObjectSelection::muonSelection() {
   vector<TParticle> muons; 
   for (UInt_t i = 0; i < nMuon; ++i){
     if (!Muon_tightId[i]) continue;
@@ -52,7 +52,7 @@ vector<TParticle> topAnalysis::muonSelection() {
 }
 
 /// TODO: Implement veto electron selection (currently empty on TTbarXSecSynchronization)
-vector<TParticle> topAnalysis::vetoElecSelection() {
+vector<TParticle> topObjectSelection::vetoElecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
     if (Electron_pt[i] < 20) continue;
@@ -72,7 +72,7 @@ vector<TParticle> topAnalysis::vetoElecSelection() {
   return elecs;
 }
 
-vector<TParticle> topAnalysis::vetoMuonSelection() {
+vector<TParticle> topObjectSelection::vetoMuonSelection() {
   vector<TParticle> muons; 
   for (UInt_t i = 0; i < nMuon; ++i){
     // if (!Muon_looseId[i]) continue;
@@ -96,7 +96,7 @@ vector<TParticle> topAnalysis::vetoMuonSelection() {
   return muons;
 }
 
-vector<TParticle> topAnalysis::jetSelection() {
+vector<TParticle> topObjectSelection::jetSelection() {
   vector<TParticle> jets;
   float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
@@ -123,7 +123,7 @@ vector<TParticle> topAnalysis::jetSelection() {
   return jets;
 }
 
-vector<TParticle> topAnalysis::bjetSelection() {
+vector<TParticle> topObjectSelection::bjetSelection() {
   vector<TParticle> bjets;
   for (UInt_t i = 0; i < nJet; ++i ) {
     if (Jet_pt[i] < 30) continue;
