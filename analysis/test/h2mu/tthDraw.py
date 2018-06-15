@@ -28,7 +28,7 @@ version = os.environ['CMSSW_VERSION']
 user = os.environ['USER']
 
 
-rootfileDir = "/xrootd/store/user/{}/nanoAOD/v5_3/results_merged/tth2mu_".format(user)
+rootfileDir = "/xrootd/store/user/{}/nanoAOD/v5_Pu/results_merged/tth2mu_".format(user)
 #rootfileDir = "%s/src/nano/analysis/topMass/Results/results_merged/topmass_"% os.environ['CMSSW_BASE']
 #rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-3/h2muAnalyzer_"
 #rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
@@ -272,7 +272,6 @@ if dolog == True:
    if "XL" in f_name:
       maxp = 1000000
       minp = 0.005
-   minp = 0.05
    rdhist.SetMinimum(minp)  
    rdhist.SetMaximum(maxp)
 
