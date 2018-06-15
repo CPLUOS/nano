@@ -33,18 +33,19 @@
   <flags CXXFLAGS="-g" />
 </bin>
 
-<<<<<<< HEAD
 <bin name="dmAnalysis" file="dmAnalysis.cc">
-=======
-<bin name="testAnalyser" file="testAnalyser.cc">
->>>>>>> 810ba6e17eae3ec56af434fa6804a61f63488871
   <use name="root"/>
   <use name="rootxml"/>
   <lib name="Eve"/>
   <lib name="EG"/>
   <use name="nano/analysis"/>
-<<<<<<< HEAD
-=======
+</bin>
+
+<bin name="testAnalyser" file="testAnalyser.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
   <flags CXXFLAGS="-g" />
->>>>>>> 810ba6e17eae3ec56af434fa6804a61f63488871
 </bin>
