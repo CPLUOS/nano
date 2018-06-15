@@ -1,0 +1,50 @@
+<bin name="h2muAnalyser" file="h2muAnalyser.cc">
+  <use name="root"/>
+  <lib name="TMVA"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+</bin>
+
+<bin name="massAnalyser" file="massAnalyser.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+  <flags CXXFLAGS="-lTMVA"/>
+</bin>
+
+<bin name="vtsAnalyser" file="vtsAnalyser.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+</bin>
+
+<bin name="slCalibAnalyser" file="slCalibAnalyser.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+  <flags CXXFLAGS="-g" />
+</bin>
+
+<<<<<<< HEAD
+<bin name="dmAnalysis" file="dmAnalysis.cc">
+=======
+<bin name="testAnalyser" file="testAnalyser.cc">
+>>>>>>> 810ba6e17eae3ec56af434fa6804a61f63488871
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+<<<<<<< HEAD
+=======
+  <flags CXXFLAGS="-g" />
+>>>>>>> 810ba6e17eae3ec56af434fa6804a61f63488871
+</bin>
