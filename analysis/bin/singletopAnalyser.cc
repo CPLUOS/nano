@@ -24,6 +24,8 @@ python makejobs.py nanoAOD j`python batch_nanoAOD.py n 2`
 
 class singletopAnalyser : public nanoBase {
 private: 
+  TH1F *m_h1Weights, *m_h1GenWeights;
+  
   TH1F *m_h1CosS;
   TH1F *m_h1CosSReco;
   TH1F *m_h1IsHighPtMuon, *m_h1DRMuon;
@@ -74,12 +76,17 @@ private:
   float b_truthtop1_lowhighNeuPT;
   
   Bool_t b_tri;
-  float b_triw, b_tri_up, b_tri_dn;
+  float b_triw, b_triw_up, b_triw_dn;
   
-  float b_weight, b_puweight, b_genweight;
-  float b_btagweight, b_mueffweight, b_eleffweight;
+  int b_npvs;
+  float b_pvz, b_pv_ndof;
+  
+  float b_weight, b_genweight;
+  float b_puweight, b_puweight_up, b_puweight_dn;
+  float b_btagweight, b_btagweight_up, b_btagweight_dn;
+  float b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
+  float b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
   std::vector<float> b_csvweights;
-  int PV_npvs;
   
   float b_cos_star_gen;
   float b_cos_star_bjet_gen;
@@ -161,6 +168,9 @@ void singletopAnalyser::setOutput(std::string outputName) {
   m_tree = new TTree("event", "event");
   MakeBranch(m_tree);
   
+  m_h1Weights = new TH1F("weight", "weight", 2, -1, 1);
+  m_h1GenWeights = new TH1F("genweight", "genweight", 2, -1, 1);
+  
   m_h1CosS = new TH1F("cos_star", "cos_star", 10, -1, 1);
   m_h1CosSReco = new TH1F("cos_star_reco", "cos_star_reco", 10, -1, 1);
   m_h1IsHighPtMuon = new TH1F("isClosest", "isClosest", 2, 0, 2);
@@ -213,19 +223,35 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("truthtop1_imaginaryOn", &b_truthtop1_imaginaryOn, "truthtop1_imaginaryOn/I");
   t->Branch("truthtop1_lowhighNeuPT", &b_truthtop1_lowhighNeuPT, "truthtop1_lowhighNeuPT/F");
   
-  t->Branch("trigger", &b_triw, "trigger/O");
+  t->Branch("trigger", &b_tri, "trigger/O");
   t->Branch("tri", &b_triw, "tri/F");
-  t->Branch("tri_up", &b_tri_up, "tri_up/F");
-  t->Branch("tri_dn", &b_tri_dn, "tri_dn/F");
+  t->Branch("tri_up", &b_triw_up, "tri_up/F");
+  t->Branch("tri_dn", &b_triw_dn, "tri_dn/F");
+  
+  t->Branch("npvs", &b_npvs, "npvs/I");
+  t->Branch("PVz", &b_pvz, "PVz/I");
+  t->Branch("PV_nDoF", &b_pv_ndof, "PV_nDoF/I");
   
   t->Branch("weight", &b_weight, "weight/F");
+  
   t->Branch("puweight", &b_puweight, "puweight/F");
+  t->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
+  t->Branch("puweight_dn", &b_puweight_dn, "puweight_dn/F");
+  
   t->Branch("genweight", &b_genweight, "genweight/F");
   t->Branch("csvweight", "std::vector<float>", &b_csvweights);
+  
   t->Branch("btagweight", &b_btagweight, "btagweight/F");
+  t->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
+  t->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
+  
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
+  t->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
+  t->Branch("mueffweight_dn", &b_mueffweight_dn, "mueffweight_dn/F");
+  
   t->Branch("eleffweight", &b_eleffweight, "eleffweight/F");
-  t->Branch("PV_npvs", &PV_npvs, "PV_npvs/I");
+  t->Branch("eleffweight_up", &b_eleffweight_up, "eleffweight_up/F");
+  t->Branch("eleffweight_dn", &b_eleffweight_dn, "eleffweight_dn/F");
   
   t->Branch("cos_star_gen",      &b_cos_star_gen,      "cos_star_gen/F");
   t->Branch("cos_star_bjet_gen", &b_cos_star_bjet_gen, "cos_star_bjet_gen/F");
@@ -280,12 +306,18 @@ void singletopAnalyser::resetBranch() {
   b_truthtop1_lowhighNeuPT = 0.0;
   
   b_tri = false;
-  b_triw = b_tri_up = b_tri_dn = 1.0;
+  b_triw = b_triw_up = b_triw_dn = 1.0;
   
-  b_weight = b_puweight = b_genweight = 1.0;
-  b_btagweight = b_mueffweight = b_eleffweight = 1.0;
+  b_npvs = 0;
+  b_pvz = 0.0;
+  b_pv_ndof = 0;
+  
+  b_weight = b_genweight = 1.0;
+  b_puweight = b_puweight_up = b_puweight_dn = 1.0;
+  b_btagweight = b_btagweight_up = b_btagweight_dn = 1.0;
+  b_mueffweight = b_mueffweight_up = b_mueffweight_dn = 1.0;
+  b_eleffweight = b_eleffweight_up = b_eleffweight_dn = 1.0;
   b_csvweights.clear();
-  PV_npvs = 0;
   
   b_cos_star_gen = b_cos_star_bjet_gen = -2;
   b_cos_labf_gen = b_cos_labf_bjet_gen = -2;
@@ -341,7 +373,7 @@ int singletopAnalyser::GetIdxGenLepton() {
     int nPassW = 0;
     
     if ( ( nPID == 11 || nPID == 13 ) ) {
-      for ( j = GenPart_genPartIdxMother[ i ] ;; ) {
+      for ( j = GenPart_genPartIdxMother[ i ] ; j >= 0 ; j = GenPart_genPartIdxMother[ j ] ) {
         int nParentID = abs(GenPart_pdgId[ j ]);
         
         if ( nParentID == 24 ) {
@@ -353,9 +385,6 @@ int singletopAnalyser::GetIdxGenLepton() {
         }
         
         if ( nPassW == 1 && j == m_nIdxGenTop ) break;
-        
-        j = GenPart_genPartIdxMother[ j ];
-        if ( j < 0 ) break;
       }
       
       if ( j < 0 ) continue;
@@ -821,6 +850,60 @@ int singletopAnalyser::RunEvt() {
   
   // End of jobs IN GEN LEVEL
   
+  // Getting weights
+  
+  if ( m_isMC ) {
+    Int_t nVtx = Pileup_nTrueInt;
+    
+    b_puweight = m_pileUp->getWeight(nVtx);
+    b_puweight_up = m_pileUp->getWeight(nVtx, 1);
+    b_puweight_dn = m_pileUp->getWeight(nVtx, -1);
+    
+    b_genweight = genWeight;
+    b_weight = b_genweight * b_puweight;
+    
+    m_h1GenWeights->Fill(0.5, b_genweight);
+    m_h1Weights->Fill(0.5, b_weight);
+  } else {
+    b_puweight = 1;
+    b_genweight = 1;
+    
+    if ( !m_lumi->LumiCheck(run, luminosityBlock) ) return 1;
+  }
+  
+  b_step = 1;
+  
+  // Checking pile-up configuration
+  
+  b_pvz = PV_z;
+  b_npvs = PV_npvs;
+  b_pv_ndof = PV_ndof;
+  
+  //if ( fabs(PV_z) >= 24. ) return 1;
+  //if ( PV_npvs == 0 ) return 1;
+  //if ( PV_ndof < 4 ) return 1;
+  
+  b_step = 2;
+  
+  // Trigger
+  
+  b_tri = HLT_IsoTkMu24 || HLT_IsoMu24;
+  
+  Bool_t IsoMu24 = false;
+  Bool_t IsoTkMu24 = false;
+  
+  for ( i = 0 ; i < nTrigObj ; i++ ) {
+    if ( TrigObj_id[ i ] != 13 ) continue;
+    if ( TrigObj_pt[ i ] < 24 ) continue;
+    Int_t bits = TrigObj_filterBits[ i ];
+    if ( bits & 0x2 ) IsoMu24 = true;
+    if ( bits & 0x8 ) IsoTkMu24 = true;  
+  }
+  
+  if ( !( IsoMu24 || IsoTkMu24 ) ) b_triw = 0;
+  
+  b_step = 3;
+  
   // Gathering leptons
   
   auto muons = muonSelection();
@@ -834,6 +917,10 @@ int singletopAnalyser::RunEvt() {
   if ( muons.size() > 0 && dPtMuon > dPtElec ) {
     muons[ 0 ].Momentum(b_lep1);
     b_lep1_pid = muons[ 0 ].GetPdgCode();
+    
+    b_mueffweight = m_muonSF.getScaleFactor(muons[ 0 ], 13, 0);
+    b_mueffweight_up = m_muonSF.getScaleFactor(muons[ 0 ], 13,  1);
+    b_mueffweight_dn = m_muonSF.getScaleFactor(muons[ 0 ], 13, -1);
   } else {
     elecs[ 0 ].Momentum(b_lep1);
     b_lep1_pid = elecs[ 0 ].GetPdgCode();
@@ -869,22 +956,6 @@ int singletopAnalyser::RunEvt() {
   RecoTop();
   if ( ( b_njets == 2 && b_nbjets == 1 ) || ( b_njets == 3 && b_nbjets == 2 ) )
     CalcRecoCosStar();
-  
-  // Trigger
-  b_tri = HLT_IsoTkMu24 || HLT_IsoMu24;
-  
-  /*Bool_t IsoMu24 = false;
-  Bool_t IsoTkMu24 = false;
-  
-  for ( i = 0 ; i < nTrigObj ; i++ ) {
-    if ( TrigObj_id[ i ] != 13 ) continue;
-    if ( TrigObj_pt[ i ] < 24 ) continue;
-    Int_t bits = TrigObj_filterBits[ i ];
-    if ( bits & 0x2 ) IsoMu24 = true;
-    if ( bits & 0x8 ) IsoTkMu24 = true;  
-  }
-  
-  if ( !( IsoMu24 || IsoTkMu24 ) ) return 1;*/
   
   return 0;
 }
@@ -925,8 +996,10 @@ int main(int argc, char **argv) {
   
   if ( argc < 3 ) {
     printf("Usage: \n"
-      "(on single core) singletopAnalyser [LIST_FILE_OF_FILES] [MC or RD] [idx of the first root file] [(idx+1) of the last root file]\n"
-      "(for grid job (condor; in KISTI) python makejobs.py nanoAOD j`python batch_nanoAOD.py n [# OF FILES PER JOB]`\n");
+      "(on single core) singletopAnalyser [LIST_FILE_OF_FILES] [MC or RD] "
+      "[idx of the first root file] [(idx+1) of the last root file]\n"
+      "(for grid job (condor; in KISTI) python makejobs.py nanoAOD "
+      "j`python batch_nanoAOD.py n [# OF FILES PER JOB]`\n");
     
     return 1;
   }
@@ -953,6 +1026,7 @@ int main(int argc, char **argv) {
     if ( i <  nIdxStart ) continue;
     if ( i >= nIdxEnd )   break;
     
+    cout << "Start : " << strLine << endl;
     //TFile *f = new TFile(strLine.c_str());
     TFile *f = TFile::Open(strLine.c_str());
     TTree *treeEvents = (TTree *)f->Get("Events");
@@ -960,7 +1034,6 @@ int main(int argc, char **argv) {
     std::string strOutput = "out";
     strOutput = strOutput + std::to_string(i) + ".root";
     
-    cout << "Start : " << strLine << endl;
     singletopAnalyser t(treeEvents, bIsMC, strLine.find("ST_t-channel") != std::string::npos, true);
     t.setOutput(strOutput);
     t.Loop();
