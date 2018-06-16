@@ -12,3 +12,7 @@ before_script:
   
 script:
   - docker exec -it cmssw bash -c 'cd ~/CMSSW_9_4_6/src && source /opt/cms/cmsset_default.sh; eval `scram runtime -sh` && scram build'
+  - wget https://cern.ch/iawatson/mc_test_v5.root
+  - wget https://cern.ch/iawatson/data_test_v5.root
+  - docker exec -it cmssw bash -c 'yum --disablerepo=osg install -y unzip'
+  - docker exec -it cmssw bash -c 'cd ~/CMSSW_9_4_6/src && ls && source /opt/cms/cmsset_default.sh; eval `scram runtime -sh` && cd nano && getFiles && testAnalyser'
