@@ -125,10 +125,8 @@ void h2muAnalyser::MakeBranch(TTree* t)
   
   t->Branch("Mu2", "TLorentzVector", &b_Mu2);
   t->Branch("lep", "TLorentzVector", &b_lep);
-  t->Branch("test_nmuon", &b_test_nmuon, "test_nmuon/F");
-  t->Branch("test_njet", &b_test_njet, "test_njet/F");
-  t->Branch("block", &b_block, "block/I");
   
+  t->Branch("Jet_pu", "std::vector<float>", &b_Jet_pu);
   t->Branch("Jet_pt", "std::vector<float>", &b_Jet_pT);
   t->Branch("Jet_eta", "std::vector<float>", &b_Jet_Eta);
   t->Branch("Jet_phi", "std::vector<float>", &b_Jet_Phi);
@@ -165,9 +163,9 @@ void h2muAnalyser::MakeBranch(TTree* t)
   t->Branch("nonB", &b_nonB, "nonB/I");
   
   t->Branch("csvweight", "std::vector<float>", &b_csvweights);
-  t->Branch("btagweight", &b_btagweight, "btagweight/F");
-  t->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
-  t->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
+//  t->Branch("btagweight", &b_btagweight, "btagweight/F");
+//  t->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
+//  t->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
   
   /*t->Branch("jes_up", &b_jes_up, "jes_up/F");
   t->Branch("jes_dn", &b_jes_dn, "jes_dn/F");
@@ -256,15 +254,10 @@ void h2muAnalyser::ResetBranch()
   b_El_tlv.clear();
   b_Jet_tlv.clear();
   b_bJet_tlv.clear();
-  b_nonbJet_tlv.clear(); b_Jet_pT.clear(); b_Jet_Eta.clear();
-  b_Jet_pT.clear();
-  b_Jet_Eta.clear();
-  b_Jet_Phi.clear();
-  b_nonbJet_pT.clear();
-  b_nonbJet_Eta.clear();
-  b_nonbJet_Phi.clear();
-  b_csvweights.clear();
-  b_CSVv2.clear();
+  b_nonbJet_tlv.clear(); b_Jet_pT.clear(); b_Jet_Eta.clear(); b_Jet_pu.clear();
+  b_Jet_pT.clear(); b_Jet_Eta.clear(); b_Jet_Phi.clear();
+  b_nonbJet_pT.clear(); b_nonbJet_Eta.clear(); b_nonbJet_Phi.clear();
+  b_csvweights.clear(); b_CSVv2.clear();
   b_Event_Total = 1;
   b_channel = -1;
   b_nlep = 0; b_nmuon = 0; b_nelec = 0; b_nnonbjet = 0; b_njet = 0; b_nbjet = 0;
@@ -281,8 +274,6 @@ void h2muAnalyser::ResetBranch()
   b_DijetEta1 = 0, b_DijetEta2 = 0, DijetEta_hold = 0, DijetM_hold = 0, b_DijetM1 = 0, b_DijetM2 = 0;
   b_CSV = 0;
   b_npvs = 0;
-  b_test_njet = 0;
-  b_test_nmuon = 0;
 }
 
 bool h2muAnalyser::Analysis()
@@ -346,8 +337,8 @@ bool h2muAnalyser::Analysis()
   h_cutFlow->Fill(4);
 
   for (UInt_t i = 0; i < Muons.size(); i++) { 
-    if ( (b_Mu_tlv[0].Pt() > 26) || (b_Mu_tlv[i].Pt() > 26) ) { 
-      if ( ( Muons[0].GetPdgCode() * Muons[i].GetPdgCode() ) < 0 ) { 
+    if ((b_Mu_tlv[0].Pt() > 26) || (b_Mu_tlv[i].Pt() > 26)) { 
+      if ((Muons[0].GetPdgCode() * Muons[i].GetPdgCode()) < 0 ) { 
         b_Mu1 = b_Mu_tlv[0];
         b_Mu2 = b_Mu_tlv[i];
 
@@ -634,8 +625,8 @@ vector<TParticle> h2muAnalyser::MuonSelection()
   for (UInt_t i = 0; i < nMuon; i++) {
     if (!Muon_trackerMu[i]) continue;
     if (!Muon_globalMu[i]) continue;
-   // if (!Muon_tightId[i]) continue;
-    if (!Muon_mediumId[i]) continue;
+    if (!Muon_tightId[i]) continue;
+   // if (!Muon_mediumId[i]) continue;
     if (Muon_pfRelIso04_all[i] > 0.25) continue;
     
     TLorentzVector mom;
@@ -684,11 +675,11 @@ vector<TParticle> h2muAnalyser::JetSelection(vector<TParticle> Muons, vector<TPa
 {
   vector<TParticle> jets;
   for (UInt_t i = 0; i < nJet; i++) {
- //   if (fabs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
- //   if (fabs(Jet_eta[i]) < 2.4 &&  Jet_pt[i] < 20) continue;
+//    if (fabs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
+//    if (fabs(Jet_eta[i]) < 2.4 &&  Jet_pt[i] < 20) continue;
     if (Jet_pt[i] < 30) continue;
-    if (fabs(Jet_eta[i]) > 2.4) continue; 
-   // if (fabs(Jet_eta[i]) > 4.7) continue; 
+//    if (fabs(Jet_eta[i]) > 2.4) continue; 
+    if (fabs(Jet_eta[i]) > 4.7) continue; 
     if (Jet_jetId[i] < 1) continue;
 
     TLorentzVector mom;
@@ -701,6 +692,9 @@ vector<TParticle> h2muAnalyser::JetSelection(vector<TParticle> Muons, vector<TPa
     jet.SetMomentum(mom);
     b_Jet_tlv.push_back(mom);
     jets.push_back(jet);
+
+    // Jet Pu_ID 
+    b_Jet_pu.push_back(Jet_puId[i]);
   }
   return jets;
 }
@@ -708,9 +702,9 @@ vector<TParticle> h2muAnalyser::JetSelection(vector<TParticle> Muons, vector<TPa
 vector<TParticle> h2muAnalyser::BJetSelection(vector<TParticle> Muons, vector<TParticle> Elecs)
 {
   vector<TParticle> bJets;
-  b_btagweight = 1.0;
-  b_btagweight_up = 1.0;
-  b_btagweight_dn = 1.0;
+//  b_btagweight = 1.0;
+//  b_btagweight_up = 1.0;
+//  b_btagweight_dn = 1.0;
   for (UInt_t i = 0; i < nJet; i++) {
     if (Jet_btagCSVV2[i] < 0.8484) continue;
     if (Jet_pt[i] < 20) continue;
@@ -727,9 +721,9 @@ vector<TParticle> h2muAnalyser::BJetSelection(vector<TParticle> Muons, vector<TP
     b_bJet_tlv.push_back(mom);
     bJets.push_back(bjet);
     b_CSVv2.push_back(Jet_btagCSVV2[i]);
-    b_btagweight *= m_btagSF.eval_auto_bounds("central", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
-    b_btagweight_up *= m_btagSF.eval_auto_bounds("up", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
-    b_btagweight_dn *= m_btagSF.eval_auto_bounds("down", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
+//    b_btagweight *= m_btagSF.eval_auto_bounds("central", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
+//    b_btagweight_up *= m_btagSF.eval_auto_bounds("up", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
+//    b_btagweight_dn *= m_btagSF.eval_auto_bounds("down", BTagEntry::FLAV_B, Jet_eta[i], Jet_pt[i]);
   }
   return bJets;
 }
@@ -741,7 +735,7 @@ vector<TParticle> h2muAnalyser::nonbJetSelection(vector<TParticle> Muons, vector
 //    if (fabs(Jet_eta[i]) >= 2.4 &&  Jet_pt[i] < 30) continue;
 //    if (fabs(Jet_eta[i]) < 2.4 &&  Jet_pt[i] < 20) continue;
     if (Jet_pt[i] < 30) continue; 
-    if (fabs(Jet_eta[i]) > 2.4) continue; 
+    if (fabs(Jet_eta[i]) > 4.7) continue; 
     if (Jet_jetId[i] < 1) continue;
 
     if (Jet_btagCSVV2[i] > 0.8484 && Jet_pt[i] > 20 && fabs(Jet_eta[i] < 2.4)) continue;
