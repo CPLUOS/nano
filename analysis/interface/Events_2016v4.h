@@ -118,7 +118,7 @@ public :
    Int_t           GenPart_genPartIdxMother[105];   //[nGenPart]
    Int_t           GenPart_pdgId[105];   //[nGenPart]
    Int_t           GenPart_status[105];   //[nGenPart]
-   Int_t           GenPart_statusFlags[8300];   //[nGenPart00]
+   Int_t           GenPart_statusFlags[105];   //[nGenPart00]
    Float_t         Generator_x1;
    Float_t         Generator_x2;
    UInt_t          nGenVisTau;
