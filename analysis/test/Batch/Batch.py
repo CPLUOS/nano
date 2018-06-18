@@ -32,9 +32,9 @@ dataFiles = ['SingleMuon_Run2016', 'SingleEG_Run2016',
              'DoubleMuon_Run2016', 'DoubleEG_Run2016']
 dataFiles = [data+period for period in ["B","Bv1","C","D","E","F","G","H"] for data in dataFiles]
 
-if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "nanoAnalysis";
-elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalysis";
-elif analysis == 'vts'    : RunFiles = mcFiles_vts     + dataFiles; analyser = "vtsAnalysis";
+if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "h2muAnalyser";
+elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalyser";
+elif analysis == 'vts'    : RunFiles = mcFiles_vts     + dataFiles; analyser = "vtsAnalyser";
 elif analysis == 'cutbased': RunFiles = mcFiles_topmass; analyser = "cutbased";
 else: print "put right name of analysis (h2mumu/topMass/hadron/vts/cutbased)"
 #RunFiles = ['WW'] # for test
