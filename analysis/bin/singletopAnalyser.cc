@@ -1,5 +1,6 @@
 //#define nanoAnalyser_cxx
 #define Events_cxx
+#include "DataFormats/HepMCCandidate/interface/GenStatusFlags.h"
 #include "nano/analysis/interface/nanoBase.h"
 #include <TH2.h>
 #include <TStyle.h>
@@ -34,14 +35,14 @@ private:
   Bool_t m_isSig;
   Bool_t m_isFullGen;
   
-  int m_nIdxGenTop, m_nIdxGenAssoQ, m_nIdxGenLep, m_nIdxGenBFromT, m_nIdxGenW;
-  int m_nIDGenLep;
+  Int_t m_nIdxGenTop, m_nIdxGenAssoQ, m_nIdxGenLep, m_nIdxGenBFromT, m_nIdxGenW;
+  Int_t m_nIDGenLep;
   
-  int m_nIdxGenNeu, m_nIDGenNeu;
+  Int_t m_nIdxGenNeu, m_nIDGenNeu;
   
-  int b_onlyGen;
+  Int_t b_onlyGen;
   
-  int b_nvertex, b_step, b_channel, b_njets, b_nbjets;
+  Int_t b_objstep, b_step, b_channel, b_njets, b_nbjets;
   
   TLorentzVector b_gentop1;
   TLorentzVector b_genW;
@@ -49,8 +50,8 @@ private:
   TParticle recolep1;
   
   TLorentzVector b_lep1, b_jet1, b_bjet1, b_bjet2;
-  int b_lep1_pid;
-  float b_met, b_met_phi;
+  Int_t b_lep1_pid;
+  Float_t b_met, b_met_phi;
   
   TLorentzVector b_DiffLepMom11;
   TLorentzVector b_DiffLepMom12;
@@ -71,29 +72,29 @@ private:
   TLorentzVector b_recoNeu_lower;
   TLorentzVector b_recoNeu_higher;
   
-  int b_truthtop1_lowhighOn;
-  int b_truthtop1_imaginaryOn;
-  float b_truthtop1_lowhighNeuPT;
+  Int_t b_truthtop1_lowhighOn;
+  Int_t b_truthtop1_imaginaryOn;
+  Float_t b_truthtop1_lowhighNeuPT;
   
   Bool_t b_tri;
-  float b_triw, b_triw_up, b_triw_dn;
+  Float_t b_triw, b_triw_up, b_triw_dn;
   
-  int b_npvs;
-  float b_pvz, b_pv_ndof;
+  Int_t b_npvs;
+  Float_t b_pvz, b_pv_ndof;
   
-  float b_weight, b_genweight;
-  float b_puweight, b_puweight_up, b_puweight_dn;
-  float b_btagweight, b_btagweight_up, b_btagweight_dn;
-  float b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
-  float b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
-  std::vector<float> b_csvweights;
+  Float_t b_weight, b_genweight;
+  Float_t b_puweight, b_puweight_up, b_puweight_dn;
+  Float_t b_btagweight, b_btagweight_up, b_btagweight_dn;
+  Float_t b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
+  Float_t b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
+  std::vector<Float_t> b_csvweights;
   
-  float b_cos_star_gen;
-  float b_cos_star_bjet_gen;
-  float b_cos_labf_gen;
-  float b_cos_labf_bjet_gen;
+  Float_t b_cos_star_gen;
+  Float_t b_cos_star_bjet_gen;
+  Float_t b_cos_labf_gen;
+  Float_t b_cos_labf_bjet_gen;
   
-  float b_cos_star;
+  Float_t b_cos_star;
   
   
 public: 
@@ -181,7 +182,7 @@ void singletopAnalyser::setOutput(std::string outputName) {
 void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("onlyGen", &b_onlyGen, "onlyGen/I");
   
-  t->Branch("nvertex", &b_nvertex, "nvertex/I");
+  t->Branch("objstep", &b_objstep, "objstep/I");
   t->Branch("step", &b_step, "step/I");
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("njet", &b_njets, "njet/I");
@@ -229,8 +230,8 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("tri_dn", &b_triw_dn, "tri_dn/F");
   
   t->Branch("npvs", &b_npvs, "npvs/I");
-  t->Branch("PVz", &b_pvz, "PVz/I");
-  t->Branch("PV_nDoF", &b_pv_ndof, "PV_nDoF/I");
+  t->Branch("PVz", &b_pvz, "PVz/F");
+  t->Branch("PV_nDoF", &b_pv_ndof, "PV_nDoF/F");
   
   t->Branch("weight", &b_weight, "weight/F");
   
@@ -265,7 +266,7 @@ void singletopAnalyser::MakeBranch(TTree *t) {
 void singletopAnalyser::resetBranch() {
   b_onlyGen = 0;
   
-  b_nvertex = 0;
+  b_objstep = -1;
   b_step = -1;
   b_channel = 0;
   b_njets = 0;
@@ -868,10 +869,10 @@ int singletopAnalyser::RunEvt() {
     b_puweight = 1;
     b_genweight = 1;
     
-    if ( !m_lumi->LumiCheck(run, luminosityBlock) ) return 1;
+    if ( !m_lumi->LumiCheck(run, luminosityBlock) ) return 0;
   }
   
-  b_step = 1;
+  b_objstep = 1;
   
   // Checking pile-up configuration
   
@@ -879,11 +880,11 @@ int singletopAnalyser::RunEvt() {
   b_npvs = PV_npvs;
   b_pv_ndof = PV_ndof;
   
-  //if ( fabs(PV_z) >= 24. ) return 1;
-  //if ( PV_npvs == 0 ) return 1;
-  //if ( PV_ndof < 4 ) return 1;
+  if ( fabs(PV_z) >= 24. ) return 0;
+  if ( PV_npvs == 0 ) return 0;
+  if ( PV_ndof < 4 ) return 0;
   
-  b_step = 2;
+  b_objstep = 2;
   
   // Trigger
   
@@ -900,16 +901,16 @@ int singletopAnalyser::RunEvt() {
     if ( bits & 0x8 ) IsoTkMu24 = true;  
   }
   
-  if ( !( IsoMu24 || IsoTkMu24 ) ) b_triw = 0;
+  if ( !( IsoMu24 || IsoTkMu24 ) ) return 0;
   
-  b_step = 3;
+  b_objstep = 3;
   
   // Gathering leptons
   
   auto muons = muonSelection();
   auto elecs = elecSelection();
   
-  if ( muons.size() + elecs.size() < 1 ) return 1;
+  if ( muons.size() + elecs.size() < 1 ) return 0;
   
   double dPtMuon = ( muons.size() > 0 ? muons[ 0 ].Pt() : -1.0 );
   double dPtElec = ( elecs.size() > 0 ? elecs[ 0 ].Pt() : -1.0 );
@@ -932,7 +933,7 @@ int singletopAnalyser::RunEvt() {
   auto jets  = jetSelection(vecIdxJet);
   auto bjets = bjetSelection(vecIdxJet);
   
-  if ( jets.size() <= 0 || bjets.size() <= 0 ) return 1;
+  if ( jets.size() <= 0 || bjets.size() <= 0 ) return 0;
   
   for ( i = 0 ; i < jets.size() ; i++ ) {
     if ( vecIdxJet[ i ] >= 0 ) break;
@@ -956,6 +957,8 @@ int singletopAnalyser::RunEvt() {
   RecoTop();
   if ( ( b_njets == 2 && b_nbjets == 1 ) || ( b_njets == 3 && b_nbjets == 2 ) )
     CalcRecoCosStar();
+  
+  b_objstep = 4;
   
   return 0;
 }
@@ -1017,6 +1020,9 @@ int main(int argc, char **argv) {
     return 1;
   }
   
+  // Setup for reading on cache
+  TFile::SetCacheFileDir(".");
+  
   for ( i = 0 ; getline(fileList, strLine) ; i++ ) {
     i--;
     if ( strLine.substr(0, 1) == "#" ) continue;
@@ -1027,16 +1033,33 @@ int main(int argc, char **argv) {
     if ( i >= nIdxEnd )   break;
     
     cout << "Start : " << strLine << endl;
-    //TFile *f = new TFile(strLine.c_str());
-    TFile *f = TFile::Open(strLine.c_str());
-    TTree *treeEvents = (TTree *)f->Get("Events");
+    
+    TFile *fRoot = NULL;
+    int nTrial = 0;
+    
+    while ( fRoot == NULL ) {
+      fRoot = TFile::Open(strLine.c_str(), "CACHEREAD"); // reading on cache
+      //fRoot = TFile::Open(strLine.c_str());
+      
+      if ( fRoot == NULL ) sleep(15 * 1000);
+      if ( nTrial++ > 5 ) break;
+    }
+    
+    if ( fRoot == NULL ) {
+      perror("Error: Failed to open the root file\n");
+      return 1;
+    }
+    
+    singletopAnalyser t((TTree *)fRoot->Get("Events"), bIsMC, 
+      strLine.find("ST_t-channel") != std::string::npos, true);
     
     std::string strOutput = "out";
     strOutput = strOutput + std::to_string(i) + ".root";
-    
-    singletopAnalyser t(treeEvents, bIsMC, strLine.find("ST_t-channel") != std::string::npos, true);
     t.setOutput(strOutput);
+    
     t.Loop();
+    
+    //fRoot->Close(); // Don't do that; it's done in ~Events()
     cout << "End   : " << strLine << endl;
   }
 
