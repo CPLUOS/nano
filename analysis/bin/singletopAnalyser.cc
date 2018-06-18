@@ -337,7 +337,7 @@ int singletopAnalyser::GetIdxGenTop() {
   // Finding the top quark
   for ( i = 0 ; i < nGenPart ; i++ ) {
     if ( GenPart_pdgId[ i ] == 6 || GenPart_pdgId[ i ] == -6 ) {
-      if ( ( GenPart_statusFlags[ i ] & 0x2000 ) != 0 ) continue;
+      if ( ( GenPart_statusFlags[ i ] & ( 1 << reco::GenStatusFlags::kIsFirstCopy ) ) == 0 ) continue;
       
       m_nIdxGenTop = i;
       break;
