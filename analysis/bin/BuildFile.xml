@@ -33,6 +33,15 @@
   <flags CXXFLAGS="-g" />
 </bin>
 
+<bin name="singletopAnalyser" file="singletopAnalyser.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+  <flags CXXFLAGS="-g" />
+</bin>
+
 <bin name="testAnalyser" file="testAnalyser.cc">
   <use name="root"/>
   <use name="rootxml"/>
