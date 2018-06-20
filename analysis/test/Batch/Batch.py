@@ -41,7 +41,6 @@ RunFiles = ['tsw'] # for test
 maxFiles = 300
 SetDir = "test"
 datadir = '{}/src/nano/nanoAOD/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
->>>>>>> 0d2db5275fbe20a9f0f0619b75692e481aa1f285
 
 for datasetName in RunFiles:
     fileList = datadir + datasetName + '.txt'
