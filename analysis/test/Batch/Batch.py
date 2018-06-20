@@ -27,23 +27,21 @@ dataFiles = [
              'SingleMuon_Run2016', 'SingleEG_Run2016',
              'DoubleMuon_Run2016', 'DoubleEG_Run2016',
              'MuonEG_Run2016', 'MuonEG_Run2016',
-             'DoubleMuon_Run2016', 'DoubleEG_Run2016'
-            ]
-dataFiles = [data+period for period in ["B","C","D","E","F","G","H"] for data in dataFiles]
+             'DoubleMuon_Run2016', 'DoubleEG_Run2016']
+dataFiles = [data+period for period in ["B","Bv1","C","D","E","F","G","H"] for data in dataFiles]
 
-anaName = sys.argv[1]
-analyser = anaName+'Analyser'
-if   anaName == 'h2mu'    : RunFiles = mcFiles_h2mumu  + dataFiles
-elif anaName == 'mass'    : RunFiles = mcFiles_topmass + dataFiles
-elif anaName == 'vts'     : RunFiles = mcFiles_vts     + dataFiles
-elif anaName == 'cutbased': RunFiles = mcFiles_topmass; analyser = "cutbased";
-else: print "put right name of analysis (h2mu/mass/vts/cutbased)"
-RunFiles = ['WW']
+if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "h2muAnalyser";
+elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalyser";
+elif analysis == 'vts'    : RunFiles = mcFiles_vts     + dataFiles; analyser = "vtsAnalyser";
+elif analysis == 'cutbased': RunFiles = mcFiles_topmass; analyser = "cutbased";
+else: print "put right name of analysis (h2mumu/topMass/hadron/vts/cutbased)"
+#RunFiles = ['WW'] # for test
+RunFiles = ['tsw'] # for test
 
-maxFiles = 10
-setDir = "test"
-cmsswBase = os.environ['CMSSW_BASE']
-datadir = '%s/src/nano/nanoAOD/data/dataset/dataset_'%cmsswBase
+maxFiles = 300
+SetDir = "test"
+datadir = '{}/src/nano/nanoAOD/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
+>>>>>>> 0d2db5275fbe20a9f0f0619b75692e481aa1f285
 
 for datasetName in RunFiles:
     fileList = datadir + datasetName + '.txt'
