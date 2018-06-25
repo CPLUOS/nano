@@ -20,6 +20,9 @@ cd $CMSSW_BASE ; scram b -j 8 ; cd -
 To run:
 singletopAnalyser [LIST_FILE_OF_FILES] ["MC" or "RD"] [idx of the first root file] [(idx+1) of the last root file]
 
+To run (for the author):
+singletopAnalyser -q [LIST_FILE_OF_FILES] ["MC" or "RD"] [idx of the first root file] [(idx+1) of the last root file]
+
 To throw jobs to condor:
 python makejobs.py nanoAOD j`python batch_nanoAOD.py n [# OF FILES PER JOB]`
 */
@@ -1287,6 +1290,7 @@ int main(int argc, char **argv) {
   int i;
   
   string env = getenv("CMSSW_BASE");
+  string username = getenv("USER");
   
   bool bIsMC;
   int nIdxStart = 0, nIdxEnd = 1048575 * 1024;
@@ -1296,10 +1300,46 @@ int main(int argc, char **argv) {
   
   int nBkgType;
   
+  // Copied from h2muAnaylser.cc to make sure the compatibility
+  if (argc > 1 && strcmp(argv[ 1 ], "-q") != 0 ) {
+    string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/"+username+"/nanoAOD/"+std::string(argv[1])+"/"+std::string(argv[2]);
+   // string dirName = env+("/src/nano/analysis/test/h2mu/Results/")+argv[1]+"/"+argv[2];
+    string temp = argv[2];
+    Bool_t isMC = false;
+    Size_t found = temp.find("Run");
+    if(found == string::npos) isMC = true;
+    for (Int_t i = 3; i < argc; i++) {
+      std::string inputName = argv[ i ];
+      TFile *f = TFile::Open(argv[i], "read");
+
+      TTree *tree;
+      f->GetObject("Events", tree);
+      
+      nBkgType = 0;
+      if ( inputName.find("TT") != std::string::npos ) nBkgType = singletopAnalyser::MY_FLAG_BKGTYPE_TTBAR;
+      if ( inputName.find("QCD") != std::string::npos ) nBkgType = singletopAnalyser::MY_FLAG_BKGTYPE_QCD;
+      if ( inputName.find("WJets") != std::string::npos ) nBkgType = singletopAnalyser::MY_FLAG_BKGTYPE_WJETS;
+      if ( inputName.find("ST_") != std::string::npos ) nBkgType = singletopAnalyser::MY_FLAG_BKGTYPE_ST_OTHERS;
+
+      temp = argv[i];
+      found = temp.find_last_of('/');
+      string outPutName = dirName+temp.substr(found);
+      singletopAnalyser t(tree, isMC, 
+        std::string(argv[i]).find("ST_t-channel") != std::string::npos, nBkgType, true);
+      t.setOutput(outPutName);
+      t.Loop();
+    }
+    
+    return 0;
+  }
+  
   if ( argc < 3 ) {
     printf("Usage: \n"
       "(on single core)\n"
-      " $ singletopAnalyser [LIST_FILE_OF_FILES] [MC or RD] "
+      " $ singletopAnalyser [DATASET NAME] [MC or RD] "
+      "[idx of the first root file] [(idx+1) of the last root file]\n"
+      "(on single core; for the author)\n"
+      " $ singletopAnalyser -q [LIST_FILE_OF_FILES] [MC or RD] "
       "[idx of the first root file] [(idx+1) of the last root file]\n"
       "(for grid job (condor; in KISTI) \n"
       " $ python makejobs.py nanoAOD j`python batch_nanoAOD.py n [# OF FILES PER JOB]`\n");
@@ -1307,12 +1347,12 @@ int main(int argc, char **argv) {
     return 1;
   }
   
-  if ( argc >= 4 ) nIdxStart = atoi(argv[ 3 ]);
-  if ( argc >= 5 ) nIdxEnd = atoi(argv[ 4 ]);
+  if ( argc >= 4 ) nIdxStart = atoi(argv[ 4 ]);
+  if ( argc >= 5 ) nIdxEnd = atoi(argv[ 5 ]);
   
-  bIsMC = ( strcmp(argv[ 2 ], "RD") != 0 );
+  bIsMC = ( strcmp(argv[ 3 ], "RD") != 0 );
   
-  std::ifstream fileList(argv[ 1 ]);
+  std::ifstream fileList(argv[ 2 ]);
   std::string strLine;
   
   if ( !fileList.is_open() ) {
