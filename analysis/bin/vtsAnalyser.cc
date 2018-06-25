@@ -25,12 +25,6 @@ string getType (const string& path){
   size_t found = path.find("tt");
   return(path.substr(found));
 }
-long getFileSize(const string& filename) {
-  struct stat st;
-  if ( stat(filename.c_str(), &st) == 0) {
-    return st.st_size;
-  } else return 0;  
-}
 long getFileSize(const char* filename) {
   struct stat st;
   if ( stat(filename, &st) == 0) {
@@ -38,8 +32,7 @@ long getFileSize(const char* filename) {
   } else return 0;
 }
 
-int main(Int_t argc, Char_t** argv) {
-//int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
   string hostDir = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/";
 
   if (argc <= 1) {
@@ -61,21 +54,21 @@ int main(Int_t argc, Char_t** argv) {
 
       auto fileName = getFileName(argv[i]);
       auto dirName = getDir(getDir(argv[i]));
-      auto sampleType = getType(dirName);
+//      auto sampleType = getType(dirName);
 
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
       TString hadFileName = dirName + "/HADAOD/" + fileName;
       TString hadTruthFileName = dirName + "/HADTRUTHAOD/" + fileName;
 
-      TFile *hadFile = TFile::Open(hadFileName, "READ");
-      TTree *hadTree = (TTree*) hadFile->Get("Events");
+//      TFile *hadFile = TFile::Open(hadFileName, "READ");
+//      TTree *hadTree = (TTree*) hadFile->Get("Events");
       TFile *hadTruthFile = TFile::Open(hadTruthFileName, "READ");
       TTree *hadTruthTree = (TTree*) hadTruthFile->Get("Events");
 
       cout << "dirName : " << dirName << " fileName : " << fileName << endl;
-      cout << "tree chk : had : " << hadTree << " , hadTruth : " << hadTruthTree << endl;
-      vtsAnalyser ana(inTree,hadTree,hadTruthTree,isMC,false,false,false);
+//      cout << "tree chk : had : " << hadTree << " , hadTruth : " << hadTruthTree << endl;
+      vtsAnalyser ana(inTree,hadTruthTree,hadTruthTree,isMC,false,false,false); // you don't need to use hadTree
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
       ana.Loop();
@@ -304,8 +297,8 @@ void vtsAnalyser::MatchingForMC() {
     cout << "Size of selectedJets is zero" << endl;
     return;
   }
-  for (unsigned int j=0; j<selectedJet.size();++j) {
-    j = selectedJet[j].GetFirstMother();
+  for (unsigned int ij=0; ij<selectedJet.size();++ij) {
+    auto j = selectedJet[ij].GetFirstMother();
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
     auto qIdx = tq1;
@@ -348,8 +341,8 @@ void vtsAnalyser::HadronAnalysis() {
     cout << "Size of selectedJets is zero" << endl;
     return;
   }
-  for (unsigned int j=0; j<selectedJet.size();++j) {
-    j = selectedJet[j].GetFirstMother();
+  for (unsigned int ij=0; ij<selectedJet.size();++ij) {
+    auto j = selectedJet[ij].GetFirstMother();
     Had.clear();
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]); 
@@ -373,11 +366,9 @@ void vtsAnalyser::HadronAnalysis() {
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
       if (jet_tlv.DeltaR(had_tlv) < 0.3 && (had_pt[k]/Jet_pt[j]) > 0.15) {
         if (m_isMC) {
-          HadStat Stat(k, had_pdgId[k], qjMapForMC_[j], j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true);
-          Had.push_back(Stat);
+          Had.push_back(HadStat(k, had_pdgId[k], qjMapForMC_[j], j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true));
         } else {
-          HadStat Stat(k, had_pdgId[k], 0, j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true);
-          Had.push_back(Stat);
+          Had.push_back(move(HadStat(k, had_pdgId[k], 0, j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true)));
         }
       }
     }
@@ -487,8 +478,8 @@ int vtsAnalyser::Test() {
       cout << "Size of selectedJets is zero" << endl;
       return;
     }
-    for (unsigned int j=0; j<selectedJet.size(); ++j) { // Loop for jet which pass jetSelection()
-      j = selectedJet[j].GetFirstMother();
+    for (unsigned int ij=0; ij<selectedJet.size(); ++ij) { // Loop for jet which pass jetSelection()
+      auto j = selectedJet[ij].GetFirstMother();
 */
     for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
       TLorentzVector jet_tlv;
