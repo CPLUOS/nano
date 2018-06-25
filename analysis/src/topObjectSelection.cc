@@ -112,6 +112,7 @@ vector<TParticle> topObjectSelection::jetSelection() {
     if (hasOverLap) continue;
     auto jet = TParticle();
     jet.SetMomentum(mom);
+    jet.SetFirstMother(i);
     jets.push_back(jet);
     for (UInt_t iu = 0; iu < 19; iu++) {
      // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
