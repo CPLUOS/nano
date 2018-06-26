@@ -98,6 +98,7 @@ void vtsAnalyser::Loop() {
       HadronAnalysis();
       Test();
     }
+    bTagTest();
     m_tree->Fill();
   }
   if (Test()) {
@@ -116,6 +117,7 @@ void vtsAnalyser::setOutput(std::string outFileName) {
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
   h_weights = new TH1D("weight", "weight", 1, 0, 1);
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
+  h_bTag = new TH1D("bTag", "bTag", 100, -1,2);
 }
 
 void vtsAnalyser::MakeBranch(TTree* t) {
@@ -125,6 +127,7 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   BranchO(hadTruth_isHadFromTop); BranchI(hadTruth_isHadFromTsb); BranchO(hadTruth_isHadFromW); BranchO(hadTruth_isHadFromS); BranchO(hadTruth_isHadFromC); BranchO(hadTruth_isHadFromB);
 
   // For Test
+  BranchVO(hadTruth_isHadFromTop_vec);
   BranchVF(hadTruth_pt_vec); BranchVF(hadTruth_eta_vec); BranchVF(hadTruth_phi_vec); BranchVF(hadTruth_mass_vec);
   BranchVF(hadTruth_lxy_vec); BranchVF(hadTruth_lxySig_vec); BranchVF(hadTruth_angleXY_vec); BranchVF(hadTruth_angleXYZ_vec); BranchVF(hadTruth_chi2_vec); BranchVF(hadTruth_dca_vec);
   BranchVF(hadTruth_l3D_vec); BranchVF(hadTruth_l3DSig_vec); BranchVF(hadTruth_legDR_vec); BranchVI(hadTruth_pdgId_vec);
@@ -157,6 +160,7 @@ void vtsAnalyser::ResetBranch() {
   b_hadTruth_isHadFromTop = false; b_hadTruth_isHadFromW = false; b_hadTruth_isHadFromS = false; b_hadTruth_isHadFromC = false; b_hadTruth_isHadFromB = false;
 
   // For Test()
+  b_hadTruth_isHadFromTop_vec.clear();
   b_hadTruth_isFrom_cut_vec.clear(); b_hadTruth_x_cut_vec.clear();
   b_hadTruth_isFrom_nc_vec.clear(); b_hadTruth_x_nc_vec.clear();
   b_hadTruth_isFrom = -99; b_hadTruth_x = -1;
@@ -368,6 +372,8 @@ int vtsAnalyser::Test() {
     if (had_pdgId[i] != 310) continue;
     ++nTotHadKS;
     if (hadTruth_nMatched[i] == 2) {
+      b_hadTruth_isHadFromTop_vec.push_back(hadTruth_isHadFromTop[i]);
+      b_hadTruth_isFrom_vec.push_back(hadTruth_isHadFromTsb[i]);
       b_hadTruth_pt_vec.push_back(had_pt[i]);
       b_hadTruth_eta_vec.push_back(had_eta[i]);
       b_hadTruth_phi_vec.push_back(had_phi[i]);
@@ -390,7 +396,6 @@ int vtsAnalyser::Test() {
       b_hadTruth_dau2_ipsigXY_vec.push_back(had_dau1_ipsigXY[i]);
       b_hadTruth_dau2_ipsigZ_vec.push_back(had_dau1_ipsigZ[i]);
       b_hadTruth_dau2_pt_vec.push_back(had_dau1_pt[i]);
-      b_hadTruth_isFrom_vec.push_back(hadTruth_isHadFromTsb[i]);
       if (hadTruth_isHadFromTop[i]) ++nRealKSFromTop;
     }
     if (had_dau1_pt[i] >= 0.95 && had_dau2_pt[i] >= 0.95) {
@@ -451,3 +456,4 @@ int vtsAnalyser::Test() {
   }
   return 1;
 }
+
