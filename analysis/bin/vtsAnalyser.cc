@@ -119,104 +119,34 @@ void vtsAnalyser::setOutput(std::string outFileName) {
 }
 
 void vtsAnalyser::MakeBranch(TTree* t) {
-  t->Branch("channel", &b_channel, "channel/I");
-  t->Branch("njet", &b_njet, "njet/I");
-  t->Branch("met", &b_met, "met/F");
-  t->Branch("dilep_tlv", "TLorentzVector", &b_dilep);
-  t->Branch("step", &b_step, "step/I");
 
-  t->Branch("hadTruth_nMatched", &b_hadTruth_nMatched, "hadTruth_nMatched/I");
-  t->Branch("hadTruth_nTrueDau", &b_hadTruth_nTrueDau, "hadTruth_nTrueDau/I");
-  t->Branch("hadTruth_isHadFromTop", &b_hadTruth_isHadFromTop, "hadTruth_isHadFromTop/O");
-  t->Branch("hadTruth_isHadFromTsb", &b_hadTruth_isHadFromTsb, "hadTruth_isHadFromTsb/I");
-  t->Branch("hadTruth_isHadFromW", &b_hadTruth_isHadFromW, "hadTruth_isHadFromW/O");
-  t->Branch("hadTruth_isHadFromS", &b_hadTruth_isHadFromS, "hadTruth_isHadFromS/O");
-  t->Branch("hadTruth_isHadFromC", &b_hadTruth_isHadFromC, "hadTruth_isHadFromC/O");
-  t->Branch("hadTruth_isHadFromB", &b_hadTruth_isHadFromB, "hadTruth_isHadFromB/O");
+  BranchI(channel); BranchI(njet); BranchF(met); BranchI(step);
+  BranchI(hadTruth_nMatched); BranchI(hadTruth_nTrueDau); 
+  BranchO(hadTruth_isHadFromTop); BranchI(hadTruth_isHadFromTsb); BranchO(hadTruth_isHadFromW); BranchO(hadTruth_isHadFromS); BranchO(hadTruth_isHadFromC); BranchO(hadTruth_isHadFromB);
 
   // For Test
-  t->Branch("hadTruth_pt_vec", "vector<float>", &b_hadTruth_pt_vec);
-  t->Branch("hadTruth_eta_vec", "vector<float>", &b_hadTruth_eta_vec);
-  t->Branch("hadTruth_phi_vec", "vector<float>", &b_hadTruth_phi_vec);
-  t->Branch("hadTruth_mass_vec", "vector<float>", &b_hadTruth_mass_vec);
-  t->Branch("hadTruth_lxy_vec", "vector<float>", &b_hadTruth_lxy_vec);
-  t->Branch("hadTruth_lxySig_vec", "vector<float>", &b_hadTruth_lxySig_vec);
-  t->Branch("hadTruth_angleXY_vec", "vector<float>", &b_hadTruth_angleXY_vec);
-  t->Branch("hadTruth_angleXYZ_vec", "vector<float>", &b_hadTruth_angleXYZ_vec);
-  t->Branch("hadTruth_chi2_vec", "vector<float>", &b_hadTruth_chi2_vec);
-  t->Branch("hadTruth_dca_vec", "vector<float>", &b_hadTruth_dca_vec);
-  t->Branch("hadTruth_l3D_vec", "vector<float>", &b_hadTruth_l3D_vec);
-  t->Branch("hadTruth_l3DSig_vec", "vector<float>", &b_hadTruth_l3DSig_vec);
-  t->Branch("hadTruth_legDR_vec", "vector<float>", &b_hadTruth_legDR_vec);
-  t->Branch("hadTruth_pdgId_vec", "vector<int>", &b_hadTruth_pdgId_vec);
-  t->Branch("hadTruth_dau1_chi2_vec", "vector<float>", &b_hadTruth_dau1_chi2_vec);
-  t->Branch("hadTruth_dau1_ipsigXY_vec", "vector<float>", &b_hadTruth_dau1_ipsigXY_vec);
-  t->Branch("hadTruth_dau1_ipsigZ_vec", "vector<float>", &b_hadTruth_dau1_ipsigZ_vec);
-  t->Branch("hadTruth_dau1_pt_vec", "vector<float>", &b_hadTruth_dau1_pt_vec);
-  t->Branch("hadTruth_dau2_chi2_vec", "vector<float>", &b_hadTruth_dau2_chi2_vec);
-  t->Branch("hadTruth_dau2_ipsigXY_vec", "vector<float>", &b_hadTruth_dau2_ipsigXY_vec);
-  t->Branch("hadTruth_dau2_ipsigZ_vec", "vector<float>", &b_hadTruth_dau2_ipsigZ_vec);
-  t->Branch("hadTruth_dau2_pt_vec", "vector<float>", &b_hadTruth_dau2_pt_vec);
-  t->Branch("hadTruth_isFrom_vec", "vector<int>", &b_hadTruth_isFrom_vec);
+  BranchVF(hadTruth_pt_vec); BranchVF(hadTruth_eta_vec); BranchVF(hadTruth_phi_vec); BranchVF(hadTruth_mass_vec);
+  BranchVF(hadTruth_lxy_vec); BranchVF(hadTruth_lxySig_vec); BranchVF(hadTruth_angleXY_vec); BranchVF(hadTruth_angleXYZ_vec); BranchVF(hadTruth_chi2_vec); BranchVF(hadTruth_dca_vec);
+  BranchVF(hadTruth_l3D_vec); BranchVF(hadTruth_l3DSig_vec); BranchVF(hadTruth_legDR_vec); BranchVI(hadTruth_pdgId_vec);
+  BranchVF(hadTruth_dau1_chi2_vec); BranchVF(hadTruth_dau1_ipsigXY_vec); BranchVF(hadTruth_dau1_ipsigZ_vec); BranchVF(hadTruth_dau1_pt_vec);
+  BranchVF(hadTruth_dau2_chi2_vec); BranchVF(hadTruth_dau2_ipsigXY_vec); BranchVF(hadTruth_dau2_ipsigZ_vec); BranchVF(hadTruth_dau2_pt_vec);
+  BranchVI(hadTruth_isFrom_vec); BranchVI(hadTruth_isFrom_cut_vec); BranchVI(hadTruth_isFrom_nc_vec); BranchI(hadTruth_isFrom);
+  BranchVF(hadTruth_x_cut_vec); BranchVF(hadTruth_x_nc_vec); BranchF(hadTruth_x);
+  BranchVI(comb_isFrom_vec); BranchI(comb_isFrom);
+  BranchVF(comb_x_vec); BranchF(comb_x);
+  BranchVI(had_isFrom_vec); BranchVI(had_isFrom_vec_2); BranchVI(had_isFrom_dc_vec); BranchVI(had_isFrom_dc_vec_2);
+  BranchVF(had_x_vec); BranchVF(had_x_dc_vec);
 
-  t->Branch("hadTruth_isFrom_cut_vec", "vector<int>", &b_hadTruth_isFrom_cut_vec);
-  t->Branch("hadTruth_isFrom_nc_vec", "vector<int>", &b_hadTruth_isFrom_nc_vec);
-  t->Branch("hadTruth_isFrom", &b_hadTruth_isFrom, "hadTruth_isFrom/I");
-  t->Branch("hadTruth_x_cut_vec", "vector<float>", &b_hadTruth_x_cut_vec);
-  t->Branch("hadTruth_x_nc_vec", "vector<float>", &b_hadTruth_x_nc_vec);
-  t->Branch("hadTruth_x", &b_hadTruth_x, "hadTruth_x/F");
-  t->Branch("comb_isFrom_vec", "vector<int>", &b_comb_isFrom_vec);
-  t->Branch("comb_isFrom", &b_comb_isFrom, "comb_isFrom/I");
-  t->Branch("comb_x_vec", "vector<float>", &b_comb_x_vec);
-  t->Branch("comb_x", &b_comb_x, "comb_x/F");
-  t->Branch("had_isFrom_vec", "vector<int>", &b_had_isFrom_vec);
-  t->Branch("had_isFrom_vec_2", "vector<int>", &b_had_isFrom_vec_2);
-  t->Branch("had_x_vec", "vector<float>", &b_had_x_vec);
-  t->Branch("had_isFrom_dc_vec", "vector<int>", &b_had_isFrom_dc_vec);
-  t->Branch("had_isFrom_dc_vec_2", "vector<int>", &b_had_isFrom_dc_vec_2);
-  t->Branch("had_x_dc_vec", "vector<float>", &b_had_x_dc_vec);
-
-  t->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
-  t->Branch("had_isFrom", &b_had_isFrom, "had_isFrom/I");
-  t->Branch("had_isHadJetMatched", &b_had_isHadJetMatched, "had_isHadJetMatched/O");
-  t->Branch("had_d", &b_had_d , "had_d/F" );
-  t->Branch("had_x", &b_had_x, "had_x/F");
-  t->Branch("had_dr", &b_had_dr, "had_dr/F"); // distance between hadron and jet-center
-  t->Branch("had_lxy", &b_had_lxy, "had_lxy/F");
-  t->Branch("had_lxySig", &b_had_lxySig, "had_lxySig/F");
-  t->Branch("had_angleXY", &b_had_angleXY, "had_angleXY/F");
-  t->Branch("had_angleXYZ", &b_had_angleXYZ, "had_angleXYZ/F");
-  t->Branch("had_chi2", &b_had_chi2, "had_chi2/F");
-  t->Branch("had_dca", &b_had_dca, "had_dca/F");
-
-  t->Branch("had_pt", &b_had_pt, "had_pt_had/F");
-  t->Branch("had_eta", &b_had_eta, "had_eta/F");
-  t->Branch("had_l3D", &b_had_l3D, "had_l3D/F");
-  t->Branch("had_l3DSig", &b_had_l3DSig, "had_l3DSig/F");
-  t->Branch("had_legDR", &b_had_legDR, "had_legDR/F");
-  t->Branch("had_mass", &b_had_mass, "had_mass/F");
-  t->Branch("had_pdgId", &b_had_pdgId, "had_pdgId/I");
-
-  t->Branch("had_dau1_chi2", &b_had_dau1_chi2, "had_dau1_chi2/F");
-  t->Branch("had_dau1_ipsigXY", &b_had_dau1_ipsigXY, "had_dau1_ipsigXY/F");
-  t->Branch("had_dau1_ipsigZ", &b_had_dau1_ipsigZ, "had_dau1_ipsigZ/F");
-  t->Branch("had_dau1_pt", &b_had_dau1_pt, "had_dau1_pt/F");
-
-  t->Branch("had_dau2_chi2", &b_had_dau2_chi2, "had_dau2_chi2/F");
-  t->Branch("had_dau2_ipsigXY", &b_had_dau2_ipsigXY, "had_dau2_ipsigXY/F");
-  t->Branch("had_dau2_ipsigZ", &b_had_dau2_ipsigZ, "had_dau2_ipsigZ/F");
-  t->Branch("had_dau2_pt", &b_had_dau2_pt, "had_dau2_pt/F");
-
-  t->Branch("Jet_btagCSVV2", &b_Jet_btagCSVV2, "Jet_btagCSVV2/F");
-  t->Branch("Jet_btagDeepB", &b_Jet_btagDeepB, "Jet_btagDeepB/F");
-  t->Branch("Jet_btagDeepC", &b_Jet_btagDeepC, "Jet_btagDeepC/F");
-  t->Branch("Jet_btagCMVA", &b_Jet_btagCMVA, "Jet_btagCMVA/F");
-
-  t->Branch("Jet_area", &b_Jet_area, "Jet_area/F");
-  t->Branch("Jet_pt", &b_Jet_pt, "Jet_pt/F");
-  t->Branch("Jet_nConstituents", &b_Jet_nConstituents, "Jet_nConstituents/I");
-  t->Branch("Jet_nElectrons", &b_Jet_nElectrons, "Jet_nElectrons/I");
-  t->Branch("Jet_nMuons", &b_Jet_nMuons, "Jet_nMuons/I");
+  BranchTLV(had_tlv);
+  BranchI(had_isFrom); BranchO(had_isHadJetMatched);
+  BranchF(had_d); BranchF(had_x); BranchF(had_dr);
+  BranchF(had_pt); BranchF(had_eta); BranchF(had_phi); BranchF(had_mass);
+  BranchF(had_lxy); BranchF(had_lxySig); BranchF(had_angleXY); BranchF(had_angleXYZ); BranchF(had_chi2); BranchF(had_dca);
+  BranchF(had_l3D); BranchF(had_l3DSig); BranchF(had_legDR); BranchI(had_pdgId);
+  BranchF(had_dau1_chi2); BranchF(had_dau1_ipsigXY); BranchF(had_dau1_ipsigZ); BranchF(had_dau1_pt);
+  BranchF(had_dau2_chi2); BranchF(had_dau2_ipsigXY); BranchF(had_dau2_ipsigZ); BranchF(had_dau2_pt);
+  BranchF(Jet_btagCSVV2); BranchF(Jet_btagDeepB); BranchF(Jet_btagDeepC); BranchF(Jet_btagCMVA);
+  BranchF(Jet_area); BranchF(Jet_pt); BranchI(Jet_nConstituents); BranchI(Jet_nElectrons); BranchI(Jet_nMuons);
 }
 
 void vtsAnalyser::ResetBranch() {
@@ -246,8 +176,9 @@ void vtsAnalyser::ResetBranch() {
   b_had_isFrom = -99;
   b_had_isHadJetMatched = false;
   b_had_d = -1; b_had_x = -1; b_had_dr = -1;
+  b_had_pt = -1; b_had_eta = -99; b_had_phi = -99; b_had_mass = -99;
   b_had_lxy = -1; b_had_lxySig = -1; b_had_angleXY = -1; b_had_angleXYZ = -1; b_had_chi2 = -1; b_had_dca = -1;
-  b_had_pt = -1; b_had_eta = -99; b_had_l3D = -1; b_had_l3DSig = -1; b_had_legDR = -1; b_had_mass = -99; b_had_pdgId = -99;
+  b_had_l3D = -1; b_had_l3DSig = -1; b_had_legDR = -1; b_had_pdgId = -99;
   b_had_dau1_chi2 = -1; b_had_dau1_ipsigXY = -1; b_had_dau1_ipsigZ = -1; b_had_dau1_pt = -1;
   b_had_dau2_chi2 = -1; b_had_dau2_ipsigXY = -1; b_had_dau2_ipsigZ = -1; b_had_dau2_pt = -1;
 
@@ -382,25 +313,24 @@ void vtsAnalyser::HadronAnalysis() {
     auto idx = JetCollection[0][0].idx;
     auto jidx = JetCollection[0][0].jetIdx;
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
-
-    b_had_x = JetCollection[0][0].x;
     b_had_isFrom = JetCollection[0][0].label;  // -99 : event that can't pass till step4(jet selection) or there is no matching between had and jet, -9 : there is t->qW in the event,but not matched to recoJet, 0 : there is no t->qW in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->sW, +-5 : hadron is from t->bW
     b_had_isHadJetMatched = JetCollection[0][0].isHadJetMatched;
-    b_had_dr = JetCollection[0][0].dr;
-
     b_had_d = GetD(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx], had_x[idx], had_y[idx], had_z[idx]);
+    b_had_x = JetCollection[0][0].x;
+    b_had_dr = JetCollection[0][0].dr;
+    b_had_pt = had_pt[idx];
+    b_had_eta = had_eta[idx];
+    b_had_phi = had_phi[idx];
+    b_had_mass = had_mass[idx];
     b_had_lxy = had_lxy[idx];
     b_had_lxySig = had_lxy[idx]/had_lxyErr[idx];
     b_had_angleXY = had_angleXY[idx];
     b_had_angleXYZ = had_angleXYZ[idx];
     b_had_chi2 = had_chi2[idx];
     b_had_dca = had_dca[idx];
-    b_had_pt = had_pt[idx];
-    b_had_eta = had_eta[idx];
     b_had_l3D = had_l3D[idx];
     b_had_l3DSig = had_l3D[idx]/had_l3DErr[idx];
     b_had_legDR = had_legDR[idx];
-    b_had_mass = had_mass[idx];
     b_had_pdgId = had_pdgId[idx];
     b_had_dau1_chi2 = had_dau1_chi2[idx]; 
     b_had_dau1_ipsigXY = had_dau1_ipsigXY[idx]; 
