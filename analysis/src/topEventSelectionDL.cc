@@ -1,16 +1,16 @@
-#include "nano/analysis/interface/dilepTopAnalysis.h"
+#include "nano/analysis/interface/topEventSelectionDL.h"
 
 using std::vector;
 
-dilepTopAnalysis::dilepTopAnalysis(TTree *tree, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :
-  topAnalysis(tree, isMC, true, false),
+topEventSelectionDL::topEventSelectionDL(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :
+  topObjectSelection(tree, had, hadTruth, isMC, true, false),
   m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm) {
 }
 
-dilepTopAnalysis::~dilepTopAnalysis() {
+topEventSelectionDL::~topEventSelectionDL() {
 }
 
-int dilepTopAnalysis::EventSelection() {
+int topEventSelectionDL::EventSelection() {
   h_cutFlow->Fill(0);
 
   //Run for MC
@@ -169,7 +169,7 @@ int dilepTopAnalysis::EventSelection() {
 }
 
 
-void dilepTopAnalysis::Reset() {
+void topEventSelectionDL::Reset() {
 
   recolep1.Clear(); recolep2.Clear();
   b_lep1.SetPtEtaPhiM(0,0,0,0); b_lep2.SetPtEtaPhiM(0,0,0,0); b_dilep.SetPtEtaPhiM(0,0,0,0); b_jet1.SetPtEtaPhiM(0,0,0,0); b_jet2.SetPtEtaPhiM(0,0,0,0);

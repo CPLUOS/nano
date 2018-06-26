@@ -1,0 +1,11 @@
+#!/bin/bash
+# moving into data folder #
+cd $CMSSW_BASE/src/nano/analysis/data/
+# Downloading Files from git #
+echo "Getting Files into : `pwd`"
+wget https://github.com/CPLUOS/nanoData/archive/master.zip
+unzip master.zip
+mv  nanoData-master/* $CMSSW_BASE/src/nano/analysis/data/
+rm -rf nanoData-master 
+rm -rf master.zip
+

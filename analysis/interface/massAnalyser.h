@@ -1,9 +1,9 @@
-#ifndef massAnalysis_H
-#define massAnalysis_H
+#ifndef massAnalyser_H
+#define massAnalyser_H
 
-#include "dilepTopAnalysis.h"
+#include "topEventSelectionDL.h"
 
-class massAnalysis : public dilepTopAnalysis {
+class massAnalyser : public topEventSelectionDL {
 private: 
   //Varialbes
   float b_cme_dca, b_cme_angleXY, b_cme_angleXYZ, b_cme_jetDR, b_cme_legDR;
@@ -37,8 +37,10 @@ public :
   void setOutput(std::string outputName);
   void collectTMVAvalues();
   void cmesonSelection();
-  massAnalysis(TTree *tree=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
-  ~massAnalysis();
+
+  massAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  massAnalyser(TTree *tree, Bool_t isMC, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : massAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
+  ~massAnalyser();
   virtual void     Loop();
 
 };
