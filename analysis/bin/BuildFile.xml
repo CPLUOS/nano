@@ -16,6 +16,15 @@
   <flags CXXFLAGS="-lTMVA"/>
 </bin>
 
+<bin name="slmassAnalyser" file="slmassAnalyser.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+  <flags CXXFLAGS="-lTMVA"/>
+</bin>
+
 <bin name="vtsAnalyser" file="vtsAnalyser.cc">
   <use name="root"/>
   <use name="rootxml"/>

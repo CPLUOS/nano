@@ -1,19 +1,16 @@
 #!/usr/bin/env python 
-# catGetDatasetInfo v7-4-4 # to make dataset lists
-# sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 
-import os, json, array, sys
+import os, json, sys
 import numpy as np
-from math import ceil       
+from math import ceil
 
-analysis = sys.argv[1]
-
-mcFiles_h2mumu = ['ttH',
+mcFiles_h2mumu = [
+                  'ttH',
                   "WWTo2L2Nu", "WZTo3LNu_amcatnlo", "WZTo2LQQ", "ZZTo2L2Nu", "ZZTo2L2Q",
                   "TTZToLLNuNu", "ZZTo4L_powheg", "ttWToLNu",
                   "WWW", "WWZ", "WZZ", "ZZZ",
                   "ZZ", "WZ", "WW"
-]
+                 ]
 
 mcFiles_topmass = [
                    'TT_powheg',
@@ -24,31 +21,34 @@ mcFiles_topmass = [
                 #   'TT_powheg_mtop1735', 'TT_powheg_mtop1755', 'TT_powheg_mtop1785',
                   ]
 
-mcFiles_vts = ["TT_powheg", 'DYJets', 'DYJets_MG_10to50']
+mcFiles_vts = ['WW']
 
-dataFiles = ['SingleMuon_Run2016', 'SingleEG_Run2016',
+dataFiles = [
+             'SingleMuon_Run2016', 'SingleEG_Run2016',
              'DoubleMuon_Run2016', 'DoubleEG_Run2016',
              'MuonEG_Run2016', 'MuonEG_Run2016',
              'DoubleMuon_Run2016', 'DoubleEG_Run2016']
-dataFiles = [data+period for period in ["B","Bv1","C","D","E","F","G","H"] for data in dataFiles]
+dataFiles = [data+period for period in ["B","C","D","E","F","G","H"] for data in dataFiles]
 
-if   analysis == 'h2mumu' : RunFiles = mcFiles_h2mumu  + dataFiles; analyser = "nanoAnalysis";
-elif analysis == 'topMass': RunFiles = mcFiles_topmass + dataFiles; analyser = "topAnalysis";
-elif analysis == 'vts'    : RunFiles = mcFiles_vts     + dataFiles; analyser = "vtsAnalysis";
-elif analysis == 'cutbased': RunFiles = mcFiles_topmass; analyser = "cutbased";
-else: print "put right name of analysis (h2mumu/topMass/hadron/vts/cutbased)"
-#RunFiles = ['WW'] # for test
-RunFiles = ['tsw'] # for test
+anaName = sys.argv[1]
+analyser = anaName+'Analyser'
+if   anaName == 'h2mu'    : RunFiles = mcFiles_h2mumu  + dataFiles
+elif anaName == 'mass'    : RunFiles = mcFiles_topmass + dataFiles
+elif anaName == 'vts'     : RunFiles = mcFiles_vts     + dataFiles
+elif anaName == 'cutbased': RunFiles = mcFiles_topmass; analyser = "cutbased";
+else: print "put right name of analysis (h2mu/mass/vts/cutbased)"
+RunFiles = ['WW']
 
-maxFiles = 300
-SetDir = "test"
-datadir = '{}/src/nano/nanoAOD/data/dataset/dataset_'.format(os.environ['CMSSW_BASE'])
+maxFiles = 10
+setDir = "test"
+cmsswBase = os.environ['CMSSW_BASE']
+datadir = '%s/src/nano/nanoAOD/data/dataset/dataset_'%cmsswBase
 
 for datasetName in RunFiles:
     fileList = datadir + datasetName + '.txt'
-    jobName = analysis+'_'+datasetName 
+    jobName = anaName+'_'+datasetName 
 
-    Dirname = "{}/src/nano/analysis/test/Batch/{}".format(os.environ['CMSSW_BASE'],jobName)
+    Dirname = "%s/src/nano/analysis/test/Batch/%s"%(cmsswBase,jobName)
     if os.path.isdir(Dirname):
         print "ERROR: output directory already existing."
         sys.exit()
@@ -73,7 +73,7 @@ for datasetName in RunFiles:
         jds = "%s/submit.jds" %Dirname 
         fout = open(jds, "w")
         print>>fout, "# Job description file for condor job"
-        print>>fout, """executable = {0}/src/nano/analysis/test/Batch/run.sh
+        print>>fout, """executable = {0}/bin/slc6_amd64_gcc630/{1}
 universe   = vanilla
 
 log = condor.log
@@ -81,11 +81,12 @@ log = condor.log
 getenv     = True
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-output = {1}/job_{2}.log
-error = {1}/job_{2}.err
-queue""" .format(os.environ['CMSSW_BASE'], Dirname, section)
+output = {2}/job_{3}.log
+error = {2}/job_{3}.err
+queue""" .format(cmsswBase, analyser, Dirname, section)
         fout.close()
 
-        subBatch = "condor_submit -batch-name {} -append 'arguments={} {} {} {}' {}".format(datasetName, analyser, SetDir, datasetName, FileNamesStr ,jds)    
+        subBatch = "condor_submit -batch-name {} -append 'arguments={} {} {}' {}".format(datasetName, setDir, datasetName, FileNamesStr, jds)
         os.system(subBatch)
+
 
