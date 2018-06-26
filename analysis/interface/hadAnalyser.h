@@ -10,32 +10,36 @@ protected:
   int b_chk = 0;
   TLorentzVector b_had_tlv;
 
-  int b_isFrom_had;
-  bool b_isHadJetMatched_had;
-  float b_d_had, b_x_had, b_dr_had;
-  float b_lxy_had, b_lxySig_had, b_angleXY_had, b_angleXYZ_had, b_chi2_had, b_dca_had;
-  float b_pt_had, b_eta_had, b_l3D_had, b_l3DSig_had, b_legDR_had, b_mass_had; 
-  int b_pdgId_had; 
+  int b_had_isFrom;
+  bool b_had_isHadJetMatched;
+  float b_had_d, b_had_x, b_had_dr;
+  float b_had_lxy, b_had_lxySig, b_had_angleXY, b_had_angleXYZ, b_had_chi2, b_had_dca;
+  float b_had_pt, b_had_eta, b_had_l3D, b_had_l3DSig, b_had_legDR, b_had_mass; 
+  int b_had_pdgId; 
 
-  float b_dau1_chi2_had, b_dau1_ipsigXY_had, b_dau1_ipsigZ_had, b_dau1_pt_had;
-  float b_dau2_chi2_had, b_dau2_ipsigXY_had, b_dau2_ipsigZ_had, b_dau2_pt_had;
+  float b_had_dau1_chi2, b_had_dau1_ipsigXY, b_had_dau1_ipsigZ, b_had_dau1_pt;
+  float b_had_dau2_chi2, b_had_dau2_ipsigXY, b_had_dau2_ipsigZ, b_had_dau2_pt;
 
-  float  b_btagCSVV2_Jet, b_btagCMVA_Jet, b_btagDeepB_Jet, b_btagDeepC_Jet;
-  float  b_area_Jet, b_pt_Jet;
-  int b_nConstituents_Jet, b_nElectrons_Jet, b_nMuons_Jet;
+  float  b_Jet_btagCSVV2, b_Jet_btagCMVA, b_Jet_btagDeepB, b_Jet_btagDeepC;
+  float  b_Jet_area, b_Jet_pt;
+  int b_Jet_nConstituents, b_Jet_nElectrons, b_Jet_nMuons;
+
+  int b_hadTruth_nMatched, b_hadTruth_nTrueDau;
+  int b_hadTruth_isHadFromTsb;
+  bool b_hadTruth_isHadFromTop, b_hadTruth_isHadFromW, b_hadTruth_isHadFromS, b_hadTruth_isHadFromC, b_hadTruth_isHadFromB;
 
 public:
   //Struct
   struct HadStat {
     int idx = -1;
     int pdgId = -99;
-    float x = -1;
-    float dr = -1;
     int label = -99;
     int jetIdx = -99;
+    float x = -1;
+    float dr = -1;
     bool isHadJetMatched = false;
+    HadStat(int idx=-1, int pdgId=-99, int label=-99, int jetIdx=-99, float x=-1, float dr=-1, bool isHadJetMatched=false): idx(idx), pdgId(pdgId), label(label), jetIdx(jetIdx), x(x), dr(dr), isHadJetMatched(isHadJetMatched) {}
   };
-
   struct JetStat {
     int idx = -1;
     float dr = -1;
