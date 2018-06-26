@@ -22,7 +22,7 @@ private:
   
   std::vector<Float_t> b_CSVv2;
   std::vector<Float_t> b_csvweights;
-  std::vector<Float_t> b_Jet_pu;
+  std::vector<Int_t> b_Jet_pu;
   std::vector<Float_t> b_Jet_pT;
   std::vector<Float_t> b_Jet_Eta;
   std::vector<Float_t> b_Jet_Phi;
