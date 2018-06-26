@@ -1,0 +1,1 @@
+for name in res_*.root ; do idx=`echo $name | sed -r "s/^[[:print:]]*res_([0-9]*).root/\1/g"` ; dir=`cat job_${idx}.log | grep FILENAME | awk '{print $2}'` ; resname=`cat job_${idx}.log | grep FILENAME | awk '{print $3}'` ; mkdir -p res/dir_$dir ; mv $name res/dir_${dir}/${resname} ; done
