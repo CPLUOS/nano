@@ -40,8 +40,6 @@ private:
   std::vector<int> b_had_isFrom_vec; std::vector<int> b_had_isFrom_vec_2; std::vector<float> b_had_x_vec;
   std::vector<int> b_had_isFrom_dc_vec; std::vector<int> b_had_isFrom_dc_vec_2; std::vector<float> b_had_x_dc_vec;
 
-  TH1D* h_bTag;
-
   std::map<unsigned int, int> qjMapForMC_;
   std::vector<int> tqMC_;
   std::vector<int> wqMC_;
