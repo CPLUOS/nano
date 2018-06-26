@@ -98,7 +98,6 @@ void vtsAnalyser::Loop() {
       HadronAnalysis();
       Test();
     }
-    bTagTest();
     m_tree->Fill();
   }
   if (Test()) {
@@ -117,7 +116,6 @@ void vtsAnalyser::setOutput(std::string outFileName) {
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
   h_weights = new TH1D("weight", "weight", 1, 0, 1);
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
-  h_bTag = new TH1D("bTag", "bTag", 100, -1,2);
 }
 
 void vtsAnalyser::MakeBranch(TTree* t) {
