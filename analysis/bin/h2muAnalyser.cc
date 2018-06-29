@@ -126,7 +126,7 @@ void h2muAnalyser::MakeBranch(TTree* t)
   t->Branch("Mu2", "TLorentzVector", &b_Mu2);
   t->Branch("lep", "TLorentzVector", &b_lep);
   
-  t->Branch("Jet_pu", "std::vector<float>", &b_Jet_pu);
+  t->Branch("Jet_pu", "std::vector<int>", &b_Jet_pu);
   t->Branch("Jet_pt", "std::vector<float>", &b_Jet_pT);
   t->Branch("Jet_eta", "std::vector<float>", &b_Jet_Eta);
   t->Branch("Jet_phi", "std::vector<float>", &b_Jet_Phi);

@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <TLorentzVector.h>
-
+#include <sys/stat.h>
 #include "nano/analysis/interface/vtsAnalyser.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -25,10 +25,14 @@ string getType (const string& path){
   size_t found = path.find("tt");
   return(path.substr(found));
 }
+long getFileSize(const char* filename) {
+  struct stat st;
+  if ( stat(filename, &st) == 0) {
+    return st.st_size;
+  } else return 0;
+}
 
-
-int main(Int_t argc, Char_t** argv) {
-
+int main(int argc, char* argv[]) {
   string hostDir = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/";
 
   if (argc <= 1) {
@@ -38,59 +42,33 @@ int main(Int_t argc, Char_t** argv) {
     vtsAnalyser ana(inTree,inTree,0,true,false,false,false);
     ana.setOutput("nanotree.root");
     ana.Loop();
-  } else if (argc == 5) {
-    auto trn1 = argv[1];
-    auto trn2 = argv[2];
-    auto trn3 = argv[3];
-    auto outn = argv[4]; 
-    
-    TFile *f1 = TFile::Open(trn1, "READ");
-    TFile *f2 = TFile::Open(trn2, "READ");
-    TFile *f3 = TFile::Open(trn3, "READ");
-    TTree *t1 = (TTree*)f1->Get("Events");
-    TTree *t2 = (TTree*)f2->Get("Events");
-    TTree *t3 = (TTree*)f3->Get("Events");
-   
-    cout << t1 << " , " << t2 << " , " << t3 << endl; 
-    vtsAnalyser ana(t1,t2,t3,true,false,false,false);
-    ana.setOutput(outn);
-    ana.Loop();
   } else {
     string jobName    = string(argv[1]);
     string sampleName = string(argv[2]);
 
-    // temp
-    Bool_t isMC = false;
-    std::string temp = argv[1];
-    Size_t found = temp.find("run");
-    Size_t found2 = temp.find("NANOAOD");
-    if (found == std::string::npos || found2 == std::string::npos) isMC = true;
-
+    Bool_t isMC = (sampleName.find("Run") == std::string::npos);
     string outFileDir = hostDir+getenv("USER")+"/"+jobName+"/"+sampleName;
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
-    // temp
+      if (string(inFileName).find("NANOAOD") == std::string::npos) {cout << " input file has to be nanoAOD " << endl; continue;}
+
       auto fileName = getFileName(argv[i]);
       auto dirName = getDir(getDir(argv[i]));
-      auto sampleType = getType(dirName);
-      //NANO
+//      auto sampleType = getType(dirName);
+
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
-      TFile *hadFile;
-      TTree *hadTree=0;
-      TFile *hadTruthFile;
-      TTree *hadTruthTree=0;
       TString hadFileName = dirName + "/HADAOD/" + fileName;
       TString hadTruthFileName = dirName + "/HADTRUTHAOD/" + fileName;
-      if (found2 == std::string::npos) {
-        hadFile = TFile::Open(hadFileName, "READ");
-        hadTree = (TTree*) hadFile->Get("Events");
-        hadTruthFile = TFile::Open(hadTruthFileName, "READ");
-        hadTruthTree = (TTree*) hadTruthFile->Get("Events");
-      }
+
+//      TFile *hadFile = TFile::Open(hadFileName, "READ");
+//      TTree *hadTree = (TTree*) hadFile->Get("Events");
+      TFile *hadTruthFile = TFile::Open(hadTruthFileName, "READ");
+      TTree *hadTruthTree = (TTree*) hadTruthFile->Get("Events");
+
       cout << "dirName : " << dirName << " fileName : " << fileName << endl;
-      cout << "tree chk : had : " << hadTree << " , hadTruth : " << hadTruthTree << endl;
-      vtsAnalyser ana(inTree,hadTree,hadTruthTree,isMC,false,false,false);
+//      cout << "tree chk : had : " << hadTree << " , hadTruth : " << hadTruthTree << endl;
+      vtsAnalyser ana(inTree,hadTruthTree,hadTruthTree,isMC,false,false,false); // you don't need to use hadTree
       string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
       ana.setOutput(outFileName);
       ana.Loop();
@@ -107,17 +85,24 @@ void vtsAnalyser::Loop() {
     fChain->GetEntry(iev);
     if (h_fChain) h_fChain->GetEntry(iev);
     if (ht_fChain) ht_fChain->GetEntry(iev);
+
     cout << "event : " << iev << endl;
-    cout << "nhadTruth : " << nhadTruth << endl;
-    cout << "nhad      : " << nhad << endl;
+//    cout << "nhadTruth : " << nhadTruth << endl;
+//    cout << "nhad      : " << nhad << endl;
+
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
     ResetBranch();
-    int PassedStep = EventSelection();
-    if (PassedStep >= 0) {
+    int passedStep = EventSelection();
+    if (passedStep >= -1) { // -1 : No event selection, 0 : PV cut, reco lepton cut and so on, 1~4 : step 1 ~ 4
       MatchingForMC();
       HadronAnalysis();
+      Test();
     }
     m_tree->Fill();
+  }
+  if (Test()) {
+    cout << "total KS : " << nTotHadKS << " matched (dau cut + real)  : " << nMatchedKS << " total dau_pt cut had KS : " << nHadKSDauCut << " total real KS : " << nRealKSFromTop << endl;
+    cout << "total real KS with Jet : " << nRealKSWithJet << " total real KS with Jet + dR and x cut : " << nRealKSWithJetAndCut << "  total KS with cut : " << nKSWithCut << " total KS with cut + dau pt cut : " << nKSWithDauCut << endl;
   }
 }
 
@@ -138,96 +123,191 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("met", &b_met, "met/F");
   t->Branch("dilep_tlv", "TLorentzVector", &b_dilep);
+  t->Branch("step", &b_step, "step/I");
+
+  t->Branch("hadTruth_nMatched", &b_hadTruth_nMatched, "hadTruth_nMatched/I");
+  t->Branch("hadTruth_nTrueDau", &b_hadTruth_nTrueDau, "hadTruth_nTrueDau/I");
+  t->Branch("hadTruth_isHadFromTop", &b_hadTruth_isHadFromTop, "hadTruth_isHadFromTop/O");
+  t->Branch("hadTruth_isHadFromTsb", &b_hadTruth_isHadFromTsb, "hadTruth_isHadFromTsb/I");
+  t->Branch("hadTruth_isHadFromW", &b_hadTruth_isHadFromW, "hadTruth_isHadFromW/O");
+  t->Branch("hadTruth_isHadFromS", &b_hadTruth_isHadFromS, "hadTruth_isHadFromS/O");
+  t->Branch("hadTruth_isHadFromC", &b_hadTruth_isHadFromC, "hadTruth_isHadFromC/O");
+  t->Branch("hadTruth_isHadFromB", &b_hadTruth_isHadFromB, "hadTruth_isHadFromB/O");
+
+  // For Test
+  t->Branch("hadTruth_pt_vec", "vector<float>", &b_hadTruth_pt_vec);
+  t->Branch("hadTruth_eta_vec", "vector<float>", &b_hadTruth_eta_vec);
+  t->Branch("hadTruth_phi_vec", "vector<float>", &b_hadTruth_phi_vec);
+  t->Branch("hadTruth_mass_vec", "vector<float>", &b_hadTruth_mass_vec);
+  t->Branch("hadTruth_lxy_vec", "vector<float>", &b_hadTruth_lxy_vec);
+  t->Branch("hadTruth_lxySig_vec", "vector<float>", &b_hadTruth_lxySig_vec);
+  t->Branch("hadTruth_angleXY_vec", "vector<float>", &b_hadTruth_angleXY_vec);
+  t->Branch("hadTruth_angleXYZ_vec", "vector<float>", &b_hadTruth_angleXYZ_vec);
+  t->Branch("hadTruth_chi2_vec", "vector<float>", &b_hadTruth_chi2_vec);
+  t->Branch("hadTruth_dca_vec", "vector<float>", &b_hadTruth_dca_vec);
+  t->Branch("hadTruth_l3D_vec", "vector<float>", &b_hadTruth_l3D_vec);
+  t->Branch("hadTruth_l3DSig_vec", "vector<float>", &b_hadTruth_l3DSig_vec);
+  t->Branch("hadTruth_legDR_vec", "vector<float>", &b_hadTruth_legDR_vec);
+  t->Branch("hadTruth_pdgId_vec", "vector<int>", &b_hadTruth_pdgId_vec);
+  t->Branch("hadTruth_dau1_chi2_vec", "vector<float>", &b_hadTruth_dau1_chi2_vec);
+  t->Branch("hadTruth_dau1_ipsigXY_vec", "vector<float>", &b_hadTruth_dau1_ipsigXY_vec);
+  t->Branch("hadTruth_dau1_ipsigZ_vec", "vector<float>", &b_hadTruth_dau1_ipsigZ_vec);
+  t->Branch("hadTruth_dau1_pt_vec", "vector<float>", &b_hadTruth_dau1_pt_vec);
+  t->Branch("hadTruth_dau2_chi2_vec", "vector<float>", &b_hadTruth_dau2_chi2_vec);
+  t->Branch("hadTruth_dau2_ipsigXY_vec", "vector<float>", &b_hadTruth_dau2_ipsigXY_vec);
+  t->Branch("hadTruth_dau2_ipsigZ_vec", "vector<float>", &b_hadTruth_dau2_ipsigZ_vec);
+  t->Branch("hadTruth_dau2_pt_vec", "vector<float>", &b_hadTruth_dau2_pt_vec);
+  t->Branch("hadTruth_isFrom_vec", "vector<int>", &b_hadTruth_isFrom_vec);
+
+  t->Branch("hadTruth_isFrom_cut_vec", "vector<int>", &b_hadTruth_isFrom_cut_vec);
+  t->Branch("hadTruth_isFrom_nc_vec", "vector<int>", &b_hadTruth_isFrom_nc_vec);
+  t->Branch("hadTruth_isFrom", &b_hadTruth_isFrom, "hadTruth_isFrom/I");
+  t->Branch("hadTruth_x_cut_vec", "vector<float>", &b_hadTruth_x_cut_vec);
+  t->Branch("hadTruth_x_nc_vec", "vector<float>", &b_hadTruth_x_nc_vec);
+  t->Branch("hadTruth_x", &b_hadTruth_x, "hadTruth_x/F");
+  t->Branch("comb_isFrom_vec", "vector<int>", &b_comb_isFrom_vec);
+  t->Branch("comb_isFrom", &b_comb_isFrom, "comb_isFrom/I");
+  t->Branch("comb_x_vec", "vector<float>", &b_comb_x_vec);
+  t->Branch("comb_x", &b_comb_x, "comb_x/F");
+  t->Branch("had_isFrom_vec", "vector<int>", &b_had_isFrom_vec);
+  t->Branch("had_isFrom_vec_2", "vector<int>", &b_had_isFrom_vec_2);
+  t->Branch("had_x_vec", "vector<float>", &b_had_x_vec);
+  t->Branch("had_isFrom_dc_vec", "vector<int>", &b_had_isFrom_dc_vec);
+  t->Branch("had_isFrom_dc_vec_2", "vector<int>", &b_had_isFrom_dc_vec_2);
+  t->Branch("had_x_dc_vec", "vector<float>", &b_had_x_dc_vec);
 
   t->Branch("had_tlv", "TLorentzVector", &b_had_tlv);
-  t->Branch("isFrom_had", &b_isFrom_had, "isFrom_had/I");
-  t->Branch("isHadJetMatched_had", &b_isHadJetMatched_had, "isHadJetMatched_had/O");
-  t->Branch("d_had", &b_d_had , "d_had/F" );
-  t->Branch("x_had", &b_x_had, "x_had/F");
-  t->Branch("dr_had", &b_dr_had, "dr_had/F"); // distance between hadron and jet-center
-  t->Branch("lxy_had", &b_lxy_had, "lxy_had/F");
-  t->Branch("lxySig_had", &b_lxySig_had, "lxySig_had/F");
-  t->Branch("angleXY_had", &b_angleXY_had, "angleXY_had/F");
-  t->Branch("angleXYZ_had", &b_angleXYZ_had, "angleXYZ_had/F");
-  t->Branch("chi2_had", &b_chi2_had, "chi2_had/F");
-  t->Branch("dca_had", &b_dca_had, "dca_had/F");
+  t->Branch("had_isFrom", &b_had_isFrom, "had_isFrom/I");
+  t->Branch("had_isHadJetMatched", &b_had_isHadJetMatched, "had_isHadJetMatched/O");
+  t->Branch("had_d", &b_had_d , "had_d/F" );
+  t->Branch("had_x", &b_had_x, "had_x/F");
+  t->Branch("had_dr", &b_had_dr, "had_dr/F"); // distance between hadron and jet-center
+  t->Branch("had_lxy", &b_had_lxy, "had_lxy/F");
+  t->Branch("had_lxySig", &b_had_lxySig, "had_lxySig/F");
+  t->Branch("had_angleXY", &b_had_angleXY, "had_angleXY/F");
+  t->Branch("had_angleXYZ", &b_had_angleXYZ, "had_angleXYZ/F");
+  t->Branch("had_chi2", &b_had_chi2, "had_chi2/F");
+  t->Branch("had_dca", &b_had_dca, "had_dca/F");
 
-  t->Branch("pt_had", &b_pt_had, "pt_had_had/F");
-  t->Branch("eta_had", &b_eta_had, "eta_had/F");
-  t->Branch("l3D_had", &b_l3D_had, "l3D_had/F");
-  t->Branch("l3DSig_had", &b_l3DSig_had, "l3DSig_had/F");
-  t->Branch("legDR_had", &b_legDR_had, "legDR_had/F");
-  t->Branch("mass_had", &b_mass_had, "mass_had/F");
-  t->Branch("pdgId_had", &b_pdgId_had, "pdgId_had/I");
+  t->Branch("had_pt", &b_had_pt, "had_pt_had/F");
+  t->Branch("had_eta", &b_had_eta, "had_eta/F");
+  t->Branch("had_l3D", &b_had_l3D, "had_l3D/F");
+  t->Branch("had_l3DSig", &b_had_l3DSig, "had_l3DSig/F");
+  t->Branch("had_legDR", &b_had_legDR, "had_legDR/F");
+  t->Branch("had_mass", &b_had_mass, "had_mass/F");
+  t->Branch("had_pdgId", &b_had_pdgId, "had_pdgId/I");
 
-  t->Branch("dau1_chi2_had", &b_dau1_chi2_had, "dau1_chi2_had/F");
-  t->Branch("dau1_ipsigXY_had", &b_dau1_ipsigXY_had, "dau1_ipsigXY_had/F");
-  t->Branch("dau1_ipsigZ_had", &b_dau1_ipsigZ_had, "dau1_ipsigZ_had/F");
-  t->Branch("dau1_pt_had", &b_dau1_pt_had, "dau1_pt_had/F");
+  t->Branch("had_dau1_chi2", &b_had_dau1_chi2, "had_dau1_chi2/F");
+  t->Branch("had_dau1_ipsigXY", &b_had_dau1_ipsigXY, "had_dau1_ipsigXY/F");
+  t->Branch("had_dau1_ipsigZ", &b_had_dau1_ipsigZ, "had_dau1_ipsigZ/F");
+  t->Branch("had_dau1_pt", &b_had_dau1_pt, "had_dau1_pt/F");
 
-  t->Branch("dau2_chi2_had", &b_dau2_chi2_had, "dau2_chi2_had/F");
-  t->Branch("dau2_ipsigXY_had", &b_dau2_ipsigXY_had, "dau2_ipsigXY_had/F");
-  t->Branch("dau2_ipsigZ_had", &b_dau2_ipsigZ_had, "dau2_ipsigZ_had/F");
-  t->Branch("dau2_pt_had", &b_dau2_pt_had, "dau2_pt_had/F");
+  t->Branch("had_dau2_chi2", &b_had_dau2_chi2, "had_dau2_chi2/F");
+  t->Branch("had_dau2_ipsigXY", &b_had_dau2_ipsigXY, "had_dau2_ipsigXY/F");
+  t->Branch("had_dau2_ipsigZ", &b_had_dau2_ipsigZ, "had_dau2_ipsigZ/F");
+  t->Branch("had_dau2_pt", &b_had_dau2_pt, "had_dau2_pt/F");
 
-  t->Branch("btagCSVV2_Jet", &b_btagCSVV2_Jet, "btagCSVV2_Jet/F");
-  t->Branch("btagDeepB_Jet", &b_btagDeepB_Jet, "btagDeepB_Jet/F");
-  t->Branch("btagDeepC_Jet", &b_btagDeepC_Jet, "btagDeepC_Jet/F");
-  t->Branch("btagCMVA_Jet", &b_btagCMVA_Jet, "btagCMVA_Jet/F");
+  t->Branch("Jet_btagCSVV2", &b_Jet_btagCSVV2, "Jet_btagCSVV2/F");
+  t->Branch("Jet_btagDeepB", &b_Jet_btagDeepB, "Jet_btagDeepB/F");
+  t->Branch("Jet_btagDeepC", &b_Jet_btagDeepC, "Jet_btagDeepC/F");
+  t->Branch("Jet_btagCMVA", &b_Jet_btagCMVA, "Jet_btagCMVA/F");
 
-  t->Branch("area_Jet", &b_area_Jet, "are_Jet/F");
-  t->Branch("pt_Jet", &b_pt_Jet, "pt_Jet/F");
-  t->Branch("nConstituents_Jet", &b_nConstituents_Jet, "nConstituents_Jet/I");
-  t->Branch("nElectrons_Jet", &b_nElectrons_Jet, "nElectrons_Jet/I");
-  t->Branch("nMuons_Jet", &b_nMuons_Jet, "nMuons_Jet/I");
-
+  t->Branch("Jet_area", &b_Jet_area, "Jet_area/F");
+  t->Branch("Jet_pt", &b_Jet_pt, "Jet_pt/F");
+  t->Branch("Jet_nConstituents", &b_Jet_nConstituents, "Jet_nConstituents/I");
+  t->Branch("Jet_nElectrons", &b_Jet_nElectrons, "Jet_nElectrons/I");
+  t->Branch("Jet_nMuons", &b_Jet_nMuons, "Jet_nMuons/I");
 }
 
 void vtsAnalyser::ResetBranch() {
-  Reset(); 
+  Reset();
+
+  b_hadTruth_nMatched = -1; b_hadTruth_nTrueDau = -1;
+  b_hadTruth_isHadFromTsb = -1;
+  b_hadTruth_isHadFromTop = false; b_hadTruth_isHadFromW = false; b_hadTruth_isHadFromS = false; b_hadTruth_isHadFromC = false; b_hadTruth_isHadFromB = false;
+
+  // For Test()
+  b_hadTruth_isFrom_cut_vec.clear(); b_hadTruth_x_cut_vec.clear();
+  b_hadTruth_isFrom_nc_vec.clear(); b_hadTruth_x_nc_vec.clear();
+  b_hadTruth_isFrom = -99; b_hadTruth_x = -1;
+  b_comb_isFrom_vec.clear(); b_comb_x_vec.clear();
+  b_comb_isFrom = -99; b_comb_x = -1;
+  b_had_isFrom_vec.clear(); b_had_isFrom_vec_2.clear(); b_had_x_vec.clear();
+  b_had_isFrom_dc_vec.clear(); b_had_isFrom_dc_vec_2.clear(); b_had_x_dc_vec.clear();
+
+  b_hadTruth_isFrom_vec.clear(); 
+  b_hadTruth_pt_vec.clear(); b_hadTruth_eta_vec.clear(); b_hadTruth_phi_vec.clear(); b_hadTruth_mass_vec.clear();
+  b_hadTruth_lxy_vec.clear(); b_hadTruth_lxySig_vec.clear(); b_hadTruth_angleXY_vec.clear(); b_hadTruth_angleXYZ_vec.clear(); b_hadTruth_chi2_vec.clear(); b_hadTruth_dca_vec.clear();
+  b_hadTruth_l3D_vec.clear(); b_hadTruth_l3DSig_vec.clear(); b_hadTruth_legDR_vec.clear(); b_hadTruth_pdgId_vec.clear();
+  b_hadTruth_dau1_chi2_vec.clear(); b_hadTruth_dau1_ipsigXY_vec.clear(); b_hadTruth_dau1_ipsigZ_vec.clear(); b_hadTruth_dau1_pt_vec.clear();
+  b_hadTruth_dau2_chi2_vec.clear(); b_hadTruth_dau2_ipsigXY_vec.clear(); b_hadTruth_dau2_ipsigZ_vec.clear(); b_hadTruth_dau2_pt_vec.clear();
+
   b_had_tlv.SetPtEtaPhiM(0,0,0,0);
-  b_isFrom_had = -99;
-  b_isHadJetMatched_had = false;
-  b_d_had = -1; b_x_had = -1; b_dr_had = -1;
-  b_lxy_had = -1; b_lxySig_had = -1; b_angleXY_had = -1; b_angleXYZ_had = -1; b_chi2_had = -1; b_dca_had = -1;
-  b_pt_had = -1; b_eta_had = -99; b_l3D_had = -1; b_l3DSig_had = -1; b_legDR_had = -1; b_mass_had = -99; b_pdgId_had = -99;
-  b_dau1_chi2_had = -1; b_dau1_ipsigXY_had = -1; b_dau1_ipsigZ_had = -1; b_dau1_pt_had = -1;
-  b_dau2_chi2_had = -1; b_dau2_ipsigXY_had = -1; b_dau2_ipsigZ_had = -1; b_dau2_pt_had = -1;
+  b_had_isFrom = -99;
+  b_had_isHadJetMatched = false;
+  b_had_d = -1; b_had_x = -1; b_had_dr = -1;
+  b_had_lxy = -1; b_had_lxySig = -1; b_had_angleXY = -1; b_had_angleXYZ = -1; b_had_chi2 = -1; b_had_dca = -1;
+  b_had_pt = -1; b_had_eta = -99; b_had_l3D = -1; b_had_l3DSig = -1; b_had_legDR = -1; b_had_mass = -99; b_had_pdgId = -99;
+  b_had_dau1_chi2 = -1; b_had_dau1_ipsigXY = -1; b_had_dau1_ipsigZ = -1; b_had_dau1_pt = -1;
+  b_had_dau2_chi2 = -1; b_had_dau2_ipsigXY = -1; b_had_dau2_ipsigZ = -1; b_had_dau2_pt = -1;
 
-  b_btagCSVV2_Jet = -99; b_btagCMVA_Jet = -99; b_btagDeepB_Jet = -99; b_btagDeepC_Jet = -99;
-  b_area_Jet = -1; b_pt_Jet = -1; b_nConstituents_Jet = -1; b_nElectrons_Jet = -1; b_nMuons_Jet = -1;
+  b_Jet_btagCSVV2 = -99; b_Jet_btagCMVA = -99; b_Jet_btagDeepB = -99; b_Jet_btagDeepC = -99;
+  b_Jet_area = -1; b_Jet_pt = -1; b_Jet_nConstituents = -1; b_Jet_nElectrons = -1; b_Jet_nMuons = -1;
 
-  qjMapForMC_.clear(); qMC_.clear(); genJet_.clear(); recoJet_.clear();
+  qjMapForMC_.clear(); tqMC_.clear(); wqMC_.clear(); genJet_.clear(); recoJet_.clear();
 }
 
 void vtsAnalyser::MatchingForMC() {
   //Find s quark from Gen Info.  
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_status[i] - 25) >= 5 ) continue;
-    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5) qMC_.push_back(i);
+    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) {
+      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && GenPart_status[GenPart_genPartIdxMother[i]] == 62 ) ) { 
+        tqMC_.push_back(i); 
+      }
+      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 21 && GenPart_status[GenPart_genPartIdxMother[i]] == 21 ) ) {
+        wqMC_.push_back(i);
+      }
+    }
   }
-
-  if (qMC_.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
-
-  auto q1 = qMC_[0];
-  TLorentzVector q1_tlv; 
-  q1_tlv.SetPtEtaPhiM(GenPart_pt[q1], GenPart_eta[q1], GenPart_phi[q1], GenPart_mass[q1]);
-  auto q2 = qMC_[1];
-  TLorentzVector q2_tlv; 
-  q2_tlv.SetPtEtaPhiM(GenPart_pt[q2], GenPart_eta[q2], GenPart_phi[q2], GenPart_mass[q2]);
-
+  if (tqMC_.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
+  //Select quarks originated from t->qW
+  auto tq1 = tqMC_[0];
+  TLorentzVector tq1_tlv; 
+  tq1_tlv.SetPtEtaPhiM(GenPart_pt[tq1], GenPart_eta[tq1], GenPart_phi[tq1], GenPart_mass[tq1]);
+  auto tq2 = tqMC_[1];
+  TLorentzVector tq2_tlv; 
+  tq2_tlv.SetPtEtaPhiM(GenPart_pt[tq2], GenPart_eta[tq2], GenPart_phi[tq2], GenPart_mass[tq2]);
+  //Select quarks from W->qq (not yet used)
+  int wq1;
+  TLorentzVector wq1_tlv;
+  int wq2;
+  TLorentzVector wq2_tlv;
+  if (wqMC_.size() != 0) {
+    wq1 = wqMC_[0];
+    wq1_tlv.SetPtEtaPhiM(GenPart_pt[wq1], GenPart_eta[wq1], GenPart_phi[wq1], GenPart_mass[wq1]);
+    if (wqMC_.size() == 2) {
+      wq2 = wqMC_[1];
+      wq2_tlv.SetPtEtaPhiM(GenPart_pt[wq2], GenPart_eta[wq2], GenPart_phi[wq2], GenPart_mass[wq2]);
+    }
+  }
   //Gen Particle & Reco Jet matching
-  for (unsigned int j=0; j<nJet;++j) {
+  auto selectedJet = jetSelection();
+  if (selectedJet.size() == 0) {
+    cout << "Size of selectedJets is zero" << endl;
+    return;
+  }
+  for (unsigned int ij=0; ij<selectedJet.size();++ij) {
+    auto j = selectedJet[ij].GetFirstMother();
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-    auto qIdx = q1;
-    auto dr = q1_tlv.DeltaR(jet_tlv); 
-    auto dr_ = q2_tlv.DeltaR(jet_tlv); 
+    auto qIdx = tq1;
+    auto dr = tq1_tlv.DeltaR(jet_tlv); 
+    auto dr_ = tq2_tlv.DeltaR(jet_tlv); 
     if ( dr_ < dr) {
       dr = dr_;
-      qIdx = q2;
+      qIdx = tq2;
     }
-
     if (dr > 0.3) qjMapForMC_.insert({j, -9});
     else {
       qjMapForMC_.insert({j, GenPart_pdgId[qIdx]});
@@ -243,11 +323,11 @@ void vtsAnalyser::MatchingForMC() {
 
     bool idChanged = false;
     for (unsigned int i=1;i<recoJet_.size(); ++i) {
-        if (idChanged) qjMapForMC_[recoJet_[i].idx] = -9;
-        else { 
-            if (recoJet_[0].matchedQuark != recoJet_[i].matchedQuark) idChanged = true;
-            else qjMapForMC_[recoJet_[i].idx] = -9;
-        }
+      if (idChanged) qjMapForMC_[recoJet_[i].idx] = -9;
+      else { 
+          if (recoJet_[0].matchedQuark != recoJet_[i].matchedQuark) idChanged = true;
+          else qjMapForMC_[recoJet_[i].idx] = -9;
+      }
     }
   }
 }
@@ -255,10 +335,14 @@ void vtsAnalyser::MatchingForMC() {
 void vtsAnalyser::HadronAnalysis() {
   std::vector<std::vector<struct HadStat>> JetCollection;
   std::vector<struct HadStat> Had;
-  struct HadStat Stat;
-
   //Reco Jet & Reco KS matching 
-  for (unsigned int j=0; j<nJet; ++j){
+  auto selectedJet = jetSelection();
+  if (selectedJet.size() == 0) {
+    cout << "Size of selectedJets is zero" << endl;
+    return;
+  }
+  for (unsigned int ij=0; ij<selectedJet.size();++ij) {
+    auto j = selectedJet[ij].GetFirstMother();
     Had.clear();
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]); 
@@ -269,24 +353,23 @@ void vtsAnalyser::HadronAnalysis() {
         if ( had_chi2[k] > 3 ) continue;
         if ( had_dca[k] > 1 ) continue;
       }
+/*
       else if (abs(had_pdgId[k]) == 3122) {
         if ( (had_lxy[k]/had_lxyErr[k]) < 3 ) continue;
         if ( had_angleXY[k] < 0.98 ) continue;
         if ( had_chi2[k] > 3 ) continue;
         if ( had_dca[k] > 1 ) continue;
       }
+*/
       else continue;
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
       if (jet_tlv.DeltaR(had_tlv) < 0.3 && (had_pt[k]/Jet_pt[j]) > 0.15) {
-        Stat.idx = k;
-        Stat.pdgId = had_pdgId[k];
-        Stat.x = had_pt[k]/Jet_pt[j];
-        if (m_isMC) Stat.label = qjMapForMC_[j];
-        Stat.isHadJetMatched = true;
-        Stat.dr = jet_tlv.DeltaR(had_tlv);
-        Stat.jetIdx = j;
-        Had.push_back(Stat);
+        if (m_isMC) {
+          Had.push_back(HadStat(k, had_pdgId[k], qjMapForMC_[j], j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true));
+        } else {
+          Had.push_back(move(HadStat(k, had_pdgId[k], 0, j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true)));
+        }
       }
     }
     if (Had.size() != 0 ) {
@@ -300,43 +383,141 @@ void vtsAnalyser::HadronAnalysis() {
     auto jidx = JetCollection[0][0].jetIdx;
     b_had_tlv.SetPtEtaPhiM(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx]);
 
-    b_x_had = JetCollection[0][0].x;
-    b_isFrom_had = JetCollection[0][0].label;  // -99 : event that can't pass till step4(jet selection) or there is no matching between had and jet, -9 : there is t->qW in the event,but not matched to recoJet, 0 : there is no t->qW in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->sW, +-5 : hadron is from t->bW
-    b_isHadJetMatched_had = JetCollection[0][0].isHadJetMatched;
-    b_dr_had = JetCollection[0][0].dr;
+    b_had_x = JetCollection[0][0].x;
+    b_had_isFrom = JetCollection[0][0].label;  // -99 : event that can't pass till step4(jet selection) or there is no matching between had and jet, -9 : there is t->qW in the event,but not matched to recoJet, 0 : there is no t->qW in the event (if no t->s and no matching between had-jet, then the event would be -99), +-3 : hadron is from t->sW, +-5 : hadron is from t->bW
+    b_had_isHadJetMatched = JetCollection[0][0].isHadJetMatched;
+    b_had_dr = JetCollection[0][0].dr;
 
-    b_d_had = GetD(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx], had_x[idx], had_y[idx], had_z[idx]);
-    b_lxy_had = had_lxy[idx];
-    b_lxySig_had = had_lxy[idx]/had_lxyErr[idx];
-    b_angleXY_had = had_angleXY[idx];
-    b_angleXYZ_had = had_angleXYZ[idx];
-    b_chi2_had = had_chi2[idx];
-    b_dca_had = had_dca[idx];
-    b_pt_had = had_pt[idx];
-    b_eta_had = had_eta[idx];
-    b_l3D_had = had_l3D[idx];
-    b_l3DSig_had = had_l3D[idx]/had_l3DErr[idx];
-    b_legDR_had = had_legDR[idx];
-    b_mass_had = had_mass[idx];
-    b_pdgId_had = had_pdgId[idx];
-    b_dau1_chi2_had = had_dau1_chi2[idx]; 
-    b_dau1_ipsigXY_had = had_dau1_ipsigXY[idx]; 
-    b_dau1_ipsigZ_had = had_dau1_ipsigZ[idx]; 
-    b_dau1_pt_had = had_dau1_pt[idx];
-    b_dau2_chi2_had = had_dau2_chi2[idx]; 
-    b_dau2_ipsigXY_had = had_dau1_ipsigXY[idx]; 
-    b_dau2_ipsigZ_had = had_dau1_ipsigZ[idx]; 
-    b_dau2_pt_had = had_dau1_pt[idx];
+    b_had_d = GetD(had_pt[idx], had_eta[idx], had_phi[idx], had_mass[idx], had_x[idx], had_y[idx], had_z[idx]);
+    b_had_lxy = had_lxy[idx];
+    b_had_lxySig = had_lxy[idx]/had_lxyErr[idx];
+    b_had_angleXY = had_angleXY[idx];
+    b_had_angleXYZ = had_angleXYZ[idx];
+    b_had_chi2 = had_chi2[idx];
+    b_had_dca = had_dca[idx];
+    b_had_pt = had_pt[idx];
+    b_had_eta = had_eta[idx];
+    b_had_l3D = had_l3D[idx];
+    b_had_l3DSig = had_l3D[idx]/had_l3DErr[idx];
+    b_had_legDR = had_legDR[idx];
+    b_had_mass = had_mass[idx];
+    b_had_pdgId = had_pdgId[idx];
+    b_had_dau1_chi2 = had_dau1_chi2[idx]; 
+    b_had_dau1_ipsigXY = had_dau1_ipsigXY[idx]; 
+    b_had_dau1_ipsigZ = had_dau1_ipsigZ[idx]; 
+    b_had_dau1_pt = had_dau1_pt[idx];
+    b_had_dau2_chi2 = had_dau2_chi2[idx]; 
+    b_had_dau2_ipsigXY = had_dau1_ipsigXY[idx]; 
+    b_had_dau2_ipsigZ = had_dau1_ipsigZ[idx]; 
+    b_had_dau2_pt = had_dau1_pt[idx];
 
-    b_btagCSVV2_Jet = Jet_btagCSVV2[jidx];
-    b_btagCMVA_Jet = Jet_btagCMVA[jidx]; 
-    b_btagDeepB_Jet = Jet_btagDeepB[jidx];
-    b_btagDeepC_Jet = Jet_btagDeepC[jidx];
-    b_area_Jet = Jet_area[jidx]; 
-    b_pt_Jet = Jet_pt[jidx];
-    b_nConstituents_Jet = Jet_nConstituents[jidx]; 
-    b_nElectrons_Jet = Jet_nElectrons[jidx];
-    b_nMuons_Jet = Jet_nMuons[jidx];
+    b_Jet_btagCSVV2 = Jet_btagCSVV2[jidx];
+    b_Jet_btagCMVA = Jet_btagCMVA[jidx]; 
+    b_Jet_btagDeepB = Jet_btagDeepB[jidx];
+    b_Jet_btagDeepC = Jet_btagDeepC[jidx];
+    b_Jet_area = Jet_area[jidx]; 
+    b_Jet_pt = Jet_pt[jidx];
+    b_Jet_nConstituents = Jet_nConstituents[jidx]; 
+    b_Jet_nElectrons = Jet_nElectrons[jidx];
+    b_Jet_nMuons = Jet_nMuons[jidx];
+
+    b_hadTruth_nMatched = hadTruth_nMatched[idx];
+    b_hadTruth_nTrueDau = hadTruth_nTrueDau[idx];
+    b_hadTruth_isHadFromTop = hadTruth_isHadFromTop[idx];
+    b_hadTruth_isHadFromTsb = hadTruth_isHadFromTsb[idx];
+    b_hadTruth_isHadFromW= hadTruth_isHadFromW[idx];
+    b_hadTruth_isHadFromS= hadTruth_isHadFromS[idx];
+    b_hadTruth_isHadFromC= hadTruth_isHadFromC[idx];
+    b_hadTruth_isHadFromB = hadTruth_isHadFromB[idx];
   }
 }
 
+//Not yet completed
+int vtsAnalyser::Test() {
+  for (unsigned int i=0; i<nhad; ++i) {
+    if (had_pdgId[i] != 310) continue;
+    ++nTotHadKS;
+    if (hadTruth_nMatched[i] == 2) {
+      b_hadTruth_pt_vec.push_back(had_pt[i]);
+      b_hadTruth_eta_vec.push_back(had_eta[i]);
+      b_hadTruth_phi_vec.push_back(had_phi[i]);
+      b_hadTruth_mass_vec.push_back(had_mass[i]);
+      b_hadTruth_lxy_vec.push_back(had_lxy[i]);
+      b_hadTruth_lxySig_vec.push_back(had_lxy[i]/had_lxyErr[i]);
+      b_hadTruth_angleXY_vec.push_back(had_angleXY[i]);
+      b_hadTruth_angleXYZ_vec.push_back(had_angleXYZ[i]);
+      b_hadTruth_chi2_vec.push_back(had_chi2[i]);
+      b_hadTruth_dca_vec.push_back(had_dca[i]);
+      b_hadTruth_l3D_vec.push_back(had_l3D[i]);
+      b_hadTruth_l3DSig_vec.push_back(had_l3D[i]/had_l3DErr[i]);
+      b_hadTruth_legDR_vec.push_back(had_legDR[i]);
+      b_hadTruth_pdgId_vec.push_back(had_pdgId[i]);
+      b_hadTruth_dau1_chi2_vec.push_back(had_dau1_chi2[i]);
+      b_hadTruth_dau1_ipsigXY_vec.push_back(had_dau1_ipsigXY[i]);
+      b_hadTruth_dau1_ipsigZ_vec.push_back(had_dau1_ipsigZ[i]);
+      b_hadTruth_dau1_pt_vec.push_back(had_dau1_pt[i]);
+      b_hadTruth_dau2_chi2_vec.push_back(had_dau2_chi2[i]);
+      b_hadTruth_dau2_ipsigXY_vec.push_back(had_dau1_ipsigXY[i]);
+      b_hadTruth_dau2_ipsigZ_vec.push_back(had_dau1_ipsigZ[i]);
+      b_hadTruth_dau2_pt_vec.push_back(had_dau1_pt[i]);
+      b_hadTruth_isFrom_vec.push_back(hadTruth_isHadFromTsb[i]);
+      if (hadTruth_isHadFromTop[i]) ++nRealKSFromTop;
+    }
+    if (had_dau1_pt[i] >= 0.95 && had_dau2_pt[i] >= 0.95) {
+      ++nHadKSDauCut;
+    }
+    if (hadTruth_nMatched[i] == 2 && (had_dau1_pt[i] >= 0.95 && had_dau2_pt[i] >= 0.95) && hadTruth_isHadFromTop[i]) {
+      cout << " [ " << i << " ]  th had ==> dau1 pt : " << had_dau1_pt[i] << " , dau2 pt : " << had_dau2_pt[i] << endl;
+      ++nMatchedKS;
+    }
+    TLorentzVector had_tlv;
+    had_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
+/*
+    auto selectedJet = jetSelection();
+    if (selectedJet.size() == 0) {
+      cout << "Size of selectedJets is zero" << endl;
+      return;
+    }
+    for (unsigned int ij=0; ij<selectedJet.size(); ++ij) { // Loop for jet which pass jetSelection()
+      auto j = selectedJet[ij].GetFirstMother();
+*/
+    for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
+      TLorentzVector jet_tlv;
+      jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
+      // For Real KS
+      if (hadTruth_nMatched[i] == 2) {
+        if (hadTruth_isHadFromTsb[i] == qjMapForMC_[j]) {
+          cout << " =====> KS from : " << hadTruth_isHadFromTsb[i] << " , Jet : " << qjMapForMC_[j] << endl;
+          ++nRealKSWithJet;
+          b_hadTruth_isFrom_nc_vec.push_back(hadTruth_isHadFromTsb[i]);
+          b_hadTruth_x_nc_vec.push_back(had_pt[i]/Jet_pt[j]);
+          if ((jet_tlv.DeltaR(had_tlv) < 0.3) && (had_pt[i]/Jet_pt[j] > 0.15)) {
+            ++nRealKSWithJetAndCut;
+            b_hadTruth_isFrom_cut_vec.push_back(hadTruth_isHadFromTsb[i]);
+            b_hadTruth_x_cut_vec.push_back(had_pt[i]/Jet_pt[j]);
+          }
+        } 
+      }
+      // For KS from Cuts
+      if (had_pdgId[i] == 310) {
+        if ( (had_lxy[i]/had_lxyErr[i]) < 3 ) continue;
+        if ( had_angleXY[i] < 0.98 ) continue;
+        if ( had_chi2[i] > 3 ) continue;
+        if ( had_dca[i] > 1 ) continue;
+        if ( (jet_tlv.DeltaR(had_tlv) < 0.3) && (had_pt[i]/Jet_pt[j] > 0.15)) {
+          ++nKSWithCut;
+          b_had_isFrom_vec.push_back(hadTruth_isHadFromTsb[i]);
+          b_had_isFrom_vec_2.push_back(qjMapForMC_[j]);
+          b_had_x_vec.push_back(had_pt[i]/Jet_pt[j]);
+          if ( had_dau1_pt[i] >= 0.95 && had_dau2_pt[i] >= 0.95) {
+            ++nKSWithDauCut;
+            b_had_isFrom_dc_vec.push_back(hadTruth_isHadFromTsb[i]);
+            b_had_isFrom_dc_vec_2.push_back(qjMapForMC_[j]);
+            b_had_x_dc_vec.push_back(had_pt[i]/Jet_pt[j]);
+          } 
+        }
+      } 
+    }
+  }
+  return 1;
+}

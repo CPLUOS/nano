@@ -4,7 +4,8 @@ std_cut     = 'Dilep.M()>60'
 
 BDT_cut     = ''
 
-weight      = 'genweight*puweight*mueffweight*btagweight'
+#weight      = 'genweight*puweight*mueffweight*btagweight'
+weight      = 'genweight*puweight*mueffweight'
 
 json_used   = 'Golden'
 
@@ -28,7 +29,7 @@ if User_input == "nonb":
    std_cut = 'Dilep.M()>60&&nonB==1'
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,50,200] -p 'Dilep.M()' -x 'm{(\mu^+\mu^-)}GeV' -y 'Event/2 GeV' -f 'nonB_Dilept_M' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
    lst.append(cmd)   
-   std_cut = 'Dilep.M()>12&&nonB==1'
+   std_cut = 'Dilep.M()>60&&nonB==1'
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,0,300] -p 'Dilep.Pt()' -x 'p_T(\mu^+\mu^-)GeV' -y 'Event' -f 'nonB_Dilept_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
    lst.append(cmd)   
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [45,0,200] -p 'Mu1.Pt()' -x '\[p_T(\mu_1)GeV\]' -y 'Event' -f 'nonB_lept1_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
@@ -63,7 +64,7 @@ if User_input == "Out":
    std_cut = 'Dilep.M()>60&&Out==1&&MVA_BDTOut>-0.0660'
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,50,200] -p 'Dilep.M()' -x 'm(\mu^+\mu^-)GeV' -y 'Event/2 GeV' -f 'Out_Dilept_M_BDT' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
    lst.append(cmd)   
-   std_cut = 'Dilep.M()>12&&Out==1'
+   std_cut = 'Dilep.M()>60&&Out==1'
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,0,300] -p 'Dilep.Pt()' -x 'p_T(\mu^+\mu^-)GeV' -y 'Event' -f 'Out_Dilept_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
    lst.append(cmd)   
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [45,0,200] -p 'Mu1.Pt()' -x '\[p_T(\mu_1)GeV\]' -y 'Event' -f 'Out_lept1_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
@@ -96,9 +97,9 @@ if User_input == "nFH":
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,50,200] -p 'Dilep.M()' -x 'm(\mu^+\mu^-)GeV' -y 'Event/2' -f 'nFH4_Dilept_M_BDT_test' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
    lst.append(cmd)   
    std_cut = 'Dilep.M()>60&&nFH4==1'
-   cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,50,200] -p 'Dilep.M()' -x 'm(\mu^+\mu^-)GeV' -y 'Event/2' -f 'nFH4_Dilept_M' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+   cmd ="./tthDraw.py -c '%s' -w '%s' -b [60,50,200] -p 'Dilep.M()' -x 'm(\mu^+\mu^-)GeV' -y 'Event/2' -f 'nFH4_Dilept_M' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
    lst.append(cmd)   
-   std_cut = 'Dilep.M()>12&&nFH4==1'
+   std_cut = 'Dilep.M()>60&&nFH4==1'
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,0,300] -p 'Dilep.Pt()' -x 'p_T(\mu^+\mu^-)GeV' -y 'Event/2 Gev' -f 'nFH4_Dilept_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
    lst.append(cmd)   
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [45,0,200] -p 'Mu1.Pt()' -x '\[p_T(\mu_1)GeV\]' -y 'Event/2 Gev' -f 'nFH4_lept1_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
@@ -125,6 +126,12 @@ if User_input == "nFH":
    lst.append(cmd)   
    cmd ="./tthDraw.py -c '%s' -w '%s' -b [50,-3.2,3.2] -p 'Met_phi' -x 'MET_phi' -y 'Event' -f 'nFH4_MET_phi' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
    lst.append(cmd)   
+   cmd ="./tthDraw.py -c '%s' -w '%s' -b [100,0,400] -p 'Jet_pt' -x 'jet_pT' -y 'Event' -f 'nFH4_Jet_pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+   lst.append(cmd)   
+   cmd ="./tthDraw.py -c '%s' -w '%s' -b [60,-4.7,4.7] -p 'Jet_eta' -x 'jet_Eta' -y 'Event' -f 'nFH4_Jet_eta' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+   lst.append(cmd)   
+   cmd ="./tthDraw.py -c '%s' -w '%s' -b [50,-3.2,3.2] -p 'Jet_phi' -x 'jet_Phi' -y 'Event' -f 'nFH4_Jet_phi' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+   lst.append(cmd)   
 
 if User_input == "XL":
 
@@ -132,9 +139,9 @@ if User_input == "XL":
     cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,50,200] -p 'Dilep.M()' -x 'm(\mu^+\mu^-)GeV' -y 'Event/2 GeV' -f 'XL_Dilept_M_BDT' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
     lst.append(cmd)   
     std_cut = 'Dilep.M()>60&&XL==1'
-    cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,50,200] -p 'Dilep.M()' -x 'm(\mu^+\mu^-)GeV' -y 'Event/2 GeV' -f 'XL_Dilept_M' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+    cmd ="./tthDraw.py -c '%s' -w '%s' -b [60,50,200] -p 'Dilep.M()' -x 'm(\mu^+\mu^-)GeV' -y 'Event/2 GeV' -f 'XL_Dilept_M' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
     lst.append(cmd)   
-    std_cut = 'Dilep.M()>12&&XL==1'
+    std_cut = 'Dilep.M()>60&&XL==1'
     cmd ="./tthDraw.py -c '%s' -w '%s' -b [60,0,300] -p 'Dilep.Pt()' -x 'p_T(\mu^+\mu^-)GeV' -y 'Event' -f 'XL_Dilept_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
     lst.append(cmd)   
     cmd ="./tthDraw.py -c '%s' -w '%s' -b [45,0,200] -p 'Mu1.Pt()' -x '\[p_T(\mu_1)GeV\]' -y 'Event' -f 'XL_lept1_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
@@ -228,7 +235,7 @@ if User_input == "valid":
     std_cut = 'Dilep.M()>60&&nbjet==0'
     cmd ="./tthDraw.py -c '%s' -w '%s' -b [75,50,200] -p 'Dilep.M()' -x 'm(\mu^+\mu^-)GeV' -y 'Event/2' -f 'Dilept_M_nob' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
     lst.append(cmd)   
-    std_cut = 'Dilep.M()>12&&charge==1'
+    std_cut = 'Dilep.M()>60'
     cmd ="./tthDraw.py -c '%s' -w '%s' -b [60,0,300] -p 'Dilep.Pt()' -x 'p_T(\mu^+\mu^-)GeV' -y 'Event' -f 'Dilept_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
     lst.append(cmd)   
     cmd ="./tthDraw.py -c '%s' -w '%s' -b [45,0,200] -p 'Mu1.Pt()' -x '\[p_T(\mu_1)GeV\]' -y 'Event' -f 'lept1_Pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
@@ -254,6 +261,18 @@ if User_input == "valid":
     cmd ="./tthDraw.py -c '%s' -w '%s' -b [30,0.8484,1.05] -p 'CSVv2' -x 'CSVv2-Medium' -y 'Event' -f 'CSVv2' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
     lst.append(cmd)   
     cmd ="./tthDraw.py -c '%s' -w '%s' -b [50,-3.2,3.2] -p 'Met_phi' -x 'MET_phi' -y 'Event' -f 'MET_phi' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+    lst.append(cmd)   
+    cmd ="./tthDraw.py -c '%s' -w '%s' -b [100,0,400] -p 'Jet_pt' -x 'jet_pT' -y 'Event' -f 'Jet_pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+    lst.append(cmd)   
+    cmd ="./tthDraw.py -c '%s' -w '%s' -b [60,-4.7,4.7] -p 'Jet_eta' -x 'jet_Eta' -y 'Event' -f 'Jet_eta' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+    lst.append(cmd)   
+    cmd ="./tthDraw.py -c '%s' -w '%s' -b [50,-3.2,3.2] -p 'Jet_phi' -x 'jet_Phi' -y 'Event' -f 'Jet_phi' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+    lst.append(cmd)   
+    cmd ="./tthDraw.py -c '%s' -w '%s' -b [100,0,400] -p 'nonbJet_pt' -x 'nonbjet_pT' -y 'Event' -f 'nonbJet_pt' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+    lst.append(cmd)   
+    cmd ="./tthDraw.py -c '%s' -w '%s' -b [60,-4.7,4.7] -p 'nonbJet_eta' -x 'nonbjet_Eta' -y 'Event' -f 'nonbJet_eta' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
+    lst.append(cmd)   
+    cmd ="./tthDraw.py -c '%s' -w '%s' -b [50,-3.2,3.2] -p 'nonbJet_phi' -x 'nonbjet_Phi' -y 'Event' -f 'nonbJet_phi' -j 'Golden' -d 'True' > /dev/null &"%(std_cut, weight)
     lst.append(cmd)   
 
 if User_input == "FL":
