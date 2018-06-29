@@ -31,7 +31,7 @@ private:
 
   Bool_t LumiCheck();
   std::vector<TParticle> muonSelection();
-  std::vector<TParticle> elecSelection();
+  std::vector<TParticle> elecvetoSelection();
   std::vector<TParticle> tauvetoSelection();
   std::vector<TLorentzVector> recoleps;
   std::vector<TLorentzVector> recojets;

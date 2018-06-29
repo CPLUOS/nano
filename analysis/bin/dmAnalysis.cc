@@ -28,16 +28,18 @@ vector<TParticle> dmAnalysis::muonSelection()
 }
 
 
-vector<TParticle> dmAnalysis::elecSelection()
+vector<TParticle> dmAnalysis::elecvetoSelection()
 {
   vector<TParticle> elecs;
   for (UInt_t i=0; i < nElectron; ++i){
-    if (Electron_cutBased[i] < 3) continue;
-    if (Electron_pt[i] < 10) continue;
-    if (std::abs(Electron_eta[i]) > 2.1) continue;
-    if (Electron_pfRelIso03_all[i] > 0.25) continue;
+    if (Electron_cutBased[i] > 10) break;
+    if (Electron_pt[i] > 10) break;
+    if (std::abs(Electron_eta[i]) < 2.1) break;
+    if (Electron_pfRelIso03_all[i] < 0.25) break;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
+    recoleps.push_back(mom);
+  
     auto elec = TParticle();
     elec.SetPdgCode(11*Electron_charge[i]*-1);
     elec.SetMomentum(mom);
@@ -50,26 +52,27 @@ vector<TParticle> dmAnalysis::elecSelection()
 
 vector<TParticle> dmAnalysis::tauvetoSelection()
 {
-  vector<TParticle> tauvetos;
+  vector<TParticle> taus;
   for (UInt_t i=0; i < nTau; ++i){
-    if (Tau_pt[i] < 20) continue;
-    if (std::abs(Tau_eta[i]) > 2.1) continue;
-    if (Tau_decayMode[i] != 1 ) continue;
+    if (Tau_pt[i] > 20) break;
+    if (std::abs(Tau_eta[i]) < 2.1) break;
+    if (Tau_decayMode[i] == 1) break;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Tau_pt[i], Tau_eta[i], Tau_phi[i], Tau_mass[i]);
     bool hasOverLap = false;
     for (auto lep : recoleps){
         if (mom.TLorentzVector::DeltaR(lep) < 0.3) hasOverLap = true;
     }
-    if (hasOverLap) continue;
-    recoleps.push_back(mom);
-    auto tauveto = TParticle();
-    tauveto.SetPdgCode(15*Tau_charge[i]*-1);
-    tauveto.SetMomentum(mom);
+    if (!hasOverLap) break;
+    recoleps.push_back(mom); 
+    auto tau = TParticle();
+    tau.SetPdgCode(15*Tau_charge[i]*-1);
+    tau.SetMomentum(mom);
 
-    tauvetos.push_back(tauveto);
+    taus.push_back(tau);
+    //recoleps.push_back(tau);
   }
-  return tauvetos;
+  return taus;
 }
 
 
@@ -92,18 +95,18 @@ vector<TParticle> dmAnalysis::jetSelection()
 
 vector<TParticle> dmAnalysis::bjetvetoSelection()
 {
-  vector<TParticle> bjetvetos;
+  vector<TParticle> bjets;
   for (UInt_t i=0; i < nJet; ++i){
-    if (Jet_btagCSVV2[i] > 0.8484) continue;
-    if (Jet_pt[i] > 30) continue;
-    if (std::abs(Jet_eta[i]) < 2.4) continue;
+    if (Jet_btagCSVV2[i] > 0.8484) break;
+    if (Jet_pt[i] > 30) break;
+    if (std::abs(Jet_eta[i]) < 2.4) break;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
-    auto bjetveto = TParticle();
-    bjetveto.SetMomentum(mom);
-    bjetvetos.push_back(bjetveto);
+    auto bjet = TParticle();
+    bjet.SetMomentum(mom);
+    bjets.push_back(bjet);
   }
-  return bjetvetos;
+  return bjets;
 }
 
 //vector<TParticle> dmAnalysis::MET()
@@ -157,10 +160,10 @@ bool dmAnalysis::analysis()
   
   b_mpt = met.Pt(); 
 
-  if (muons.size() != 1 && muons.size() != 2) return false;
+  if (muons.size() == 0) return false;
 
   //int mulpdg = -1;
-  if (muons.size() == 2) {
+  if (muons.size() > 1) {
     recolep1 = muons[0];
     recolep2 = muons[1];
     //mulpdg = muons[0].GetPdgCode()*muons[1].GetPdgCode();
@@ -186,12 +189,11 @@ bool dmAnalysis::analysis()
   }
 
 
+  //cout << b_channel << endl;
   // Triggers
-  b_trigger_dm = HLT_PFMETNoMu120_PFMHTNoMu120_IDTight;
+  b_trigger_dm = HLT_IsoMu24;
+  if (!(b_trigger_dm)) return false;
 
-  //Bool_t PFMETNoMu120_PFMHTNoMu120_IDTight = false; 
-  //if (!(b_trigger_dm)) return false;
-  //if (!PFMETNoMu120_PFMHTNoMu120_IDTight) return false;
   if (b_channel == CH_ZJets) {
     if (abs(b_dimu.M()-90) > 30) return false; 
   }
@@ -203,13 +205,13 @@ bool dmAnalysis::analysis()
  
   b_nelec = nElectron; 
 
-  auto elecs = elecSelection();
-  if (elecs.size() != nElectron) return false;
-  for (UInt_t i=0; i < nElectron; ++i){
-    recolep = elecs[i];
-    recolep.Momentum(b_elec);
-    recoleps.push_back(b_elec);
-  }
+  auto elecs = elecvetoSelection();
+  if (elecs.size() != 0) return false;
+  //for (UInt_t i=0; i < nElectron; ++i){
+  //  recolep = elecs[i];
+  //  recolep.Momentum(b_elec);
+  //  recoleps.push_back(b_elec);
+  //}
   b_step2 = true;
   if (b_step == 1){
       ++b_step;
@@ -217,24 +219,23 @@ bool dmAnalysis::analysis()
  
   b_ntau = nTau; 
 
-  auto tauvetos = tauvetoSelection();
-  if (tauvetos.size() != 0) return false;
+  auto taus = tauvetoSelection();
+  if (taus.size() != 0) return false;
   b_step3 = true;
   if (b_step == 2){
     ++b_step;
   }
   
-  b_njet = nJet; 
-
   auto jets = jetSelection();
+  b_njet = jets.size(); 
   if (jets.size() < 2) return false;
   b_step4 = true;
   if (b_step == 3){
     ++b_step;
   }
 
-  auto bjetvetos = bjetvetoSelection();
-  b_nbjet = bjetvetos.size(); 
+  auto bjets = bjetvetoSelection();
+  b_nbjet = bjets.size(); 
   if (b_nbjet != 0) return false;
   b_step5 = true;
   if (b_step == 4){
@@ -281,6 +282,7 @@ void dmAnalysis::Loop()
   if (fChain == 0) return;
   
   Long64_t nentries = fChain->GetEntries();
+  cout << "# of the total events: " << nentries << endl;
 
   for (Long64_t iev=0; iev<nentries; iev++){
     resetBranch();
@@ -326,8 +328,9 @@ int main(Int_t argc, Char_t** argv)
 
   else
   {
-    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/VBF-C1N2_WZ_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUSummer16Fast_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_151009/0000/nanoAOD_167.root", "read");
+   TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_152543/0000/nanoAOD_16.root", "read");
+   //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
+    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/VBF-C1N2_WZ_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUSummer16Fast_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_151009/0000/nanoAOD_167.root", "read");
     TTree *tree;
     Bool_t isMC = false;
     string temp = "Run";
