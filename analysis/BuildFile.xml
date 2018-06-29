@@ -1,0 +1,8 @@
+<use name="nano/external" />
+<use name="root"/>
+<use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+<export>
+  <lib name="1"/>
+</export>
