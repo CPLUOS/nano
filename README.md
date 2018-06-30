@@ -11,6 +11,7 @@ cd nanoAOD/src
 cmsenv
 git clone git@github.com:CPLUOS/nano.git 
 scram b -j 20
+getFiles
 ```
 
 
@@ -31,4 +32,5 @@ git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODT
 git clone git@github.com:CPLUOS/nano.git 
 
 scram b -j 20
+getFiles
 ```
