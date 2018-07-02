@@ -9,6 +9,19 @@
 
 using namespace std;
 
+#define Branch_(type, name, suffix) t->Branch(#name, &(b_##name), #name "/" #suffix);
+#define BranchI(name) Branch_(Int_t, name, I)
+#define BranchF(name) Branch_(Float_t, name, F)
+#define BranchO(name) Branch_(Bool_t, name, O)
+#define BranchA_(type, name, size, suffix) t->Branch(#name, &(b_##name), #name"["#size"]/"#suffix);
+#define BranchAI(name, size) BranchA_(Int_t, name, size, I);
+#define BranchAF(name, size) BranchA_(Float_t, name, size, F);
+#define BranchAO(name, size) BranchA_(Bool_t, name, size, O);
+#define BranchVI(name) t->Branch(#name, "vector<int>", &(b_##name));
+#define BranchVF(name) t->Branch(#name, "vector<float>", &(b_##name));
+#define BranchVO(name) t->Branch(#name, "vector<bool>", &(b_##name));
+#define BranchTLV(name) t->Branch(#name, "TLorentzVector", &(b_##name));
+
 string getFileName(const string& s) {
  char sep = '/';
  size_t i = s.rfind(sep, s.length());
@@ -37,7 +50,7 @@ int main(int argc, char* argv[]) {
 
   if (argc <= 1) {
     cout << "no input file is specified. running with default file." << endl;
-    auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/tsw/nanoAOD_1.root", "READ");
+    auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/tsW_13TeV-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180611_131219/0000/nanoAOD_000.root");//"/xrootd/store/group/nanoAOD/run2_2016v5/tsw/nanoAOD_111.root", "READ");
     auto inTree = (TTree*) inFile->Get("Events");
     vtsAnalyser ana(inTree,inTree,0,true,false,false,false);
     ana.setOutput("nanotree.root");
@@ -50,8 +63,33 @@ int main(int argc, char* argv[]) {
     string outFileDir = hostDir+getenv("USER")+"/"+jobName+"/"+sampleName;
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
-      if (string(inFileName).find("NANOAOD") == std::string::npos) {cout << " input file has to be nanoAOD " << endl; continue;}
-
+      if (!isMC) { 
+        Bool_t isDL = false;
+        if (string(inFileName).find("DoubleElectron") != std::string::npos || string(inFileName).find("DoubleMuon") != std::string::npos) isDL = true;
+        Bool_t isSLE = (string(inFileName).find("SingleElectron") != std::string::npos);
+        Bool_t isSLM = (string(inFileName).find("SingleMuon") != std::string::npos);
+        TFile *inFile = TFile::Open(inFileName, "READ");
+        TTree *inTree = (TTree*) inFile->Get("Events");
+        vtsAnalyser ana(inTree,inTree,inTree,isMC,isDL,isSLE, isSLM);
+        string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
+        ana.setOutput(outFileName);
+        ana.Loop();
+      }
+      if (string(inFileName).find("NANOAOD") == std::string::npos) {
+        cout << " input file is not tt###j_* sample" << endl;
+        if (string(inFileName).find("run2") != std::string::npos) { 
+          TFile *inFile = TFile::Open(inFileName, "READ");
+          TTree *inTree = (TTree*) inFile->Get("Events");
+          vtsAnalyser ana(inTree,inTree,inTree,isMC,false,false,false);
+          string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
+          ana.setOutput(outFileName);
+          ana.Loop();
+          continue;
+        } else {
+          cout << " input file has to be nanoAOD " << endl;
+          continue;
+        }
+      }
       auto fileName = getFileName(argv[i]);
       auto dirName = getDir(getDir(argv[i]));
 //      auto sampleType = getType(dirName);
@@ -69,7 +107,8 @@ int main(int argc, char* argv[]) {
       cout << "dirName : " << dirName << " fileName : " << fileName << endl;
 //      cout << "tree chk : had : " << hadTree << " , hadTruth : " << hadTruthTree << endl;
       vtsAnalyser ana(inTree,hadTruthTree,hadTruthTree,isMC,false,false,false); // you don't need to use hadTree
-      string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
+//      string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
+      string outFileName = outFileDir+"/nanotree_"+fileName;
       ana.setOutput(outFileName);
       ana.Loop();
     }
@@ -97,6 +136,7 @@ void vtsAnalyser::Loop() {
       MatchingForMC();
       HadronAnalysis();
       Test();
+//      CollectVar();
     }
     m_tree->Fill();
   }
@@ -124,7 +164,7 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   BranchI(hadTruth_nMatched); BranchI(hadTruth_nTrueDau); 
   BranchO(hadTruth_isHadFromTop); BranchI(hadTruth_isHadFromTsb); BranchO(hadTruth_isHadFromW); BranchO(hadTruth_isHadFromS); BranchO(hadTruth_isHadFromC); BranchO(hadTruth_isHadFromB);
 
-  // For Test
+  // For Test()
   BranchVO(hadTruth_isHadFromTop_vec);
   BranchVF(hadTruth_pt_vec); BranchVF(hadTruth_eta_vec); BranchVF(hadTruth_phi_vec); BranchVF(hadTruth_mass_vec);
   BranchVF(hadTruth_lxy_vec); BranchVF(hadTruth_lxySig_vec); BranchVF(hadTruth_angleXY_vec); BranchVF(hadTruth_angleXYZ_vec); BranchVF(hadTruth_chi2_vec); BranchVF(hadTruth_dca_vec);
@@ -137,6 +177,13 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   BranchVF(comb_x_vec); BranchF(comb_x);
   BranchVI(had_isFrom_vec); BranchVI(had_isFrom_vec_2); BranchVI(had_isFrom_dc_vec); BranchVI(had_isFrom_dc_vec_2);
   BranchVF(had_x_vec); BranchVF(had_x_dc_vec);
+  // For CollectVar()
+  BranchVF(lep_pt_vec); BranchVF(dilep_pt_vec); BranchVF(elec_pt_vec); BranchVF(mu_pt_vec);
+  BranchVF(lep_eta_vec); BranchVF(dilep_eta_vec); BranchVF(elec_eta_vec); BranchVF(mu_eta_vec);
+  BranchVF(lep_phi_vec); BranchVF(dilep_phi_vec); BranchVF(elec_phi_vec); BranchVF(mu_phi_vec);
+  BranchVF(lep_mass_vec); BranchVF(dilep_mass_vec); BranchVF(elec_mass_vec); BranchVF(mu_mass_vec);
+  BranchVF(lep_dxy_vec); BranchVF(elec_dxy_vec); BranchVF(mu_dxy_vec);
+  BranchF(MET_pt); BranchF(MET_phi); BranchF(MET_sumEt);
 
   BranchTLV(had_tlv);
   BranchI(had_isFrom); BranchO(had_isHadJetMatched);
@@ -166,13 +213,19 @@ void vtsAnalyser::ResetBranch() {
   b_comb_isFrom = -99; b_comb_x = -1;
   b_had_isFrom_vec.clear(); b_had_isFrom_vec_2.clear(); b_had_x_vec.clear();
   b_had_isFrom_dc_vec.clear(); b_had_isFrom_dc_vec_2.clear(); b_had_x_dc_vec.clear();
-
   b_hadTruth_isFrom_vec.clear(); 
   b_hadTruth_pt_vec.clear(); b_hadTruth_eta_vec.clear(); b_hadTruth_phi_vec.clear(); b_hadTruth_mass_vec.clear();
   b_hadTruth_lxy_vec.clear(); b_hadTruth_lxySig_vec.clear(); b_hadTruth_angleXY_vec.clear(); b_hadTruth_angleXYZ_vec.clear(); b_hadTruth_chi2_vec.clear(); b_hadTruth_dca_vec.clear();
   b_hadTruth_l3D_vec.clear(); b_hadTruth_l3DSig_vec.clear(); b_hadTruth_legDR_vec.clear(); b_hadTruth_pdgId_vec.clear();
   b_hadTruth_dau1_chi2_vec.clear(); b_hadTruth_dau1_ipsigXY_vec.clear(); b_hadTruth_dau1_ipsigZ_vec.clear(); b_hadTruth_dau1_pt_vec.clear();
   b_hadTruth_dau2_chi2_vec.clear(); b_hadTruth_dau2_ipsigXY_vec.clear(); b_hadTruth_dau2_ipsigZ_vec.clear(); b_hadTruth_dau2_pt_vec.clear();
+  // For CollectVar()
+  b_lep_pt_vec.clear(); b_dilep_pt_vec.clear(); b_elec_pt_vec.clear(); b_mu_pt_vec.clear();
+  b_lep_eta_vec.clear(); b_dilep_eta_vec.clear(); b_elec_eta_vec.clear(); b_mu_eta_vec.clear();
+  b_lep_phi_vec.clear(); b_dilep_phi_vec.clear(); b_elec_phi_vec.clear(); b_mu_phi_vec.clear();
+  b_lep_mass_vec.clear(); b_dilep_mass_vec.clear(); b_elec_mass_vec.clear(); b_mu_mass_vec.clear();
+  b_lep_dxy_vec.clear(); b_elec_dxy_vec.clear(); b_mu_dxy_vec.clear();
+  b_MET_pt = -1; b_MET_phi = -99; b_MET_sumEt = -1;
 
   b_had_tlv.SetPtEtaPhiM(0,0,0,0);
   b_had_isFrom = -99;
@@ -241,7 +294,7 @@ void vtsAnalyser::MatchingForMC() {
       dr = dr_;
       qIdx = tq2;
     }
-    if (dr > 0.3) qjMapForMC_.insert({j, -9});
+    if (dr > 0.5) qjMapForMC_.insert({j, -9});
     else {
       qjMapForMC_.insert({j, GenPart_pdgId[qIdx]});
       JetStat stat(j, dr, qjMapForMC_[j]);
@@ -297,7 +350,7 @@ void vtsAnalyser::HadronAnalysis() {
       else continue;
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
-      if (jet_tlv.DeltaR(had_tlv) < 0.3 && (had_pt[k]/Jet_pt[j]) > 0.15) {
+      if (jet_tlv.DeltaR(had_tlv) < 0.5 && (had_pt[k]/Jet_pt[j]) > 0.15) {
         if (m_isMC) {
           Had.push_back(HadStat(k, had_pdgId[k], qjMapForMC_[j], j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true));
         } else {
@@ -424,7 +477,7 @@ int vtsAnalyser::Test() {
           ++nRealKSWithJet;
           b_hadTruth_isFrom_nc_vec.push_back(hadTruth_isHadFromTsb[i]);
           b_hadTruth_x_nc_vec.push_back(had_pt[i]/Jet_pt[j]);
-          if ((jet_tlv.DeltaR(had_tlv) < 0.3) && (had_pt[i]/Jet_pt[j] > 0.15)) {
+          if ((jet_tlv.DeltaR(had_tlv) < 0.5) && (had_pt[i]/Jet_pt[j] > 0.15)) {
             ++nRealKSWithJetAndCut;
             b_hadTruth_isFrom_cut_vec.push_back(hadTruth_isHadFromTsb[i]);
             b_hadTruth_x_cut_vec.push_back(had_pt[i]/Jet_pt[j]);
@@ -437,7 +490,7 @@ int vtsAnalyser::Test() {
         if ( had_angleXY[i] < 0.98 ) continue;
         if ( had_chi2[i] > 3 ) continue;
         if ( had_dca[i] > 1 ) continue;
-        if ( (jet_tlv.DeltaR(had_tlv) < 0.3) && (had_pt[i]/Jet_pt[j] > 0.15)) {
+        if ( (jet_tlv.DeltaR(had_tlv) < 0.5) && (had_pt[i]/Jet_pt[j] > 0.15)) {
           ++nKSWithCut;
           b_had_isFrom_vec.push_back(hadTruth_isHadFromTsb[i]);
           b_had_isFrom_vec_2.push_back(qjMapForMC_[j]);
@@ -455,3 +508,60 @@ int vtsAnalyser::Test() {
   return 1;
 }
 
+void vtsAnalyser::CollectVar() {
+  b_MET_pt = MET_pt;
+  b_MET_phi = MET_phi;
+  b_MET_sumEt = MET_sumEt;
+  cout << "MET (pt,phi,sumET) : " << b_MET_pt << " , " << b_MET_phi << " , " << b_MET_sumEt << endl;
+
+  b_lep_pt_vec.push_back(b_lep1.Pt());
+  b_lep_eta_vec.push_back(b_lep1.Eta());
+  b_lep_phi_vec.push_back(b_lep1.Phi());
+  b_lep_mass_vec.push_back(b_lep1.M());
+  b_lep_pt_vec.push_back(b_lep2.Pt());
+  b_lep_eta_vec.push_back(b_lep2.Eta());
+  b_lep_phi_vec.push_back(b_lep2.Phi());
+  b_lep_mass_vec.push_back(b_lep2.M());
+
+  b_dilep_pt_vec.push_back(b_dilep.Pt());
+  b_dilep_eta_vec.push_back(b_dilep.Eta());
+  b_dilep_phi_vec.push_back(b_dilep.Phi());
+  b_dilep_mass_vec.push_back(b_dilep.M());
+
+  TLorentzVector elec;
+  TLorentzVector mu;
+  if (abs(b_lep1_pid) == 11) {
+    elec = b_lep1;
+    b_elec_pt_vec.push_back(elec.Pt());
+    b_elec_eta_vec.push_back(elec.Eta());
+    b_elec_phi_vec.push_back(elec.Phi());
+    b_elec_mass_vec.push_back(elec.M());
+    b_elec_dxy_vec.push_back(Electron_dxy[b_lep1_idx]);
+    b_lep_dxy_vec.push_back(Electron_dxy[b_lep1_idx]);
+  } else {
+    mu = b_lep1;
+    b_mu_pt_vec.push_back(mu.Pt());
+    b_mu_eta_vec.push_back(mu.Eta());
+    b_mu_phi_vec.push_back(mu.Phi());
+    b_mu_mass_vec.push_back(mu.M());
+    b_mu_dxy_vec.push_back(Muon_dxy[b_lep1_idx]);
+    b_lep_dxy_vec.push_back(Muon_dxy[b_lep1_idx]);
+  }
+  if (abs(b_lep2_pid) == 11) {
+    elec = b_lep2;
+    b_elec_pt_vec.push_back(elec.Pt());
+    b_elec_eta_vec.push_back(elec.Eta());
+    b_elec_phi_vec.push_back(elec.Phi());
+    b_elec_mass_vec.push_back(elec.M());
+    b_elec_dxy_vec.push_back(Electron_dxy[b_lep1_idx]);
+    b_lep_dxy_vec.push_back(Electron_dxy[b_lep1_idx]);
+  } else {
+    mu = b_lep2;
+    b_mu_pt_vec.push_back(mu.Pt());
+    b_mu_eta_vec.push_back(mu.Eta());
+    b_mu_phi_vec.push_back(mu.Phi());
+    b_mu_mass_vec.push_back(mu.M());
+    b_mu_dxy_vec.push_back(Muon_dxy[b_lep1_idx]);
+    b_lep_dxy_vec.push_back(Muon_dxy[b_lep1_idx]);
+  }
+}

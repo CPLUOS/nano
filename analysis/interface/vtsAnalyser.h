@@ -3,25 +3,11 @@
 
 #include "hadAnalyser.h"
 
-#define Branch_(type, name, suffix) t->Branch(#name, &(b_##name), #name "/" #suffix);
-#define BranchI(name) Branch_(Int_t, name, I)
-#define BranchF(name) Branch_(Float_t, name, F)
-#define BranchO(name) Branch_(Bool_t, name, O)
-#define BranchA_(type, name, size, suffix) t->Branch(#name, &(b_##name), #name"["#size"]/"#suffix);
-#define BranchAI(name, size) BranchA_(Int_t, name, size, I);
-#define BranchAF(name, size) BranchA_(Float_t, name, size, F);
-#define BranchAO(name, size) BranchA_(Bool_t, name, size, O);
-#define BranchVI(name) t->Branch(#name, "vector<int>", &(b_##name));
-#define BranchVF(name) t->Branch(#name, "vector<float>", &(b_##name));
-#define BranchVO(name) t->Branch(#name, "vector<bool>", &(b_##name));
-#define BranchTLV(name) t->Branch(#name, "TLorentzVector", &(b_##name));
-
 class vtsAnalyser : public hadAnalyser 
 {
 private:
   // for Test()
   int nTotHadKS = 0; int nMatchedKS = 0; int nHadKSDauCut = 0; int nRealKSFromTop = 0; int nRealKSWithJet = 0; int nRealKSWithJetAndCut = 0; int nKSWithCut =0; int nKSWithDauCut =0;
-
   std::vector<bool> b_hadTruth_isHadFromTop_vec;
   std::vector<float> b_hadTruth_pt_vec; std::vector<float> b_hadTruth_eta_vec; std::vector<float> b_hadTruth_phi_vec; std::vector<float> b_hadTruth_mass_vec;
   std::vector<float> b_hadTruth_lxy_vec; std::vector<float> b_hadTruth_lxySig_vec; std::vector<float> b_hadTruth_angleXY_vec; std::vector<float> b_hadTruth_angleXYZ_vec; std::vector<float> b_hadTruth_chi2_vec; std::vector<float> b_hadTruth_dca_vec;
@@ -29,7 +15,6 @@ private:
   std::vector<float> b_hadTruth_dau1_chi2_vec; std::vector<float> b_hadTruth_dau1_ipsigXY_vec; std::vector<float> b_hadTruth_dau1_ipsigZ_vec; std::vector<float> b_hadTruth_dau1_pt_vec;
   std::vector<float> b_hadTruth_dau2_chi2_vec; std::vector<float> b_hadTruth_dau2_ipsigXY_vec; std::vector<float> b_hadTruth_dau2_ipsigZ_vec; std::vector<float> b_hadTruth_dau2_pt_vec;
   std::vector<int> b_hadTruth_isFrom_vec;
-
   std::vector<int> b_hadTruth_isFrom_cut_vec; std::vector<float> b_hadTruth_x_cut_vec;
   std::vector<int> b_hadTruth_isFrom_nc_vec; std::vector<float> b_hadTruth_x_nc_vec;
   int b_hadTruth_isFrom;
@@ -39,6 +24,13 @@ private:
   float b_comb_x;
   std::vector<int> b_had_isFrom_vec; std::vector<int> b_had_isFrom_vec_2; std::vector<float> b_had_x_vec;
   std::vector<int> b_had_isFrom_dc_vec; std::vector<int> b_had_isFrom_dc_vec_2; std::vector<float> b_had_x_dc_vec;
+  // for CollectVar()
+  std::vector<float> b_lep_pt_vec; std::vector<float> b_dilep_pt_vec; std::vector<float> b_elec_pt_vec; std::vector<float> b_mu_pt_vec;
+  std::vector<float> b_lep_eta_vec; std::vector<float> b_dilep_eta_vec; std::vector<float> b_elec_eta_vec; std::vector<float> b_mu_eta_vec;
+  std::vector<float> b_lep_phi_vec; std::vector<float> b_dilep_phi_vec; std::vector<float> b_elec_phi_vec; std::vector<float> b_mu_phi_vec;
+  std::vector<float> b_lep_mass_vec; std::vector<float> b_dilep_mass_vec; std::vector<float> b_elec_mass_vec; std::vector<float> b_mu_mass_vec;
+  std::vector<float> b_lep_dxy_vec; std::vector<float> b_elec_dxy_vec; std::vector<float> b_mu_dxy_vec;
+  float b_MET_pt, b_MET_phi, b_MET_sumEt;
 
   std::map<unsigned int, int> qjMapForMC_;
   std::vector<int> tqMC_;
@@ -53,6 +45,7 @@ private:
   void HadronAnalysis();
 
   int Test();
+  void CollectVar();
 
 public:
   void setOutput(std::string outputName);

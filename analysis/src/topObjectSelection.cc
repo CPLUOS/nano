@@ -24,6 +24,7 @@ vector<TParticle> topObjectSelection::elecSelection() {
     elec.SetPdgCode(11*Electron_charge[i]*-1);
     elec.SetMomentum(mom);
     elec.SetWeight(el_scEta);
+    elec.SetFirstMother(i);
     elecs.push_back(elec);
   }
   return elecs;
@@ -45,7 +46,7 @@ vector<TParticle> topObjectSelection::muonSelection() {
     auto muon = TParticle();
     muon.SetPdgCode(13*Muon_charge[i]*-1);
     muon.SetMomentum(mom);
-
+    muon.SetFirstMother(i);
     muons.push_back(muon);
   }
   return muons;
@@ -67,6 +68,7 @@ vector<TParticle> topObjectSelection::vetoElecSelection() {
     elec.SetPdgCode(11*Electron_charge[i]*-1);
     elec.SetMomentum(mom);
     elec.SetWeight(el_scEta);
+    elec.SetFirstMother(i);
     elecs.push_back(elec);
   }
   return elecs;
@@ -90,7 +92,7 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
     auto muon = TParticle();
     muon.SetPdgCode(13*Muon_charge[i]*-1);
     muon.SetMomentum(mom);
-
+    muon.SetFirstMother(i);
     muons.push_back(muon);
   }
   return muons;
@@ -140,6 +142,7 @@ vector<TParticle> topObjectSelection::bjetSelection() {
     if (hasOverLap) continue;
     auto bjet = TParticle();
     bjet.SetMomentum(mom);
+    bjet.SetFirstMother(i);
     bjets.push_back(bjet);
   }
   return bjets;
