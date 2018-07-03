@@ -63,7 +63,6 @@ vector<TParticle> topObjectSelection::vetoElecSelection() {
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
-
     auto elec = TParticle();
     elec.SetPdgCode(11*Electron_charge[i]*-1);
     elec.SetMomentum(mom);
