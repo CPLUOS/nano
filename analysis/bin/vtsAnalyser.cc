@@ -139,11 +139,6 @@ void vtsAnalyser::setOutput(std::string outFileName) {
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
   h_weights = new TH1D("weight", "weight", 1, 0, 1);
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
-
-  // For bTagTest()
-  h_bTag = new TH1D("bTag","bTag", 200, -0.5, 1.5);
-  h_jetSF = new TH1D("jetSF","jetSF", 200, -0.5, 1.5);
-  h_CSVV2 = new TH1D("CSVV2","CSVV2", 200, -0.5, 1.5);
 }
 
 void vtsAnalyser::MakeBranch(TTree* t) {
