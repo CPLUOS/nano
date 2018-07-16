@@ -111,14 +111,14 @@ public :
    Float_t         GenJet_phi[20];   //[nGenJet]
    Float_t         GenJet_pt[20];   //[nGenJet]
    UInt_t          nGenPart;
-   Float_t         GenPart_eta[200];   //[nGenPart]
-   Float_t         GenPart_mass[200];   //[nGenPart]
-   Float_t         GenPart_phi[200];   //[nGenPart]
-   Float_t         GenPart_pt[200];   //[nGenPart]
-   Int_t           GenPart_genPartIdxMother[200];   //[nGenPart]
-   Int_t           GenPart_pdgId[200];   //[nGenPart]
-   Int_t           GenPart_status[200];   //[nGenPart]
-   Int_t           GenPart_statusFlags[200];   //[nGenPart00]
+   Float_t         GenPart_eta[5000];   //[nGenPart]
+   Float_t         GenPart_mass[5000];   //[nGenPart]
+   Float_t         GenPart_phi[5000];   //[nGenPart]
+   Float_t         GenPart_pt[5000];   //[nGenPart]
+   Int_t           GenPart_genPartIdxMother[5000];   //[nGenPart]
+   Int_t           GenPart_pdgId[5000];   //[nGenPart]
+   Int_t           GenPart_status[5000];   //[nGenPart]
+   Int_t           GenPart_statusFlags[5000];   //[nGenPart00]
    Float_t         Generator_x1;
    Float_t         Generator_x2;
    UInt_t          nGenVisTau;
@@ -2216,15 +2216,17 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
    fChain->SetBranchAddress("GenJet_mass", GenJet_mass, &b_GenJet_mass);
    fChain->SetBranchAddress("GenJet_phi", GenJet_phi, &b_GenJet_phi);
    fChain->SetBranchAddress("GenJet_pt", GenJet_pt, &b_GenJet_pt);
-   fChain->SetBranchAddress("nGenPart", &nGenPart, &b_nGenPart);
-   fChain->SetBranchAddress("GenPart_eta", GenPart_eta, &b_GenPart_eta);
-   fChain->SetBranchAddress("GenPart_mass", GenPart_mass, &b_GenPart_mass);
-   fChain->SetBranchAddress("GenPart_phi", GenPart_phi, &b_GenPart_phi);
-   fChain->SetBranchAddress("GenPart_pt", GenPart_pt, &b_GenPart_pt);
-   fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
-   fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
-   fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
-   fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
+   if (!ht_fChain) {
+     fChain->SetBranchAddress("nGenPart", &nGenPart, &b_nGenPart);
+     fChain->SetBranchAddress("GenPart_eta", GenPart_eta, &b_GenPart_eta);
+     fChain->SetBranchAddress("GenPart_mass", GenPart_mass, &b_GenPart_mass);
+     fChain->SetBranchAddress("GenPart_phi", GenPart_phi, &b_GenPart_phi);
+     fChain->SetBranchAddress("GenPart_pt", GenPart_pt, &b_GenPart_pt);
+     fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
+     fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
+     fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
+     fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
+   }
    fChain->SetBranchAddress("Generator_x1", &Generator_x1, &b_Generator_x1);
    fChain->SetBranchAddress("Generator_x2", &Generator_x2, &b_Generator_x2);
    fChain->SetBranchAddress("nGenVisTau", &nGenVisTau, &b_nGenVisTau);
@@ -3146,6 +3148,16 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
        ht_fChain->SetBranchAddress("run", &ht_run);
        ht_fChain->SetBranchAddress("luminosityBlock", &ht_luminosityBlock);
      }
+     ht_fChain->SetBranchAddress("nGenPart", &nGenPart, &b_nGenPart);
+     ht_fChain->SetBranchAddress("GenPart_eta", GenPart_eta, &b_GenPart_eta);
+     ht_fChain->SetBranchAddress("GenPart_mass", GenPart_mass, &b_GenPart_mass);
+     ht_fChain->SetBranchAddress("GenPart_phi", GenPart_phi, &b_GenPart_phi);
+     ht_fChain->SetBranchAddress("GenPart_pt", GenPart_pt, &b_GenPart_pt);
+     ht_fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
+     ht_fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
+     ht_fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
+     ht_fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
+
      ht_fChain->SetBranchAddress("nhadTruth", &nhadTruth, &b_nhadTruth);
      ht_fChain->SetBranchAddress("hadTruth_nMatched", hadTruth_nMatched, &b_hadTruth_nMatched);
      ht_fChain->SetBranchAddress("hadTruth_nTrueDau", hadTruth_nTrueDau, &b_hadTruth_nTrueDau);

@@ -8,22 +8,34 @@ class vtsAnalyser : public hadAnalyser
 private:
   // for Test()
   int nTotHadKS = 0; int nMatchedKS = 0; int nHadKSDauCut = 0; int nRealKSFromTop = 0; int nRealKSWithJet = 0; int nRealKSWithJetAndCut = 0; int nKSWithCut =0; int nKSWithDauCut =0;
-  std::vector<bool> b_hadTruth_isHadFromTop_vec;
+
+  std::vector<int> b_GenPart_isGenFrom_vec; std::vector<bool> b_GenPart_isGenFromTop_vec; std::vector<bool> b_GenPart_isGenFromW_vec;
+  std::vector<float> b_GenPart_d_vec; 
+  std::vector<float> b_GenPart_pt_vec; std::vector<float> b_GenPart_eta_vec; std::vector<float> b_GenPart_phi_vec; std::vector<float> b_GenPart_mass_vec;
+
+  std::vector<int> b_GenPart_isGenFrom_jetMat_vec; std::vector<bool> b_GenPart_isGenFromTop_jetMat_vec; std::vector<bool> b_GenPart_isGenFromW_jetMat_vec; 
+  std::vector<float> b_GenPart_d_jetMat_vec; std::vector<float> b_GenPart_x_jetMat_vec; std::vector<float> b_GenPart_dr_jetMat_vec;
+  std::vector<float> b_GenPart_pt_jetMat_vec; std::vector<float> b_GenPart_eta_jetMat_vec; std::vector<float> b_GenPart_phi_jetMat_vec; std::vector<float> b_GenPart_mass_jetMat_vec;
+
+  std::vector<int> b_hadTruth_nMatched_vec; std::vector<int> b_hadTruth_isFrom_vec; std::vector<bool> b_hadTruth_isHadFromTop_vec; std::vector<bool> b_hadTruth_isHadFromW_vec; std::vector<bool> b_hadTruth_isHadFromS_vec; std::vector<bool> b_hadTruth_isHadFromC_vec; std::vector<bool> b_hadTruth_isHadFromB_vec;
+  std::vector<float> b_hadTruth_d_vec;
   std::vector<float> b_hadTruth_pt_vec; std::vector<float> b_hadTruth_eta_vec; std::vector<float> b_hadTruth_phi_vec; std::vector<float> b_hadTruth_mass_vec;
   std::vector<float> b_hadTruth_lxy_vec; std::vector<float> b_hadTruth_lxySig_vec; std::vector<float> b_hadTruth_angleXY_vec; std::vector<float> b_hadTruth_angleXYZ_vec; std::vector<float> b_hadTruth_chi2_vec; std::vector<float> b_hadTruth_dca_vec;
   std::vector<float> b_hadTruth_l3D_vec; std::vector<float> b_hadTruth_l3DSig_vec; std::vector<float> b_hadTruth_legDR_vec; std::vector<int> b_hadTruth_pdgId_vec;
   std::vector<float> b_hadTruth_dau1_chi2_vec; std::vector<float> b_hadTruth_dau1_ipsigXY_vec; std::vector<float> b_hadTruth_dau1_ipsigZ_vec; std::vector<float> b_hadTruth_dau1_pt_vec;
   std::vector<float> b_hadTruth_dau2_chi2_vec; std::vector<float> b_hadTruth_dau2_ipsigXY_vec; std::vector<float> b_hadTruth_dau2_ipsigZ_vec; std::vector<float> b_hadTruth_dau2_pt_vec;
-  std::vector<int> b_hadTruth_isFrom_vec;
-  std::vector<int> b_hadTruth_isFrom_cut_vec; std::vector<float> b_hadTruth_x_cut_vec;
-  std::vector<int> b_hadTruth_isFrom_nc_vec; std::vector<float> b_hadTruth_x_nc_vec;
-  int b_hadTruth_isFrom;
-  float b_hadTruth_x;
-  std::vector<int> b_comb_isFrom_vec; std::vector<float> b_comb_x_vec;  
-  int b_comb_isFrom;
-  float b_comb_x;
-  std::vector<int> b_had_isFrom_vec; std::vector<int> b_had_isFrom_vec_2; std::vector<float> b_had_x_vec;
-  std::vector<int> b_had_isFrom_dc_vec; std::vector<int> b_had_isFrom_dc_vec_2; std::vector<float> b_had_x_dc_vec;
+
+  std::vector<int> b_hadTruth_nMatched_jetMat_vec; std::vector<int> b_hadTruth_isFrom_jetMat_vec; std::vector<bool> b_hadTruth_isHadFromTop_jetMat_vec; std::vector<bool> b_hadTruth_isHadFromW_jetMat_vec; std::vector<bool> b_hadTruth_isHadFromS_jetMat_vec; std::vector<bool> b_hadTruth_isHadFromC_jetMat_vec; std::vector<bool> b_hadTruth_isHadFromB_jetMat_vec; std::vector<int> b_hadTruth_qjMapForMC_jetMat_vec;
+  std::vector<float> b_hadTruth_d_jetMat_vec; std::vector<float> b_hadTruth_x_jetMat_vec; std::vector<float> b_hadTruth_dr_jetMat_vec;
+  std::vector<float> b_hadTruth_pt_jetMat_vec; std::vector<float> b_hadTruth_eta_jetMat_vec; std::vector<float> b_hadTruth_phi_jetMat_vec; std::vector<float> b_hadTruth_mass_jetMat_vec;
+  std::vector<float> b_hadTruth_lxy_jetMat_vec; std::vector<float> b_hadTruth_lxySig_jetMat_vec; std::vector<float> b_hadTruth_angleXY_jetMat_vec; std::vector<float> b_hadTruth_angleXYZ_jetMat_vec; std::vector<float> b_hadTruth_chi2_jetMat_vec; std::vector<float> b_hadTruth_dca_jetMat_vec;
+  std::vector<float> b_hadTruth_l3D_jetMat_vec; std::vector<float> b_hadTruth_l3DSig_jetMat_vec; std::vector<float> b_hadTruth_legDR_jetMat_vec; std::vector<int> b_hadTruth_pdgId_jetMat_vec;
+  std::vector<float> b_hadTruth_dau1_chi2_jetMat_vec; std::vector<float> b_hadTruth_dau1_ipsigXY_jetMat_vec; std::vector<float> b_hadTruth_dau1_ipsigZ_jetMat_vec; std::vector<float> b_hadTruth_dau1_pt_jetMat_vec;
+  std::vector<float> b_hadTruth_dau2_chi2_jetMat_vec; std::vector<float> b_hadTruth_dau2_ipsigXY_jetMat_vec; std::vector<float> b_hadTruth_dau2_ipsigZ_jetMat_vec; std::vector<float> b_hadTruth_dau2_pt_jetMat_vec;
+
+  std::vector<int> b_had_isFrom_vec; std::vector<int> b_had_qjMapForMC_vec; std::vector<float> b_had_x_vec; std::vector<float> b_had_d_vec; std::vector<float> b_had_dr_vec;
+  std::vector<int> b_had_isFrom_dc_vec; std::vector<int> b_had_qjMapForMC_dc_vec; std::vector<float> b_had_x_dc_vec; std::vector<float> b_had_d_dc_vec; std::vector<float> b_had_dr_dc_vec;
+
   // for CollectVar()
   std::vector<float> b_lep_pt_vec; std::vector<float> b_dilep_pt_vec; std::vector<float> b_elec_pt_vec; std::vector<float> b_mu_pt_vec;
   std::vector<float> b_lep_eta_vec; std::vector<float> b_dilep_eta_vec; std::vector<float> b_elec_eta_vec; std::vector<float> b_mu_eta_vec;
@@ -32,6 +44,7 @@ private:
   std::vector<float> b_lep_dxy_vec; std::vector<float> b_elec_dxy_vec; std::vector<float> b_mu_dxy_vec;
   float b_MET_pt, b_MET_phi, b_MET_sumEt;
 
+  // for MatchingForMC()
   std::map<unsigned int, int> qjMapForMC_;
   std::vector<int> tqMC_;
   std::vector<int> wqMC_;
@@ -44,6 +57,7 @@ private:
   void MatchingForMC();
   void HadronAnalysis();
 
+  bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW);
   int Test();
   void CollectVar();
 
