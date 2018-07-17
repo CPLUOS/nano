@@ -4,6 +4,7 @@
 #include <TCanvas.h>
 #include <iostream>
 #include <cstdlib>
+
 using namespace std;
 
 massAnalyser::massAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, had, hadTruth, isMC, dl, sle, slm)
@@ -21,15 +22,21 @@ void massAnalyser::Loop() {
   
   // Events loop
   for (Long64_t iev=0; iev<nentries; iev++) {
-    Reset();
+    //Reset();
     resetBranch();
     fChain->GetEntry(iev);
-    int keep = EventSelection();
-    cmesonSelection();
-    if (keep != 0) {
-      collectTMVAvalues();
-      m_tree->Fill();
+    if (iev % 1000 == 0) {
+      cout << iev << endl;
     }
+    int keep = EventSelection();
+    if (keep >= -1) {
+      //cmesonSelection();
+      //collectTMVAvalues();
+      cmesonSelection();
+      bTagTest();
+    }
+    m_tree->Fill();
+    
   }
 }
 
@@ -58,6 +65,7 @@ int main(int argc, char* argv[]) {
     if (found == std::string::npos) isMC = true;
 
     for(Int_t i = 3; i < argc; i++) {
+      cerr << argv[i] << endl;
       TFile *f = TFile::Open(argv[i], "read");
      
       TTree *tree;                  
@@ -66,7 +74,7 @@ int main(int argc, char* argv[]) {
       temp = argv[i];   
       found = temp.find_last_of('/');
       std::string outPutName = dirName + temp.substr(found);
-      massAnalyser t(tree, isMC, isDL, isSL_e, isSL_m);
+      massAnalyser t(tree, tree, 0, isMC, isDL, isSL_e, isSL_m);
       
       t.setOutput(outPutName);
       t.Loop();
@@ -78,7 +86,7 @@ int main(int argc, char* argv[]) {
     TTree *tree;
     f->GetObject("Events", tree);
 
-    massAnalyser t(tree, true);
+    massAnalyser t(tree, tree, 0, true, false, false, false);
     t.setOutput("test.root");
     t.Loop();
   }
@@ -87,6 +95,7 @@ int main(int argc, char* argv[]) {
 
 void massAnalyser::collectTMVAvalues() {
   for (UInt_t i=0; i < nhad; ++i) {
+    if (abs(had_pdgId[i]) != 421) continue;
     b_cme_lxy = had_lxy[i];
     b_cme_lxyE = had_lxy[i] / had_lxyErr[i];
     b_cme_l3D = had_l3D[i];
@@ -130,7 +139,7 @@ void massAnalyser::collectTMVAvalues() {
     b_cme_mass = had_mass[b_maxbIdx];
     b_cme_tmva_bdtg = b_bdtg;
     b_cme_pdgId = had_pdgId[b_maxbIdx];
-    m_tree->Fill();
+    //m_tree->Fill();
   }
 }
 
@@ -140,7 +149,7 @@ void massAnalyser::setOutput(std::string outputName) {
   m_tree = new TTree("event", "event");
   MakeBranch(m_tree);
 
-  
+/*  
   bdtg = new TMVA::Reader();
   bdtg->AddVariable("cme_lxy", &b_cme_lxy);
   bdtg->AddVariable("cme_lxyE", &b_cme_lxyE);
@@ -174,7 +183,7 @@ void massAnalyser::setOutput(std::string outputName) {
   bdtg->AddVariable("cme_dau2_pt", &b_cme_dau2_pt);
   bdtg->AddSpectator("cme_mass", &b_cme_mass);
   bdtg->BookMVA("BDTG", "/cms/scratch/jdj0715/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/dataset/weights/TMVAClassification_BDTG.weights.xml");
-    
+  */
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
   h_weights = new TH1D("weight", "weight", 1, 0, 1);
@@ -184,14 +193,23 @@ void massAnalyser::setOutput(std::string outputName) {
 void massAnalyser::MakeBranch(TTree* t) {
   t->Branch("nvertex", &b_nvertex, "nvertex/I");
   t->Branch("step", &b_step, "step/I");
+  t->Branch("step1", &b_step1, "step1/O");
+  t->Branch("step2", &b_step2, "step2/O");
+  t->Branch("step3", &b_step3, "step3/O");
+  t->Branch("step4", &b_step4, "step4/O");
+  t->Branch("step5", &b_step5, "step5/O");
+  t->Branch("step6", &b_step6, "step6/O");
+  t->Branch("step7", &b_step7, "step7/O");
   t->Branch("channel", &b_channel, "channel/I");
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("nbjet", &b_nbjet, "nbjet/I");
-  
-  m_tree->Branch("lep1", "TLorentzVector", &b_lep1);
-  m_tree->Branch("lep1_pid", &b_lep1_pid, "lep1_pid/I");    
-  m_tree->Branch("lep2", "TLorentzVector", &b_lep2);
-  m_tree->Branch("lep2_pid", &b_lep2_pid, "lep2_pid/I");    
+
+  t->Branch("jet", "TLorentzVector", &b_jet);
+  t->Branch("bjet", "TLorentzVector", &b_bjet);
+  t->Branch("lep1", "TLorentzVector", &b_lep1);
+  t->Branch("lep1_pid", &b_lep1_pid, "lep1_pid/I");    
+  t->Branch("lep2", "TLorentzVector", &b_lep2);
+  t->Branch("lep2_pid", &b_lep2_pid, "lep2_pid/I");    
   t->Branch("dilep", "TLorentzVector", &b_dilep);
   t->Branch("tri", &b_tri, "tri/F");
   t->Branch("tri_up", &b_tri_up, "tri_up/F");
@@ -220,10 +238,12 @@ void massAnalyser::MakeBranch(TTree* t) {
   t->Branch("d0_lepSV_lowM","std::vector<float>",&b_d0_lepSV_lowM);
   t->Branch("d0_lepSV_dRM","std::vector<float>",&b_d0_lepSV_dRM);
   t->Branch("d0_lepSV_correctM","std::vector<float>",&b_d0_lepSV_correctM);
+
 }
 
 
 void massAnalyser::resetBranch() {
+  Reset();
   d0s.clear();
 
   b_cme_mass = -999;
@@ -239,12 +259,13 @@ void massAnalyser::resetBranch() {
 void massAnalyser::cmesonSelection() {
   if (nhad < 1) return;
 
-  TLorentzVector vecSumDMLep1, vecSumDMLep2;
+  /* TLorentzVector vecSumDMLep1, vecSumDMLep2;
   float fMDMLep1, fMDMLep2;
   float fDeltaEta, fDeltaPhi;
   float fSqrtdRMLep1, fSqrtdRMLep2;
-
+  */
   for (UInt_t i = 0; i < nhad; ++i) {
+    //if (abs(had_pdgId[i]) != 421) continue;
     TLorentzVector d0_tlv;
     d0_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
     d0s.push_back(d0_tlv);
@@ -253,7 +274,7 @@ void massAnalyser::cmesonSelection() {
     d0s.erase(d0s.begin()+1, d0s.end());
     b_d0 = d0s[0];
 
-    vecSumDMLep1 = b_lep1 + b_d0;
+    /*vecSumDMLep1 = b_lep1 + b_d0;
     vecSumDMLep2 = b_lep2 + b_d0;
     fMDMLep1 = vecSumDMLep1.M();
     fMDMLep2 = vecSumDMLep2.M();
@@ -266,6 +287,35 @@ void massAnalyser::cmesonSelection() {
     fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
 
     b_d0_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
-    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
+    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));*/
+  }
+}
+
+void massAnalyser::bTagTest() {
+  BTagCalibration calib("CSVv2_Moriond17_B_H", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/data/btagSF/CSVv2_Moriond17_B_H.csv");
+  BTagCalibrationReader reader(BTagEntry::OP_MEDIUM, "central", {"up", "down"});
+
+  reader.load(calib, BTagEntry::FLAV_B, "comb");
+  reader.load(calib, BTagEntry::FLAV_C, "comb");
+  reader.load(calib, BTagEntry::FLAV_UDSG, "comb");
+
+//  for (unsigned int i=0; i<nJet; ++i) {
+  auto selectedJet = jetSelection();
+  for (unsigned int ij=0; ij<selectedJet.size(); ++ij) {
+    auto i = selectedJet[ij].GetFirstMother();
+    if ( Jet_pt[i] < 30.) continue;
+    if ( abs(Jet_eta[i]) > 2.4) continue;
+    BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+    if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
+    else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
+    auto bjetSF = reader.eval_auto_bounds("central", JF, Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+    b_csvweights.push_back(bjetSF);
+    
+    b_d0_lepSV_lowM.push_back(bjetSF*Jet_btagCSVV2[i]);
+    b_d0_lepSV_dRM.push_back(bjetSF);
+    b_d0_lepSV_correctM.push_back(Jet_btagCSVV2[i]);
+    //b_d0_lepSV_lowM->Fill(bjetSF*Jet_btagCSVV2[i]);
+    //b_d0_lepSV_dRM->Fill(bjetSF);
+    //b_d0_lepSV_correctM->Fill(Jet_btagCSVV2[i]);
   }
 }
