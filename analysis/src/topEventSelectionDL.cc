@@ -66,6 +66,12 @@ int topEventSelectionDL::EventSelection() {
   recolep1.Momentum(b_lep1);
   recolep2.Momentum(b_lep2);
 
+  b_lep1_pid = recolep1.GetPdgCode();
+  b_lep2_pid = recolep2.GetPdgCode();
+
+  b_lep1_idx = recolep1.GetFirstMother();
+  b_lep2_idx = recolep2.GetFirstMother();
+
   recoleps.push_back(b_lep1);
   recoleps.push_back(b_lep2);
 
@@ -174,7 +180,7 @@ void topEventSelectionDL::Reset() {
   recolep1.Clear(); recolep2.Clear();
   b_lep1.SetPtEtaPhiM(0,0,0,0); b_lep2.SetPtEtaPhiM(0,0,0,0); b_dilep.SetPtEtaPhiM(0,0,0,0); b_jet1.SetPtEtaPhiM(0,0,0,0); b_jet2.SetPtEtaPhiM(0,0,0,0);
 
-  b_lep1_pid = 0; b_lep2_pid = 0;
+  b_lep1_pid = 0; b_lep2_pid = 0; b_lep1_idx = -1; b_lep2_idx = -1;
   b_jet1_CSVInclV2 = -1; b_jet2_CSVInclV2 = -1;
   b_csvweights.clear();
 
