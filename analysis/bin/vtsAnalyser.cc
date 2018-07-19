@@ -105,8 +105,6 @@ void vtsAnalyser::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
 
-  int njcount = 0;
-
   // Events loop
   for (Long64_t iev=0; iev<nentries; iev++) {
     fChain->GetEntry(iev);
@@ -114,9 +112,6 @@ void vtsAnalyser::Loop() {
     if (ht_fChain) ht_fChain->GetEntry(iev);
 
     cout << "event : " << iev << endl;
-
-    njcount = njcount + nJet;
-
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
     ResetBranch();
     int passedStep = EventSelection();
@@ -132,7 +127,6 @@ void vtsAnalyser::Loop() {
     cout << "total KS : " << nTotHadKS << " matched (dau cut + real)  : " << nMatchedKS << " total dau_pt cut had KS : " << nHadKSDauCut << " total real KS : " << nRealKSFromTop << endl;
     cout << "total real KS with Jet : " << nRealKSWithJet << " total real KS with Jet + dR and x cut : " << nRealKSWithJetAndCut << "  total KS with cut : " << nKSWithCut << " total KS with cut + dau pt cut : " << nKSWithDauCut << endl;
   }
-  cout << "nJet count : " << njcount << "closest size : " << b_hadTruth_dr_closest_j_vec.size() << endl;
 }
 
 void vtsAnalyser::setOutput(std::string outFileName) {
