@@ -37,7 +37,7 @@ vector<TParticle> topObjectSelection::muonSelection() {
     if (isSemiLep) { if (Muon_pt[i] < 26) continue; }
     if (std::abs(Muon_eta[i]) > 2.4) continue;
     if (isSemiLep) { if (std::abs(Muon_eta[i]) > 2.1) continue; }
-    if (Muon_pfRelIso04_all[i] > 0.15) continue;
+    if (Muon_pfRelIso04_all[i] > 0.06) continue;
     if (!Muon_globalMu[i]) continue;
     if (!Muon_isPFcand[i]) continue;
     TLorentzVector mom;
@@ -84,7 +84,7 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
     
     if (Muon_pt[i] < 10) continue;
     if (std::abs(Muon_eta[i]) > 2.4) continue;
-    if (Muon_pfRelIso04_all[i] > 0.25) continue;
+    if (Muon_pfRelIso04_all[i] > 0.2) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
     auto muon = TParticle();
@@ -96,12 +96,12 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
   return muons;
 }
 
-vector<TParticle> topObjectSelection::jetSelection() {
+vector<TParticle> topObjectSelection::jetSelection(std::vector<Float_t> *csvVal) {
   vector<TParticle> jets;
   float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
-    if (Jet_pt[i] < 30) continue;
-    if (std::abs(Jet_eta[i]) > 2.4) continue;
+    if (Jet_pt[i] < 40) continue;
+    if (std::abs(Jet_eta[i]) > 4.7) continue;
     if (Jet_jetId[i] < 1) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
@@ -114,6 +114,7 @@ vector<TParticle> topObjectSelection::jetSelection() {
     jet.SetMomentum(mom);
     jet.SetFirstMother(i);
     jets.push_back(jet);
+    if ( csvVal != NULL ) csvVal->push_back(Jet_btagCSVV2[ i ]);
     for (UInt_t iu = 0; iu < 19; iu++) {
      // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
     }
@@ -127,10 +128,11 @@ vector<TParticle> topObjectSelection::jetSelection() {
 vector<TParticle> topObjectSelection::bjetSelection() {
   vector<TParticle> bjets;
   for (UInt_t i = 0; i < nJet; ++i ) {
-    if (Jet_pt[i] < 30) continue;
-    if (std::abs(Jet_eta[i]) > 2.4) continue;
+    if (Jet_pt[i] < 40) continue;
+    if (std::abs(Jet_eta[i]) > 4.7) continue;
     if (Jet_jetId[i] < 1) continue;
-    if (Jet_btagCSVV2[i] < 0.8484) continue;
+    //if (Jet_btagCSVV2[i] < 0.8484) continue;
+    if (Jet_btagCSVV2[i] < 0.9535) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
     bool hasOverLap = false;
