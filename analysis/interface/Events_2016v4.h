@@ -111,14 +111,14 @@ public :
    Float_t         GenJet_phi[20];   //[nGenJet]
    Float_t         GenJet_pt[20];   //[nGenJet]
    UInt_t          nGenPart;
-   Float_t         GenPart_eta[105];   //[nGenPart]
-   Float_t         GenPart_mass[105];   //[nGenPart]
-   Float_t         GenPart_phi[105];   //[nGenPart]
-   Float_t         GenPart_pt[105];   //[nGenPart]
-   Int_t           GenPart_genPartIdxMother[105];   //[nGenPart]
-   Int_t           GenPart_pdgId[105];   //[nGenPart]
-   Int_t           GenPart_status[105];   //[nGenPart]
-   Int_t           GenPart_statusFlags[105];   //[nGenPart00]
+   Float_t         GenPart_eta[5000];   //[nGenPart]
+   Float_t         GenPart_mass[5000];   //[nGenPart]
+   Float_t         GenPart_phi[5000];   //[nGenPart]
+   Float_t         GenPart_pt[5000];   //[nGenPart]
+   Int_t           GenPart_genPartIdxMother[5000];   //[nGenPart]
+   Int_t           GenPart_pdgId[5000];   //[nGenPart]
+   Int_t           GenPart_status[5000];   //[nGenPart]
+   Int_t           GenPart_statusFlags[5000];   //[nGenPart00]
    Float_t         Generator_x1;
    Float_t         Generator_x2;
    UInt_t          nGenVisTau;
@@ -131,40 +131,40 @@ public :
    Int_t           GenVisTau_status[5];   //[nGenVisTau]
    Float_t         genWeight;
    UInt_t          nhad_jet;
-   Float_t         had_jet_btagCMVA[1100];   //[nhad_jet]
-   Float_t         had_jet_btagCSVV2[1100];   //[nhad_jet]
-   Float_t         had_jet_btagDeepB[1100];   //[nhad_jet]
-   Float_t         had_jet_btagDeepC[1100];   //[nhad_jet]
-   Float_t         had_jet_eta[1100];   //[nhad_jet]
-   Float_t         had_jet_mass[1100];   //[nhad_jet]
-   Float_t         had_jet_phi[1100];   //[nhad_jet]
-   Float_t         had_jet_pt[1100];   //[nhad_jet]
+   Float_t         had_jet_btagCMVA[7000];   //[nhad_jet]
+   Float_t         had_jet_btagCSVV2[7000];   //[nhad_jet]
+   Float_t         had_jet_btagDeepB[7000];   //[nhad_jet]
+   Float_t         had_jet_btagDeepC[7000];   //[nhad_jet]
+   Float_t         had_jet_eta[7000];   //[nhad_jet]
+   Float_t         had_jet_mass[7000];   //[nhad_jet]
+   Float_t         had_jet_phi[7000];   //[nhad_jet]
+   Float_t         had_jet_pt[7000];   //[nhad_jet]
    UInt_t          nhad;
-   Float_t         had_jetDR[1100];   //[nhad]
-   Float_t         had_legDR[1100];   //[nhad]
-   Float_t         had_diffMass[1100];   //[nhad]
-   Float_t         had_lxy[1100];   //[nhad]
-   Float_t         had_lxyErr[1100];   //[nhad]
-   Float_t         had_l3D[1100];   //[nhad]
-   Float_t         had_l3DErr[1100];   //[nhad]
-   Float_t         had_dca[1100];   //[nhad]
-   Float_t         had_angleXY[1100];   //[nhad]
-   Float_t         had_angleXYZ[1100];   //[nhad]
-   Float_t         had_dau1_chi2[1100];   //[nhad]
-   Float_t         had_dau1_nHits[1100];   //[nhad]
-   Float_t         had_dau1_pt[1100];   //[nhad]
-   Float_t         had_dau1_ipsigXY[1100];   //[nhad]
-   Float_t         had_dau1_ipsigZ[1100];   //[nhad]
-   Float_t         had_dau2_chi2[1100];   //[nhad]
-   Float_t         had_dau2_nHits[1100];   //[nhad]
-   Float_t         had_dau2_pt[1100];   //[nhad]
-   Float_t         had_dau2_ipsigXY[1100];   //[nhad]
-   Float_t         had_dau2_ipsigZ[1100];   //[nhad]
-   Int_t           had_nJet[1100];   //[nhad]
-   Int_t           had_nDau[1100];   //[nhad]
-   Int_t           had_idx[1100];   //[nhad]
-   Int_t           had_dau1_idx[1100];   //[nhad]
-   Int_t           had_dau2_idx[1100];   //[nhad]
+   Float_t         had_jetDR[7000];   //[nhad]
+   Float_t         had_legDR[7000];   //[nhad]
+   Float_t         had_diffMass[7000];   //[nhad]
+   Float_t         had_lxy[7000];   //[nhad]
+   Float_t         had_lxyErr[7000];   //[nhad]
+   Float_t         had_l3D[7000];   //[nhad]
+   Float_t         had_l3DErr[7000];   //[nhad]
+   Float_t         had_dca[7000];   //[nhad]
+   Float_t         had_angleXY[7000];   //[nhad]
+   Float_t         had_angleXYZ[7000];   //[nhad]
+   Float_t         had_dau1_chi2[7000];   //[nhad]
+   Float_t         had_dau1_nHits[7000];   //[nhad]
+   Float_t         had_dau1_pt[7000];   //[nhad]
+   Float_t         had_dau1_ipsigXY[7000];   //[nhad]
+   Float_t         had_dau1_ipsigZ[7000];   //[nhad]
+   Float_t         had_dau2_chi2[7000];   //[nhad]
+   Float_t         had_dau2_nHits[7000];   //[nhad]
+   Float_t         had_dau2_pt[7000];   //[nhad]
+   Float_t         had_dau2_ipsigXY[7000];   //[nhad]
+   Float_t         had_dau2_ipsigZ[7000];   //[nhad]
+   Int_t           had_nJet[7000];   //[nhad]
+   Int_t           had_nDau[7000];   //[nhad]
+   Int_t           had_idx[7000];   //[nhad]
+   Int_t           had_dau1_idx[7000];   //[nhad]
+   Int_t           had_dau2_idx[7000];   //[nhad]
    UInt_t          nJet;
    Float_t         Jet_area[35];   //[nJet]
    Float_t         Jet_btagCMVA[35];   //[nJet]
@@ -361,16 +361,16 @@ public :
    UChar_t         GenJetAK8_hadronFlavour[10];   //[nGenJetAK8]
    Int_t           GenJet_partonFlavour[20];   //[nGenJet]
    UChar_t         GenJet_hadronFlavour[20];   //[nGenJet]
-   Float_t         had_chi2[1100];   //[nhad]
-   Float_t         had_eta[1100];   //[nhad]
-   Float_t         had_mass[1100];   //[nhad]
-   Float_t         had_phi[1100];   //[nhad]
-   Float_t         had_pt[1100];   //[nhad]
-   Float_t         had_x[1100];   //[nhad]
-   Float_t         had_y[1100];   //[nhad]
-   Float_t         had_z[1100];   //[nhad]
-   Int_t           had_ndof[1100];   //[nhad]
-   Int_t           had_pdgId[1100];   //[nhad]
+   Float_t         had_chi2[7000];   //[nhad]
+   Float_t         had_eta[7000];   //[nhad]
+   Float_t         had_mass[7000];   //[nhad]
+   Float_t         had_phi[7000];   //[nhad]
+   Float_t         had_pt[7000];   //[nhad]
+   Float_t         had_x[7000];   //[nhad]
+   Float_t         had_y[7000];   //[nhad]
+   Float_t         had_z[7000];   //[nhad]
+   Int_t           had_ndof[7000];   //[nhad]
+   Int_t           had_pdgId[7000];   //[nhad]
    Int_t           Jet_genJetIdx[35];   //[nJet]
    Int_t           Jet_hadronFlavour[35];   //[nJet]
    Int_t           Jet_partonFlavour[35];   //[nJet]
@@ -1026,14 +1026,14 @@ public :
    Bool_t          Flag_trkPOG_logErrorTooManyClusters;
    Bool_t          Flag_METFilters;
    UInt_t          nhadTruth;
-   Int_t           hadTruth_nMatched[250];   //[nhadTruth]
-   Int_t           hadTruth_nTrueDau[250];   //[nhadTruth]
-   Int_t           hadTruth_isHadFromTsb[250];   //[nhadTruth]
-   UChar_t         hadTruth_isHadFromTop[250];   //[nhadTruth]
-   UChar_t         hadTruth_isHadFromW[250];   //[nhadTruth]
-   UChar_t         hadTruth_isHadFromS[250];   //[nhadTruth]
-   UChar_t         hadTruth_isHadFromC[250];   //[nhadTruth]
-   UChar_t         hadTruth_isHadFromB[250];   //[nhadTruth]
+   Int_t           hadTruth_nMatched[7000];   //[nhadTruth]
+   Int_t           hadTruth_nTrueDau[7000];   //[nhadTruth]
+   Int_t           hadTruth_isHadFromTsb[7000];   //[nhadTruth]
+   UChar_t         hadTruth_isHadFromTop[7000];   //[nhadTruth]
+   UChar_t         hadTruth_isHadFromW[7000];   //[nhadTruth]
+   UChar_t         hadTruth_isHadFromS[7000];   //[nhadTruth]
+   UChar_t         hadTruth_isHadFromC[7000];   //[nhadTruth]
+   UChar_t         hadTruth_isHadFromB[7000];   //[nhadTruth]
 
    // List of branches
    TBranch        *b_run;   //!
@@ -2216,15 +2216,17 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
    fChain->SetBranchAddress("GenJet_mass", GenJet_mass, &b_GenJet_mass);
    fChain->SetBranchAddress("GenJet_phi", GenJet_phi, &b_GenJet_phi);
    fChain->SetBranchAddress("GenJet_pt", GenJet_pt, &b_GenJet_pt);
-   fChain->SetBranchAddress("nGenPart", &nGenPart, &b_nGenPart);
-   fChain->SetBranchAddress("GenPart_eta", GenPart_eta, &b_GenPart_eta);
-   fChain->SetBranchAddress("GenPart_mass", GenPart_mass, &b_GenPart_mass);
-   fChain->SetBranchAddress("GenPart_phi", GenPart_phi, &b_GenPart_phi);
-   fChain->SetBranchAddress("GenPart_pt", GenPart_pt, &b_GenPart_pt);
-   fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
-   fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
-   fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
-   fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
+   if (!ht_fChain) {
+     fChain->SetBranchAddress("nGenPart", &nGenPart, &b_nGenPart);
+     fChain->SetBranchAddress("GenPart_eta", GenPart_eta, &b_GenPart_eta);
+     fChain->SetBranchAddress("GenPart_mass", GenPart_mass, &b_GenPart_mass);
+     fChain->SetBranchAddress("GenPart_phi", GenPart_phi, &b_GenPart_phi);
+     fChain->SetBranchAddress("GenPart_pt", GenPart_pt, &b_GenPart_pt);
+     fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
+     fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
+     fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
+     fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
+   }
    fChain->SetBranchAddress("Generator_x1", &Generator_x1, &b_Generator_x1);
    fChain->SetBranchAddress("Generator_x2", &Generator_x2, &b_Generator_x2);
    fChain->SetBranchAddress("nGenVisTau", &nGenVisTau, &b_nGenVisTau);
@@ -3146,6 +3148,16 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
        ht_fChain->SetBranchAddress("run", &ht_run);
        ht_fChain->SetBranchAddress("luminosityBlock", &ht_luminosityBlock);
      }
+     ht_fChain->SetBranchAddress("nGenPart", &nGenPart, &b_nGenPart);
+     ht_fChain->SetBranchAddress("GenPart_eta", GenPart_eta, &b_GenPart_eta);
+     ht_fChain->SetBranchAddress("GenPart_mass", GenPart_mass, &b_GenPart_mass);
+     ht_fChain->SetBranchAddress("GenPart_phi", GenPart_phi, &b_GenPart_phi);
+     ht_fChain->SetBranchAddress("GenPart_pt", GenPart_pt, &b_GenPart_pt);
+     ht_fChain->SetBranchAddress("GenPart_genPartIdxMother", GenPart_genPartIdxMother, &b_GenPart_genPartIdxMother);
+     ht_fChain->SetBranchAddress("GenPart_pdgId", GenPart_pdgId, &b_GenPart_pdgId);
+     ht_fChain->SetBranchAddress("GenPart_status", GenPart_status, &b_GenPart_status);
+     ht_fChain->SetBranchAddress("GenPart_statusFlags", GenPart_statusFlags, &b_GenPart_statusFlags);
+
      ht_fChain->SetBranchAddress("nhadTruth", &nhadTruth, &b_nhadTruth);
      ht_fChain->SetBranchAddress("hadTruth_nMatched", hadTruth_nMatched, &b_hadTruth_nMatched);
      ht_fChain->SetBranchAddress("hadTruth_nTrueDau", hadTruth_nTrueDau, &b_hadTruth_nTrueDau);
