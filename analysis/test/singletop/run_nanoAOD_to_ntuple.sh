@@ -9,6 +9,11 @@ SECTION=`printf %03d $1`
 
 idxsec=$1
 numPerJob=$2
+dest_res=$3
+
+if [ _$idxsec == _ ]; then exit 1; fi
+if [ _$numPerJob == _ ]; then exit 1; fi
+if [ _$dest_res == _ ]; then exit 1; fi
 
 if [ _$CMS_PATH == _ ]; then
   export CMS_PATH=/cvmfs/cms.cern.ch
@@ -36,7 +41,11 @@ echo "JOB : $numPerJob ($numPerJob; $idxsec) $filename $samptype $idxstart $idxe
 time singletopAnalyser -q $filename $samptype $idxstart $idxend
 EXITCODE=$?
 
-if [ $EXITCODE == 0 ]; then hadd res.root out*.root ; fi
+if [ $EXITCODE == 0 ]; then 
+  sampname=`python batch_nanoAOD.py $idxsec $numPerJob sampname`
+  resno=`python batch_nanoAOD.py $idxsec $numPerJob sampleno`
+  hadd root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/quark2930/singletop/${dest_res}/dir_${sampname}/res_${resno}.root out*.root
+fi
 
 ls -al
 if [ $EXITCODE == 0 ]; then

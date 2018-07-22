@@ -17,13 +17,15 @@ protected:
   TH1D *h_cutFlowEl, *h_cutFlowMu;
 
   //Variables
-  TLorentzVector b_lep, b_jet1, b_jet2, b_jet3, b_jet4;
+  TLorentzVector b_lep;
   TParticle recolep;
   int b_lep_pid;
-  float b_jet1_CSVInclV2, b_jet2_CSVInclV2, b_jet3_CSVInclV2, b_jet4_CSVInclV2;
+  //float b_jet1_CSVInclV2, b_jet2_CSVInclV2, b_jet3_CSVInclV2, b_jet4_CSVInclV2;
+  std::vector<TLorentzVector> m_jets;
+  std::vector<Float_t> m_jetsCSVInclV2;
 
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  float b_met, b_weight, b_genweight, b_puweight;
+  float b_met, b_met_phi, b_weight, b_genweight, b_puweight;
   float b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
         b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
   float b_tri, b_tri_up, b_tri_dn;
