@@ -57,13 +57,22 @@ private:
   std::vector<float> b_hadTruth_d_gj_vec; std::vector<float> b_hadTruth_x_gj_vec; std::vector<float> b_hadTruth_dr_gj_vec; 
   std::vector<float> b_hadTruth_pt_gj_vec;
 
-  std::vector<int>   b_hadTruth_isFrom_closest_j_vec; std::vector<int> b_hadTruth_nMatched_closest_j_vec; std::vector<bool> b_hadTruth_isInJet_closest_j_vec; std::vector<bool> b_hadTruth_isCorrectMat_closest_j_vec; 
+  std::vector<int> b_hadTruth_idx_closest_j_vec; std::vector<int> b_hadTruth_isFrom_closest_j_vec; std::vector<bool> b_hadTruth_isHadFromTop_closest_j_vec; std::vector<int> b_hadTruth_nMatched_closest_j_vec; std::vector<bool> b_hadTruth_isInJet_closest_j_vec; std::vector<bool> b_hadTruth_isCorrectMat_closest_j_vec; 
   std::vector<float> b_hadTruth_d_closest_j_vec; std::vector<float> b_hadTruth_x_closest_j_vec; std::vector<float> b_hadTruth_dr_closest_j_vec;
   std::vector<float> b_hadTruth_pt_closest_j_vec; std::vector<float> b_hadTruth_eta_closest_j_vec; std::vector<float> b_hadTruth_phi_closest_j_vec; std::vector<float> b_hadTruth_mass_closest_j_vec;
 
-  std::vector<int>   b_hadTruth_isFrom_highest_j_vec; std::vector<int> b_hadTruth_nMatched_highest_j_vec; std::vector<bool> b_hadTruth_isInJet_highest_j_vec; std::vector<bool> b_hadTruth_isCorrectMat_highest_j_vec; 
+  std::vector<int> b_hadTruth_idx_highest_j_vec; std::vector<int> b_hadTruth_isFrom_highest_j_vec; std::vector<bool> b_hadTruth_isHadFromTop_highest_j_vec; std::vector<int> b_hadTruth_nMatched_highest_j_vec; std::vector<bool> b_hadTruth_isInJet_highest_j_vec; std::vector<bool> b_hadTruth_isCorrectMat_highest_j_vec; 
   std::vector<float> b_hadTruth_d_highest_j_vec; std::vector<float> b_hadTruth_x_highest_j_vec; std::vector<float> b_hadTruth_dr_highest_j_vec;
   std::vector<float> b_hadTruth_pt_highest_j_vec; std::vector<float> b_hadTruth_eta_highest_j_vec; std::vector<float> b_hadTruth_phi_highest_j_vec; std::vector<float> b_hadTruth_mass_highest_j_vec;
+
+  int   b_hadTruth_idx_closest_j, b_hadTruth_isFrom_closest_j, b_hadTruth_isHadFromTop_closest_j, b_hadTruth_nMatched_closest_j, b_hadTruth_isInJet_closest_j, b_hadTruth_isCorrectMat_closest_j;  
+  float b_hadTruth_d_closest_j, b_hadTruth_x_closest_j, b_hadTruth_dr_closest_j;
+  float b_hadTruth_pt_closest_j, b_hadTruth_eta_closest_j, b_hadTruth_phi_closest_j, b_hadTruth_mass_closest_j;
+
+  int b_hadTruth_idx_highest_j, b_hadTruth_isFrom_highest_j, b_hadTruth_isHadFromTop_highest_j, b_hadTruth_nMatched_highest_j, b_hadTruth_isInJet_highest_j, b_hadTruth_isCorrectMat_highest_j;
+  float b_hadTruth_d_highest_j, b_hadTruth_x_highest_j, b_hadTruth_dr_highest_j;
+  float b_hadTruth_pt_highest_j, b_hadTruth_eta_highest_j, b_hadTruth_phi_highest_j, b_hadTruth_mass_highest_j;
+
 
   // for CollectVar()
   std::vector<float> b_lep_pt_vec; std::vector<float> b_dilep_pt_vec; std::vector<float> b_elec_pt_vec; std::vector<float> b_mu_pt_vec;

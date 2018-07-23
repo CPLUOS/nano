@@ -2071,8 +2071,12 @@ Events::~Events()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
-   if (h_fChain) delete h_fChain->GetCurrentFile();
-   if (ht_fChain) delete ht_fChain->GetCurrentFile();
+   if (!h_fChain) {
+     if (!ht_fChain) return;
+     else delete ht_fChain->GetCurrentFile();
+   } else h_fChain->GetCurrentFile();
+   if (!ht_fChain) return;
+   else delete ht_fChain->GetCurrentFile();
 }
 
 #include<iostream>

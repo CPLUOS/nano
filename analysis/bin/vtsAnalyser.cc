@@ -219,13 +219,21 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   BranchVF(hadTruth_d_gj_vec); BranchVF(hadTruth_x_gj_vec); BranchVF(hadTruth_dr_gj_vec); 
   BranchVF(hadTruth_pt_gj_vec);
 
-  BranchVI(hadTruth_isFrom_closest_j_vec); BranchVI(hadTruth_nMatched_closest_j_vec); BranchVO(hadTruth_isInJet_closest_j_vec); BranchVO(hadTruth_isCorrectMat_closest_j_vec);
+  BranchVI(hadTruth_idx_closest_j_vec); BranchVI(hadTruth_isFrom_closest_j_vec); BranchVO(hadTruth_isHadFromTop_closest_j_vec); BranchVI(hadTruth_nMatched_closest_j_vec); BranchVO(hadTruth_isInJet_closest_j_vec); BranchVO(hadTruth_isCorrectMat_closest_j_vec);
   BranchVF(hadTruth_d_closest_j_vec); BranchVF(hadTruth_x_closest_j_vec); BranchVF(hadTruth_dr_closest_j_vec);
   BranchVF(hadTruth_pt_closest_j_vec); BranchVF(hadTruth_eta_closest_j_vec); BranchVF(hadTruth_phi_closest_j_vec); BranchVF(hadTruth_mass_closest_j_vec);
 
-  BranchVI(hadTruth_isFrom_highest_j_vec); BranchVI(hadTruth_nMatched_highest_j_vec); BranchVO(hadTruth_isInJet_highest_j_vec); BranchVO(hadTruth_isCorrectMat_highest_j_vec);
+  BranchVI(hadTruth_idx_highest_j_vec); BranchVI(hadTruth_isFrom_highest_j_vec); BranchVO(hadTruth_isHadFromTop_highest_j_vec); BranchVI(hadTruth_nMatched_highest_j_vec); BranchVO(hadTruth_isInJet_highest_j_vec); BranchVO(hadTruth_isCorrectMat_highest_j_vec);
   BranchVF(hadTruth_d_highest_j_vec); BranchVF(hadTruth_x_highest_j_vec); BranchVF(hadTruth_dr_highest_j_vec);
   BranchVF(hadTruth_pt_highest_j_vec); BranchVF(hadTruth_eta_highest_j_vec); BranchVF(hadTruth_phi_highest_j_vec); BranchVF(hadTruth_mass_highest_j_vec);
+
+  BranchI(hadTruth_isFrom_closest_j); BranchI(hadTruth_isHadFromTop_closest_j); BranchI(hadTruth_nMatched_closest_j); BranchI(hadTruth_isInJet_closest_j); BranchI(hadTruth_isCorrectMat_closest_j);
+  BranchF(hadTruth_d_closest_j); BranchF(hadTruth_x_closest_j); BranchF(hadTruth_dr_closest_j);
+  BranchF(hadTruth_pt_closest_j); BranchF(hadTruth_eta_closest_j); BranchF(hadTruth_phi_closest_j); BranchF(hadTruth_mass_closest_j);
+
+  BranchI(hadTruth_isFrom_highest_j); BranchI(hadTruth_isHadFromTop_highest_j);BranchI(hadTruth_nMatched_highest_j); BranchI(hadTruth_isInJet_highest_j); BranchI(hadTruth_isCorrectMat_highest_j);
+  BranchF(hadTruth_d_highest_j); BranchF(hadTruth_x_highest_j); BranchF(hadTruth_dr_highest_j);
+  BranchF(hadTruth_pt_highest_j); BranchF(hadTruth_eta_highest_j); BranchF(hadTruth_phi_highest_j); BranchF(hadTruth_mass_highest_j);
 
   // For CollectVar()
   BranchVF(lep_pt_vec); BranchVF(dilep_pt_vec); BranchVF(elec_pt_vec); BranchVF(mu_pt_vec);
@@ -290,13 +298,21 @@ void vtsAnalyser::ResetBranch() {
   b_hadTruth_d_gj_vec.clear(); b_hadTruth_x_gj_vec.clear(); b_hadTruth_dr_gj_vec.clear(); 
   b_hadTruth_pt_gj_vec.clear();
 
-  b_hadTruth_isFrom_closest_j_vec.clear(); b_hadTruth_nMatched_closest_j_vec.clear(); b_hadTruth_isInJet_closest_j_vec.clear(); b_hadTruth_isCorrectMat_closest_j_vec.clear();
+  b_hadTruth_idx_closest_j_vec.clear();  b_hadTruth_isFrom_closest_j_vec.clear(); b_hadTruth_isHadFromTop_closest_j_vec.clear(); b_hadTruth_nMatched_closest_j_vec.clear(); b_hadTruth_isInJet_closest_j_vec.clear(); b_hadTruth_isCorrectMat_closest_j_vec.clear();
   b_hadTruth_d_closest_j_vec.clear(); b_hadTruth_x_closest_j_vec.clear(); b_hadTruth_dr_closest_j_vec.clear();
   b_hadTruth_pt_closest_j_vec.clear(); b_hadTruth_eta_closest_j_vec.clear(); b_hadTruth_phi_closest_j_vec.clear(); b_hadTruth_mass_closest_j_vec.clear();
 
-  b_hadTruth_isFrom_highest_j_vec.clear(); b_hadTruth_nMatched_highest_j_vec.clear(); b_hadTruth_isInJet_highest_j_vec.clear(); b_hadTruth_isCorrectMat_highest_j_vec.clear();
+  b_hadTruth_idx_highest_j_vec.clear(); b_hadTruth_isFrom_highest_j_vec.clear(); b_hadTruth_isHadFromTop_highest_j_vec.clear(); b_hadTruth_nMatched_highest_j_vec.clear(); b_hadTruth_isInJet_highest_j_vec.clear(); b_hadTruth_isCorrectMat_highest_j_vec.clear();
   b_hadTruth_d_highest_j_vec.clear(); b_hadTruth_x_highest_j_vec.clear(); b_hadTruth_dr_highest_j_vec.clear();
   b_hadTruth_pt_highest_j_vec.clear(); b_hadTruth_eta_highest_j_vec.clear(); b_hadTruth_phi_highest_j_vec.clear(); b_hadTruth_mass_highest_j_vec.clear();
+
+  b_hadTruth_isFrom_closest_j = -99; b_hadTruth_isHadFromTop_closest_j = -1; b_hadTruth_nMatched_closest_j = -1; b_hadTruth_isInJet_closest_j = -1; b_hadTruth_isCorrectMat_closest_j = -1;
+  b_hadTruth_d_closest_j = -1; b_hadTruth_x_closest_j = -1; b_hadTruth_dr_closest_j = -1;
+  b_hadTruth_pt_closest_j = -1; b_hadTruth_eta_closest_j = -99; b_hadTruth_phi_closest_j = -99; b_hadTruth_mass_closest_j = -99;
+
+  b_hadTruth_isFrom_highest_j = -99; b_hadTruth_isHadFromTop_highest_j = -1; b_hadTruth_nMatched_highest_j = -1; b_hadTruth_isInJet_highest_j = -1; b_hadTruth_isCorrectMat_highest_j = -1;
+  b_hadTruth_d_highest_j = -1; b_hadTruth_x_highest_j = -1; b_hadTruth_dr_highest_j = -1;
+  b_hadTruth_pt_highest_j = -1; b_hadTruth_eta_highest_j = -99; b_hadTruth_phi_highest_j = -99; b_hadTruth_mass_highest_j = -99;
 
   // For CollectVar()
   b_lep_pt_vec.clear(); b_dilep_pt_vec.clear(); b_elec_pt_vec.clear(); b_mu_pt_vec.clear();
@@ -921,7 +937,7 @@ int vtsAnalyser::Test() {
     for (unsigned int i=0; i<nJet; ++i) {
       for (int j=0; j<nHadKS; ++j) {
         dr_j_sort.push_back(saveIdxDr[(j*nJet)+i] );  
-        x_j_sort.push_back (saveIdxX[(j*nJet)+i] );
+        x_j_sort.push_back(saveIdxX[(j*nJet)+i] );
       }
     }
     for (unsigned int i=0; i<nJet; ++i) {
@@ -931,13 +947,15 @@ int vtsAnalyser::Test() {
     for (unsigned int i=0; i<nJet; ++i) {
       auto idx_x = x_j_sort[nHadKS*i].first;
       auto idx_dr = dr_j_sort[nHadKS*i].first;
-      TLorentzVector had_tlv; // there are for b_hadTruth_dr_highest_j_vec
+      TLorentzVector had_tlv; // For b_hadTruth_x_highest_j_vec
       had_tlv.SetPtEtaPhiM(had_pt[idx_x], had_eta[idx_x], had_phi[idx_x], had_mass[idx_x]);
       TLorentzVector jet_tlv;
-      jet_tlv.SetPtEtaPhiM(GenJet_pt[i], GenJet_eta[i], GenJet_phi[i], GenJet_mass[i]);
+      jet_tlv.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
   
+      b_hadTruth_idx_closest_j_vec.push_back(idx_dr);
       b_hadTruth_nMatched_closest_j_vec.push_back(hadTruth_nMatched[idx_dr]);
       b_hadTruth_isFrom_closest_j_vec.push_back(hadTruth_isHadFromTsb[idx_dr]);
+      b_hadTruth_isHadFromTop_closest_j_vec.push_back(hadTruth_isHadFromTop[idx_dr]);
       b_hadTruth_isInJet_closest_j_vec.push_back(saveIsInJet[idx_dr]);
       b_hadTruth_isCorrectMat_closest_j_vec.push_back(saveIsCorrectMat[idx_dr]);
       b_hadTruth_d_closest_j_vec.push_back(GetD(had_pt[idx_dr], had_eta[idx_dr], had_phi[idx_dr], had_mass[idx_dr], had_x[idx_dr], had_y[idx_dr], had_z[idx_dr]));
@@ -948,8 +966,10 @@ int vtsAnalyser::Test() {
       b_hadTruth_phi_closest_j_vec.push_back(had_phi[idx_dr]);
       b_hadTruth_mass_closest_j_vec.push_back(had_mass[idx_dr]);
   
+      b_hadTruth_idx_highest_j_vec.push_back(idx_x);
       b_hadTruth_nMatched_highest_j_vec.push_back(hadTruth_nMatched[idx_x]);
       b_hadTruth_isFrom_highest_j_vec.push_back(hadTruth_isHadFromTsb[idx_x]);
+      b_hadTruth_isHadFromTop_highest_j_vec.push_back(hadTruth_isHadFromTop[idx_x]);
       b_hadTruth_isInJet_highest_j_vec.push_back(saveIsInJet[idx_x]);
       b_hadTruth_isCorrectMat_highest_j_vec.push_back(saveIsCorrectMat[idx_x]);
       b_hadTruth_d_highest_j_vec.push_back(GetD(had_pt[idx_x], had_eta[idx_x], had_phi[idx_x], had_mass[idx_x], had_x[idx_x], had_y[idx_x], had_z[idx_x]));
@@ -960,6 +980,44 @@ int vtsAnalyser::Test() {
       b_hadTruth_phi_highest_j_vec.push_back(had_phi[idx_x]);
       b_hadTruth_mass_highest_j_vec.push_back(had_mass[idx_x]);
     }
+    auto closest_dr = std::min_element(b_hadTruth_dr_closest_j_vec.begin(), b_hadTruth_dr_closest_j_vec.end());
+    auto element_closest_dr = std::distance(b_hadTruth_dr_closest_j_vec.begin(), closest_dr);
+    auto highest_x = std::max_element(b_hadTruth_x_highest_j_vec.begin(), b_hadTruth_x_highest_j_vec.end());
+    auto element_highest_x = std::distance(b_hadTruth_x_highest_j_vec.begin(), highest_x);
+
+    auto idx_dr = b_hadTruth_idx_closest_j_vec[element_closest_dr];
+    auto idx_x = b_hadTruth_idx_highest_j_vec[element_highest_x];
+
+    TLorentzVector had_tlv; // For b_hadTruth_x_highest_j_vec
+    had_tlv.SetPtEtaPhiM(had_pt[idx_x], had_eta[idx_x], had_phi[idx_x], had_mass[idx_x]);
+    TLorentzVector jet_tlv;
+    jet_tlv.SetPtEtaPhiM(Jet_pt[element_highest_x], Jet_eta[element_highest_x], Jet_phi[element_highest_x], Jet_mass[element_highest_x]);
+
+    b_hadTruth_nMatched_closest_j = hadTruth_nMatched[idx_dr];
+    b_hadTruth_isFrom_closest_j = hadTruth_isHadFromTsb[idx_dr];
+    b_hadTruth_isHadFromTop_closest_j = hadTruth_isHadFromTop[idx_dr];
+    b_hadTruth_isInJet_closest_j = saveIsInJet[idx_dr];
+    b_hadTruth_isCorrectMat_closest_j = saveIsCorrectMat[idx_dr];
+    b_hadTruth_d_closest_j = GetD(had_pt[idx_dr], had_eta[idx_dr], had_phi[idx_dr], had_mass[idx_dr], had_x[idx_dr], had_y[idx_dr], had_z[idx_dr]);
+    b_hadTruth_x_closest_j = had_pt[idx_dr]/Jet_pt[element_closest_dr];
+    b_hadTruth_dr_closest_j = dr_j_sort[nHadKS*element_closest_dr].second;
+    b_hadTruth_pt_closest_j = had_pt[idx_dr];
+    b_hadTruth_eta_closest_j = had_eta[idx_dr];
+    b_hadTruth_phi_closest_j = had_phi[idx_dr];
+    b_hadTruth_mass_closest_j = had_mass[idx_dr];
+
+    b_hadTruth_nMatched_highest_j = hadTruth_nMatched[idx_x];
+    b_hadTruth_isFrom_highest_j = hadTruth_isHadFromTsb[idx_x];
+    b_hadTruth_isHadFromTop_closest_j = hadTruth_isHadFromTop[idx_x];
+    b_hadTruth_isInJet_highest_j = saveIsInJet[idx_x];
+    b_hadTruth_isCorrectMat_highest_j = saveIsCorrectMat[idx_x];
+    b_hadTruth_d_highest_j = GetD(had_pt[idx_x], had_eta[idx_x], had_phi[idx_x], had_mass[idx_x], had_x[idx_x], had_y[idx_x], had_z[idx_x]);
+    b_hadTruth_x_highest_j = x_j_sort[nHadKS*element_highest_x].second;
+    b_hadTruth_dr_highest_j = jet_tlv.DeltaR(had_tlv);
+    b_hadTruth_pt_highest_j = had_pt[idx_x];
+    b_hadTruth_eta_highest_j = had_eta[idx_x];
+    b_hadTruth_phi_highest_j = had_phi[idx_x];
+    b_hadTruth_mass_highest_j = had_mass[idx_x];
   } 
   return 1;
 }
