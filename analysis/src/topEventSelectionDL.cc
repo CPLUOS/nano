@@ -31,7 +31,7 @@ int topEventSelectionDL::EventSelection() {
   h_nevents->Fill(0.5, b_genweight*b_puweight);
 
   h_cutFlow->Fill(1);
-
+  b_nvertex = PV_npvs;
   if (std::abs(PV_z) >= 24.) return b_step;
   if (PV_npvs == 0) return b_step;
   if (PV_ndof < 4) return b_step;
@@ -42,7 +42,7 @@ int topEventSelectionDL::EventSelection() {
   auto elecs = elecSelection();
 
   if (muons.size() + elecs.size() != 2) return b_step;
-
+  b_step = 0;
   h_cutFlow->Fill(3);
 
   int mulpdg = 1;
