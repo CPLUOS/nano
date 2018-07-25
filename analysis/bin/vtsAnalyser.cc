@@ -230,7 +230,7 @@ void vtsAnalyser::ResetBranch() {
   b_Jet_btagCSVV2 = -99; b_Jet_btagCMVA = -99; b_Jet_btagDeepB = -99; b_Jet_btagDeepC = -99;
   b_Jet_area = -1; b_Jet_pt = -1; b_Jet_nConstituents = -1; b_Jet_nElectrons = -1; b_Jet_nMuons = -1;
 
-  tqMC_.clear(); wqMC_.clear();qjMapForMC_.clear(); qgjMapForMC_.clear(); recoJet_.clear(); genJet_.clear();
+  m_tqMC.clear(); m_wqMC.clear(); m_qjMapForMC.clear(); m_qgjMapForMC.clear(); m_recoJet.clear(); m_genJet.clear();
 }
 
 void vtsAnalyser::MatchingForMC() {
@@ -246,19 +246,19 @@ void vtsAnalyser::MatchingForMC() {
     if (std::abs(GenPart_status[i]) != 23 ) continue;
     if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) {
       if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && GenPart_status[GenPart_genPartIdxMother[i]] == 62 ) ) { 
-        tqMC_.push_back(i);
+        m_tqMC.push_back(i);
       }
       if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 24 && (GenPart_status[GenPart_genPartIdxMother[i]] == 22 || GenPart_status[GenPart_genPartIdxMother[i]] == 52)) ) {
-        wqMC_.push_back(i);
+        m_wqMC.push_back(i);
       }
     }
   }
-  if (tqMC_.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
+  if (m_tqMC.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
   //Select quarks originated from t->qW
-  auto tq1 = tqMC_[0];
+  auto tq1 = m_tqMC[0];
   TLorentzVector tq1_tlv; 
   tq1_tlv.SetPtEtaPhiM(GenPart_pt[tq1], GenPart_eta[tq1], GenPart_phi[tq1], GenPart_mass[tq1]);
-  auto tq2 = tqMC_[1];
+  auto tq2 = m_tqMC[1];
   TLorentzVector tq2_tlv; 
   tq2_tlv.SetPtEtaPhiM(GenPart_pt[tq2], GenPart_eta[tq2], GenPart_phi[tq2], GenPart_mass[tq2]);
   //Select quarks from W->qq (not yet used)
@@ -266,11 +266,11 @@ void vtsAnalyser::MatchingForMC() {
   TLorentzVector wq1_tlv;
   int wq2;
   TLorentzVector wq2_tlv;
-  if (wqMC_.size() != 0) {
-    wq1 = wqMC_[0];
+  if (m_wqMC.size() != 0) {
+    wq1 = m_wqMC[0];
     wq1_tlv.SetPtEtaPhiM(GenPart_pt[wq1], GenPart_eta[wq1], GenPart_phi[wq1], GenPart_mass[wq1]);
-    if (wqMC_.size() == 2) {
-      wq2 = wqMC_[1];
+    if (m_wqMC.size() == 2) {
+      wq2 = m_wqMC[1];
       wq2_tlv.SetPtEtaPhiM(GenPart_pt[wq2], GenPart_eta[wq2], GenPart_phi[wq2], GenPart_mass[wq2]);
     }
   }
@@ -292,21 +292,21 @@ void vtsAnalyser::MatchingForMC() {
       dr = dr_;
       qIdx = tq2;
     }
-    if (dr > 0.4) qjMapForMC_.insert({j, -9});
+    if (dr > m_jetConeSize) m_qjMapForMC.insert({j, -9});
     else {
-      qjMapForMC_.insert({j, GenPart_pdgId[qIdx]});
-      JetStat stat(j, dr, qjMapForMC_[j]);
-      recoJet_.push_back(stat);
+      m_qjMapForMC.insert({j, GenPart_pdgId[qIdx]});
+      JetStat stat(j, dr, m_qjMapForMC[j]);
+      m_recoJet.push_back(stat);
     }
   }
-  if (recoJet_.size() > 1) {
-    sort(recoJet_.begin(), recoJet_.end(), [](struct JetStat a, struct JetStat b) { return (a.dr < b.dr); } );
+  if (m_recoJet.size() > 1) {
+    sort(m_recoJet.begin(), m_recoJet.end(), [](struct JetStat a, struct JetStat b) { return (a.dr < b.dr); } );
     bool idChanged = false;
-    for (unsigned int i=1;i<recoJet_.size(); ++i) {
-      if (idChanged) qjMapForMC_[recoJet_[i].idx] = -9;
+    for (unsigned int i=1;i<m_recoJet.size(); ++i) {
+      if (idChanged) m_qjMapForMC[m_recoJet[i].idx] = -9;
       else {
-        if (recoJet_[0].matchedQuark != recoJet_[i].matchedQuark) idChanged = true;
-        else qjMapForMC_[recoJet_[i].idx] = -9;
+        if (m_recoJet[0].matchedQuark != m_recoJet[i].matchedQuark) idChanged = true;
+        else m_qjMapForMC[m_recoJet[i].idx] = -9;
       }
     }
   }
@@ -322,23 +322,23 @@ void vtsAnalyser::MatchingForMC() {
       dr = dr_;
       qIdx = tq2;
     }
-    if (dr > 0.4) qgjMapForMC_.insert({j, -9});
+    if (dr > m_jetConeSize) m_qgjMapForMC.insert({j, -9});
     else {
-      if ( GenPart_pdgId[qIdx] == GenJet_partonFlavour[j] ) qgjMapForMC_.insert({j, GenPart_pdgId[qIdx]});
-      else qgjMapForMC_.insert({j,-9});
-      JetStat stat(j, dr, qgjMapForMC_[j]);
-      genJet_.push_back(stat);
-//      cout << "[ " << j << " / " << nGenJet << " ] chk ==> qgjMapForMC_ : " << qgjMapForMC_[j] << " , partonFlavour : " << GenJet_partonFlavour[j] << endl;
+      if ( GenPart_pdgId[qIdx] == GenJet_partonFlavour[j] ) m_qgjMapForMC.insert({j, GenPart_pdgId[qIdx]});
+      else m_qgjMapForMC.insert({j,-9});
+      JetStat stat(j, dr, m_qgjMapForMC[j]);
+      m_genJet.push_back(stat);
+//      cout << "[ " << j << " / " << nGenJet << " ] chk ==> m_qgjMapForMC : " << m_qgjMapForMC[j] << " , partonFlavour : " << GenJet_partonFlavour[j] << endl;
     }
   }
-  if (genJet_.size() > 1) {
-    sort(genJet_.begin(), genJet_.end(), [](struct JetStat a, struct JetStat b) { return (a.dr < b.dr); } );
+  if (m_genJet.size() > 1) {
+    sort(m_genJet.begin(), m_genJet.end(), [](struct JetStat a, struct JetStat b) { return (a.dr < b.dr); } );
     bool idChanged = false;
-    for (unsigned int i=1;i<genJet_.size(); ++i) {
-      if (idChanged) qgjMapForMC_[genJet_[i].idx] = -9;
+    for (unsigned int i=1;i<m_genJet.size(); ++i) {
+      if (idChanged) m_qgjMapForMC[m_genJet[i].idx] = -9;
       else {
-        if (genJet_[0].matchedQuark != genJet_[i].matchedQuark) idChanged = true;
-        else qgjMapForMC_[genJet_[i].idx] = -9;
+        if (m_genJet[0].matchedQuark != m_genJet[i].matchedQuark) idChanged = true;
+        else m_qgjMapForMC[m_genJet[i].idx] = -9;
       }
     }
   }  
@@ -376,9 +376,9 @@ void vtsAnalyser::HadronAnalysis() {
       else continue;
       TLorentzVector had_tlv;
       had_tlv.SetPtEtaPhiM(had_pt[k], had_eta[k], had_phi[k], had_mass[k]);
-      if (jet_tlv.DeltaR(had_tlv) < 0.4 && (had_pt[k]/Jet_pt[j]) > 0.15) {
+      if (jet_tlv.DeltaR(had_tlv) < m_jetConeSize && (had_pt[k]/Jet_pt[j]) > 0.15) {
         if (m_isMC) {
-          Had.push_back(HadStat(k, had_pdgId[k], qjMapForMC_[j], j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true));
+          Had.push_back(HadStat(k, had_pdgId[k], m_qjMapForMC[j], j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true));
         } else {
           Had.push_back(move(HadStat(k, had_pdgId[k], 0, j, had_pt[k]/Jet_pt[j], jet_tlv.DeltaR(had_tlv), true)));
         }
@@ -527,8 +527,8 @@ void vtsAnalyser::Test() {
         drIdxGen = j;
       }*/
     } 
-    bool isInRecoJetS = (drReco < 0.4 && GenPart_pdgId[i] == qjMapForMC_[drIdxReco] && abs(GenPart_pdgId[i]) == 3);
-    bool isInGenJetS = (drGen < 0.4 && GenPart_pdgId[i] == qgjMapForMC_[drIdxGen] && abs(GenPart_pdgId[i]) == 3);
+    bool isInRecoJetS = (drReco < m_jetConeSize && GenPart_pdgId[i] == m_qjMapForMC[drIdxReco] && abs(GenPart_pdgId[i]) == 3);
+    bool isInGenJetS = (drGen < m_jetConeSize && GenPart_pdgId[i] == m_qgjMapForMC[drIdxGen] && abs(GenPart_pdgId[i]) == 3);
     b_GenPart_dr_j_vec.push_back(drReco);
     b_GenPart_x_j_vec.push_back(GenPart_pt[i]/Jet_pt[drIdxReco]);
     b_GenPart_isInSJet_j_vec.push_back(isInRecoJetS);
@@ -601,10 +601,10 @@ void vtsAnalyser::Test() {
     }
     cReco.push_back({i, drReco});
     cRecoJet.insert({i,drIdxReco});
-    bool isInRecoJetS = (drReco < 0.4 && hadTruth_isHadFromTsb[i] == qjMapForMC_[drIdxReco] && abs(hadTruth_isHadFromTsb[i]) == 3);
-    bool isInGenJetS = (drGen < 0.4 && hadTruth_isHadFromTsb[i] == qgjMapForMC_[drIdxGen] && abs(hadTruth_isHadFromTsb[i]) == 3);
+    bool isInRecoJetS = (drReco < m_jetConeSize && hadTruth_isHadFromTsb[i] == m_qjMapForMC[drIdxReco] && abs(hadTruth_isHadFromTsb[i]) == 3);
+    bool isInGenJetS = (drGen < m_jetConeSize && hadTruth_isHadFromTsb[i] == m_qgjMapForMC[drIdxGen] && abs(hadTruth_isHadFromTsb[i]) == 3);
 
-//    cout << "isInRecoJetS : " << isInRecoJetS << " , ( had pdg, qjMapForMC_ ) : ( " << hadTruth_isHadFromTsb[i] << " , " << qjMapForMC_[drIdxReco] << " ( drIdxReco, drReco ) : ( " << drIdxReco << " , " << drReco << " )  || isInGenJetS : " << isInGenJetS << " , ( had pdg, qgjMapForMC_ ) : ( " << hadTruth_isHadFromTsb[i] << " , " << qgjMapForMC_[drIdxGen] << " ( drIdxGen, drGen ) : ( " << drIdxGen << " , " << drGen << " ) " << endl;
+    cout << "isInRecoJetS : " << isInRecoJetS << " , ( had pdg, m_qjMapForMC ) : ( " << hadTruth_isHadFromTsb[i] << " , " << m_qjMapForMC[drIdxReco] << " ( drIdxReco, drReco ) : ( " << drIdxReco << " , " << drReco << " )  || isInGenJetS : " << isInGenJetS << " , ( had pdg, m_qgjMapForMC ) : ( " << hadTruth_isHadFromTsb[i] << " , " << m_qgjMapForMC[drIdxGen] << " ( drIdxGen, drGen ) : ( " << drIdxGen << " , " << drGen << " ) " << endl;
     b_hadTruth_dr_j_vec.push_back(drReco);
     b_hadTruth_x_j_vec.push_back(had_pt[i]/Jet_pt[drIdxReco]);
     b_hadTruth_isInSJet_j_vec.push_back(isInRecoJetS);

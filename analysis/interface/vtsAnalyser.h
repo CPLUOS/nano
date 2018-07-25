@@ -6,6 +6,7 @@
 class vtsAnalyser : public hadAnalyser 
 {
 private:
+
   // for Test()
   std::vector<int>   b_GenPart_isGenFrom_vec; std::vector<bool> b_GenPart_isGenFromTop_vec; std::vector<bool> b_GenPart_isGenFromW_vec; std::vector<bool> b_GenPart_isFromKstar_vec;
   std::vector<float> b_GenPart_d_vec; std::vector<float> b_GenPart_pt_vec; std::vector<float> b_GenPart_eta_vec; std::vector<float> b_GenPart_phi_vec; std::vector<float> b_GenPart_mass_vec;
@@ -26,9 +27,9 @@ private:
   float b_MET_pt, b_MET_phi, b_MET_sumEt;
 
   // for MatchingForMC()
-  std::map<unsigned int, int> qjMapForMC_; std::map<unsigned int, int> qgjMapForMC_;
-  std::vector<int> tqMC_; std::vector<int> wqMC_;
-  std::vector<struct JetStat> recoJet_; std::vector<struct JetStat> genJet_;
+  std::map<unsigned int, int> m_qjMapForMC; std::map<unsigned int, int> m_qgjMapForMC;
+  std::vector<int> m_tqMC; std::vector<int> m_wqMC;
+  std::vector<struct JetStat> m_recoJet; std::vector<struct JetStat> m_genJet;
 
   //functions
   void ResetBranch();
@@ -41,6 +42,7 @@ private:
   void CollectVar();
 
 public:
+  float m_jetConeSize = 0.4;
   void setOutput(std::string outputName);
 
   vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
