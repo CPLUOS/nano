@@ -48,6 +48,10 @@ private:
   
   Int_t b_onlyGen;
   
+  Float_t b_met_sumEt;
+  
+  Int_t b_filter_met;
+  
   TLorentzVector b_gentop1;
   TLorentzVector b_genW;
   
@@ -111,6 +115,8 @@ private:
   TLorentzVector b_fatjet;
   Int_t b_nfatjet;
   Int_t b_nsubjet;
+  
+  Int_t b_nhadcand;
   
   Float_t b_cos_star_gen;
   Float_t b_cos_star_bjet_gen;
@@ -244,6 +250,10 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("njet", &b_njet, "njet/I");
   t->Branch("nbjet", &b_nbjet, "nbjet/I");
   
+  t->Branch("met_sumEt", &b_met_sumEt, "met_sumEt/I");
+  
+  t->Branch("filter_met", &b_filter_met, "filter_met/I");
+  
   t->Branch("gentop1", "TLorentzVector", &b_gentop1);
   t->Branch("genW", "TLorentzVector", &b_genW);
   
@@ -320,6 +330,8 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("nfatjet", &b_nfatjet, "nfatjet/I");
   t->Branch("nsubjet", &b_nsubjet, "nsubjet/I");
   
+  t->Branch("nhadcand", &b_nhadcand, "nhadcand/I");
+  
   t->Branch("trig_e", &b_trig_e, "trig_e/O");
   t->Branch("trig_m", &b_trig_m, "trig_m/O");
   
@@ -355,6 +367,10 @@ void singletopAnalyser::resetBranch() {
   topEventSelectionSL::Reset();
   
   b_onlyGen = 0;
+  
+  b_met_sumEt = -9;
+  
+  b_filter_met = 0;
   
   b_gentop1.SetPtEtaPhiM(0, 0, 0, 0);
   b_genW.SetPtEtaPhiM(0, 0, 0, 0);
@@ -420,6 +436,8 @@ void singletopAnalyser::resetBranch() {
   b_fatjet.SetPtEtaPhiM(0, 0, 0, 0);
   b_nfatjet = -1;
   b_nsubjet = -1;
+  
+  b_nhadcand = 0;
   
   b_cos_star_gen = b_cos_star_bjet_gen = -2;
   b_cos_labf_gen = b_cos_labf_bjet_gen = -2;
@@ -1163,12 +1181,17 @@ int singletopAnalyser::RunEvt() {
   nRes = EventSelection();
   if ( nRes < 4 ) return 0;
   
+  b_met_sumEt = MET_sumEt;
+  b_filter_met = ( Flag_METFilters ? 1 : 0 );
+  
   GetJets();
   if ( b_njet >= 3 ) CalcSphericity();
   
   b_fatjet.SetPtEtaPhiM(FatJet_pt[ 0 ], FatJet_eta[ 0 ], FatJet_phi[ 0 ], FatJet_mass[ 0 ]);
   b_nfatjet = nFatJet;
   b_nsubjet = nSubJet;
+  
+  b_nhadcand = nhad;
   
   /*if ( m_isMC && !m_isSig && m_nBkgType == MY_FLAG_BKGTYPE_TTBAR ) {
     if ( b_lep_pid != b_ttbar_lep1_pdgId || b_lep.DeltaR(b_ttbar_lep1) > b_lep.DeltaR(b_ttbar_lep2) ) {
@@ -1355,7 +1378,9 @@ int main(int argc, char **argv) {
     if ( strLine.find("WJets") != std::string::npos ) nBkgType = singletopAnalyser::MY_FLAG_BKGTYPE_WJETS;
     if ( strLine.find("ST_") != std::string::npos )   nBkgType = singletopAnalyser::MY_FLAG_BKGTYPE_ST_OTHERS;
     
-    singletopAnalyser t((TTree *)fRoot->Get("Events"), NULL, NULL, bIsMC, 
+    TTree *treeMain = (TTree *)fRoot->Get("Events");
+    
+    singletopAnalyser t(treeMain, treeMain, treeMain, bIsMC, 
       strLine.find("ST_t-channel") != std::string::npos, nBkgType, true);
     
     std::string strOutput = "out";

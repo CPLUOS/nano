@@ -34,8 +34,6 @@ void topEventSelectionSL::Reset()
   
   m_jets.clear();
   m_jetsCSVInclV2.clear();
-  
-  
 
   recoleps.clear();
   b_csvweights.clear();
@@ -122,18 +120,6 @@ int topEventSelectionSL::EventSelection()
   auto muons = muonSelection();
   auto elecs = elecSelection();
 
-  auto bjets = bjetSelection();
-  b_nbjet = bjets.size();
-
-  auto jets = jetSelection(&m_jetsCSVInclV2);
-  b_njet = jets.size();
-  
-  for ( Int_t i = 0 ; i < b_njet ; i++ ) {
-    TLorentzVector mom;
-    jets[ i ].Momentum(mom);
-    m_jets.push_back(mom);
-  }
-
   if (muons.size() + elecs.size() != 1) return b_step;
   b_step = 1;
   if (h_cutFlow) h_cutFlow->Fill(3);
@@ -153,6 +139,18 @@ int topEventSelectionSL::EventSelection()
   b_lep_pid = recolep.GetPdgCode();
 
   recoleps.push_back(b_lep);
+
+  auto bjets = bjetSelection();
+  b_nbjet = bjets.size();
+
+  auto jets = jetSelection(&m_jetsCSVInclV2);
+  b_njet = jets.size();
+  
+  for ( Int_t i = 0 ; i < b_njet ; i++ ) {
+    TLorentzVector mom;
+    jets[ i ].Momentum(mom);
+    m_jets.push_back(mom);
+  }
 
   // Veto Leptons
 

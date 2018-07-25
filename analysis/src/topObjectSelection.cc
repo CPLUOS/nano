@@ -12,9 +12,9 @@ vector<TParticle> topObjectSelection::elecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
     if (Electron_pt[i] < 20) continue;
-    if (isSemiLep) { if (Electron_pt[i] < 30) continue; }
-    if (std::abs(Electron_eta[i]) > 2.4) continue;
-    if (Electron_cutBased[i] < 3) continue; 
+    if (isSemiLep) { if (Electron_pt[i] < 35) continue; }
+    if (std::abs(Electron_eta[i]) > 2.1) continue;
+    if (Electron_cutBased[i] < 4) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
     TLorentzVector mom;
@@ -37,7 +37,7 @@ vector<TParticle> topObjectSelection::muonSelection() {
     if (Muon_pt[i] < 20) continue;
     if (isSemiLep) { if (Muon_pt[i] < 26) continue; }
     if (std::abs(Muon_eta[i]) > 2.4) continue;
-    if (isSemiLep) { if (std::abs(Muon_eta[i]) > 2.1) continue; }
+    //if (isSemiLep) { if (std::abs(Muon_eta[i]) > 2.1) continue; }
     if (Muon_pfRelIso04_all[i] > 0.06) continue;
     if (!Muon_globalMu[i]) continue;
     if (!Muon_isPFcand[i]) continue;
@@ -56,9 +56,9 @@ vector<TParticle> topObjectSelection::muonSelection() {
 vector<TParticle> topObjectSelection::vetoElecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
-    if (Electron_pt[i] < 20) continue;
-    if (std::abs(Electron_eta[i]) > 2.4) continue;
-    if (Electron_cutBased[i] < 3) continue; 
+    if (Electron_pt[i] < 15) continue;
+    if (std::abs(Electron_eta[i]) > 2.5) continue;
+    if (Electron_cutBased[i] < 4) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
     TLorentzVector mom;
@@ -138,7 +138,7 @@ vector<TParticle> topObjectSelection::bjetSelection() {
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
     bool hasOverLap = false;
     for (auto lep : recoleps) {
-      if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
+        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
     auto bjet = TParticle();
