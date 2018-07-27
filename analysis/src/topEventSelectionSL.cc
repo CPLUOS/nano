@@ -33,9 +33,7 @@ void topEventSelectionSL::Reset()
   b_tri = 0;
   
   m_jets.clear();
-  m_jetsCSVInclV2.clear();
-  
-  
+  m_jetsCMVA.clear();
 
   recoleps.clear();
   b_csvweights.clear();
@@ -122,18 +120,6 @@ int topEventSelectionSL::EventSelection()
   auto muons = muonSelection();
   auto elecs = elecSelection();
 
-  auto bjets = bjetSelection();
-  b_nbjet = bjets.size();
-
-  auto jets = jetSelection(&m_jetsCSVInclV2);
-  b_njet = jets.size();
-  
-  for ( Int_t i = 0 ; i < b_njet ; i++ ) {
-    TLorentzVector mom;
-    jets[ i ].Momentum(mom);
-    m_jets.push_back(mom);
-  }
-
   if (muons.size() + elecs.size() != 1) return b_step;
   b_step = 1;
   if (h_cutFlow) h_cutFlow->Fill(3);
@@ -149,11 +135,6 @@ int topEventSelectionSL::EventSelection()
       b_channel = CH_EL;
   }
 
-  recolep.Momentum(b_lep);
-  b_lep_pid = recolep.GetPdgCode();
-
-  recoleps.push_back(b_lep);
-
   // Veto Leptons
 
   auto vetoMu = vetoMuonSelection();
@@ -163,6 +144,36 @@ int topEventSelectionSL::EventSelection()
     return b_step;
   if ((elecs.size() == 0 && vetoEl.size() > 0) || (elecs.size() == 1 && vetoEl.size() > 1))
     return b_step;
+
+  recolep.Momentum(b_lep);
+  b_lep_pid = recolep.GetPdgCode();
+
+  recoleps.push_back(b_lep);
+  /*for ( UInt_t i = 0 ; i < nMuon ; i++ ) {
+    if ( !Muon_softId[ i ] ) continue;
+    TLorentzVector mom;
+    mom.SetPtEtaPhiM(Muon_pt[ i ], Muon_eta[ i ], Muon_phi[ i ], Muon_mass[ i ]);
+    recoleps.push_back(mom);
+  }
+  
+  for ( UInt_t i = 0 ; i < nElectron ; i++ ) {
+    if ( Electron_cutBased[ i ] < 2 ) continue;
+    TLorentzVector mom;
+    mom.SetPtEtaPhiM(Electron_pt[ i ], Electron_eta[ i ], Electron_phi[ i ], Electron_mass[ i ]);
+    recoleps.push_back(mom);
+  }*/
+
+  auto bjets = bjetSelection();
+  b_nbjet = bjets.size();
+
+  auto jets = jetSelection(&m_jetsCMVA);
+  b_njet = jets.size();
+  
+  for ( Int_t i = 0 ; i < b_njet ; i++ ) {
+    TLorentzVector mom;
+    jets[ i ].Momentum(mom);
+    m_jets.push_back(mom);
+  }
   
   b_step = 2;
   if (h_cutFlow) h_cutFlow->Fill(4);

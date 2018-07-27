@@ -899,9 +899,9 @@ int singletopAnalyser::GetJets() {
   // Getting the first non-b-tagged jet
   
   for ( i = 0 ; i < b_njet ; i++ ) {
-    if ( m_jetsCSVInclV2[ i ] <= 0.9535 ) {
+    if ( m_jetsCMVA[ i ] <= 0.9432 ) {
       b_jet1 = m_jets[ i ];
-      b_CSVjet1 = m_jetsCSVInclV2[ i ];
+      b_CSVjet1 = m_jetsCMVA[ i ];
       break;
     }
   }
@@ -912,7 +912,7 @@ int singletopAnalyser::GetJets() {
   Int_t nIdx = -1;
   
   for ( Int_t i = 0 ; i < b_njet ; i++ ) {
-    if ( m_jetsCSVInclV2[ i ] <= 0.9535 ) continue;
+    if ( m_jetsCMVA[ i ] <= 0.9432 ) continue;
     
     Float_t fDR = b_lep.DeltaR(m_jets[ i ]);
     
@@ -924,15 +924,15 @@ int singletopAnalyser::GetJets() {
   
   if ( nIdx >= 0 ) {
     b_bjet1 = m_jets[ nIdx ];
-    b_CSVbjet1 = m_jetsCSVInclV2[ i ];
+    b_CSVbjet1 = m_jetsCMVA[ i ];
   }
   
   // Getting the second b-tagged jet
   
   for ( i = 0 ; i < b_njet ; i++ ) {
-    if ( i != nIdx && m_jetsCSVInclV2[ i ] > 0.9535 ) {
+    if ( i != nIdx && m_jetsCMVA[ i ] > 0.9432 ) {
       b_bjet2 = m_jets[ i ];
-      b_CSVbjet2 = m_jetsCSVInclV2[ i ];
+      b_CSVbjet2 = m_jetsCMVA[ i ];
       break;
     }
   }
