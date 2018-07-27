@@ -22,7 +22,7 @@ protected:
   int b_lep_pid;
   //float b_jet1_CSVInclV2, b_jet2_CSVInclV2, b_jet3_CSVInclV2, b_jet4_CSVInclV2;
   std::vector<TLorentzVector> m_jets;
-  std::vector<Float_t> m_jetsCSVInclV2;
+  std::vector<Float_t> m_jetsCMVA;
 
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   float b_met, b_met_phi, b_weight, b_genweight, b_puweight;
