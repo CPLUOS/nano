@@ -38,6 +38,7 @@ for opt, arg in opts:
     sys.exit()
   elif opt in ("-n", "--numberonly"):
     onlyPrintNum = True
+    plotvar = "step*0+0.5"
   elif opt in ("-p", "--plotvar"):
     plotvar = arg
   elif opt in ("-l", "--dolog"):
