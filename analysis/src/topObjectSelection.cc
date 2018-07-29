@@ -61,6 +61,7 @@ vector<TParticle> topObjectSelection::vetoElecSelection() {
     if (Electron_cutBased[i] < 1) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
+    //if ( std::abs(el_scEta) >= 1.566 ) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
     auto elec = TParticle();
@@ -102,11 +103,12 @@ vector<TParticle> topObjectSelection::jetSelection(std::vector<Float_t> *csvVal)
   float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
     // For AN-2017/083
-    if ( std::abs(Jet_eta[i]) < 2.7 ) {
+    if ( std::abs(Jet_eta[i]) > 4.7 ) continue;
+    if ( !( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) ) {
       if (Jet_pt[i] < 40) continue;
-    } else if ( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) {
+    } else {
       if (Jet_pt[i] < 50) continue;
-    } else continue;
+    }
     //if (Jet_pt[i] < 40) continue;
     //if (std::abs(Jet_eta[i]) > 4.7) continue;
     if (Jet_jetId[i] < 1) continue;
@@ -137,13 +139,14 @@ vector<TParticle> topObjectSelection::bjetSelection() {
   vector<TParticle> bjets;
   for (UInt_t i = 0; i < nJet; ++i ) {
     // For AN-2017/083
-    if ( std::abs(Jet_eta[i]) < 2.7 ) {
+    /*if ( !( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) ) {
       if (Jet_pt[i] < 40) continue;
-    } else if ( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) {
+    } else {
       if (Jet_pt[i] < 50) continue;
-    } else continue;
-    //if (Jet_pt[i] < 40) continue;
-    //if (std::abs(Jet_eta[i]) > 4.7) continue;
+    }*/
+    // According to p. 9, AN-2017/083, one can find the following eta cut
+    if (std::abs(Jet_eta[i]) > 2.4) continue;
+    if (Jet_pt[i] < 40) continue;
     if (Jet_jetId[i] < 1) continue;
     //if (Jet_btagCSVV2[i] < 0.8484) continue;
     //if (Jet_btagCSVV2[i] < 0.9535) continue;

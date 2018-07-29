@@ -185,7 +185,7 @@ int topEventSelectionSL::EventSelection()
     if (h_cutFlowLep) h_cutFlowLep->Fill(3);
   } else return b_step;
   
-  if (b_nbjet > 0) {
+  if (b_nbjet >= 0) {
     b_step = 4;
     if (h_cutFlow) h_cutFlow->Fill(6);
     if (h_cutFlowLep) h_cutFlowLep->Fill(4);

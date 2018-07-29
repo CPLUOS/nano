@@ -931,6 +931,8 @@ int singletopAnalyser::GetJets() {
   
   for ( Int_t i = 0 ; i < b_njet ; i++ ) {
     if ( m_jetsCMVA[ i ] <= 0.9432 ) continue;
+    nIdx = i;
+    break;
     
     Float_t fDR = b_lep.DeltaR(m_jets[ i ]);
     
