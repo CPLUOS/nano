@@ -6,14 +6,27 @@
 class vtsAnalyser : public hadAnalyser 
 {
 private:
+  // for GenHaronAnalysis()
+  std::vector<int>   b_genHadron_isGenFrom_vec; std::vector<bool> b_genHadron_isGenFromTop_vec; std::vector<bool> b_genHadron_inVol_vec;
+  std::vector<float> b_genHadron_d_vec; std::vector<float> b_genHadron_pt_vec; std::vector<float> b_genHadron_eta_vec; std::vector<float> b_genHadron_phi_vec; std::vector<float> b_genHadron_mass_vec;
+  std::vector<float> b_genHadron_dau1_pt_vec; std::vector<float> b_genHadron_dau1_eta_vec; std::vector<float> b_genHadron_dau1_phi_vec; std::vector<int> b_genHadron_dau1_pdgId_vec;
+  std::vector<float> b_genHadron_dau2_pt_vec; std::vector<float> b_genHadron_dau2_eta_vec; std::vector<float> b_genHadron_dau2_phi_vec; std::vector<int> b_genHadron_dau2_pdgId_vec;
+  std::vector<float> b_genHadron_x_closest_j_vec; std::vector<float> b_genHadron_dr_closest_j_vec; 
+  std::vector<float> b_genHadron_x_closest_gj_vec; std::vector<float> b_genHadron_dr_closest_gj_vec; 
+  std::vector<float> b_genHadron_x_highest_j_vec; std::vector<float> b_genHadron_dr_highest_j_vec;
+  std::vector<float> b_genHadron_x_highest_gj_vec; std::vector<float> b_genHadron_dr_highest_gj_vec; 
+  std::vector<int>   b_genHadron_isClosestPair_j_vec; std::vector<int> b_genHadron_isClosestPair_gj_vec; std::vector<int> b_genHadron_isHighestPair_j_vec; std::vector<int> b_genHadron_isHighestPair_gj_vec;
+
+  std::vector<int>   b_nSJet_vec; std::vector<int>  b_nBJet_vec; std::vector<int>   b_nGenSJet_vec; std::vector<int>  b_nGenBJet_vec;
+
 
   // for GenAnalysis()
   std::vector<int>   b_GenPart_isGenFrom_vec; std::vector<bool> b_GenPart_isGenFromTop_vec; std::vector<bool> b_GenPart_isGenFromW_vec; std::vector<bool> b_GenPart_isFromKstar_vec;
   std::vector<float> b_GenPart_d_vec; std::vector<float> b_GenPart_pt_vec; std::vector<float> b_GenPart_eta_vec; std::vector<float> b_GenPart_phi_vec; std::vector<float> b_GenPart_mass_vec;
-  std::vector<float> b_GenPart_x_closest_j_vec; std::vector<float> b_GenPart_dr_closest_j_vec; std::vector<bool> b_GenPart_isInSJet_closest_j_vec;
-  std::vector<float> b_GenPart_x_closest_gj_vec; std::vector<float> b_GenPart_dr_closest_gj_vec; std::vector<bool> b_GenPart_isInSJet_closest_gj_vec;
-  std::vector<float> b_GenPart_x_highest_j_vec; std::vector<float> b_GenPart_dr_highest_j_vec; std::vector<bool> b_GenPart_isInSJet_highest_j_vec;
-  std::vector<float> b_GenPart_x_highest_gj_vec; std::vector<float> b_GenPart_dr_highest_gj_vec; std::vector<bool> b_GenPart_isInSJet_highest_gj_vec;
+  std::vector<float> b_GenPart_x_closest_j_vec; std::vector<float> b_GenPart_dr_closest_j_vec;
+  std::vector<float> b_GenPart_x_closest_gj_vec; std::vector<float> b_GenPart_dr_closest_gj_vec; 
+  std::vector<float> b_GenPart_x_highest_j_vec; std::vector<float> b_GenPart_dr_highest_j_vec;
+  std::vector<float> b_GenPart_x_highest_gj_vec; std::vector<float> b_GenPart_dr_highest_gj_vec; 
   std::vector<int>   b_GenPart_isClosestPair_j_vec; std::vector<int> b_GenPart_isClosestPair_gj_vec; std::vector<int> b_GenPart_isHighestPair_j_vec; std::vector<int> b_GenPart_isHighestPair_gj_vec;
 
   // for RecAnalysis()
@@ -24,10 +37,10 @@ private:
   std::vector<float> b_hadTruth_angleXY_vec; std::vector<float> b_hadTruth_angleXYZ_vec; std::vector<float> b_hadTruth_chi2_vec; std::vector<float> b_hadTruth_dca_vec;
   std::vector<float> b_hadTruth_dau1_chi2_vec; std::vector<float> b_hadTruth_dau1_ipsigXY_vec; std::vector<float> b_hadTruth_dau1_ipsigZ_vec; std::vector<float> b_hadTruth_dau1_pt_vec;
   std::vector<float> b_hadTruth_dau2_chi2_vec; std::vector<float> b_hadTruth_dau2_ipsigXY_vec; std::vector<float> b_hadTruth_dau2_ipsigZ_vec; std::vector<float> b_hadTruth_dau2_pt_vec;
-  std::vector<float> b_hadTruth_x_closest_j_vec; std::vector<float> b_hadTruth_dr_closest_j_vec; std::vector<bool> b_hadTruth_isInSJet_closest_j_vec;
-  std::vector<float> b_hadTruth_x_closest_gj_vec; std::vector<float> b_hadTruth_dr_closest_gj_vec; std::vector<bool> b_hadTruth_isInSJet_closest_gj_vec;
-  std::vector<float> b_hadTruth_x_highest_j_vec; std::vector<float> b_hadTruth_dr_highest_j_vec; std::vector<bool> b_hadTruth_isInSJet_highest_j_vec;
-  std::vector<float> b_hadTruth_x_highest_gj_vec; std::vector<float> b_hadTruth_dr_highest_gj_vec; std::vector<bool> b_hadTruth_isInSJet_highest_gj_vec;
+  std::vector<float> b_hadTruth_x_closest_j_vec; std::vector<float> b_hadTruth_dr_closest_j_vec;
+  std::vector<float> b_hadTruth_x_closest_gj_vec; std::vector<float> b_hadTruth_dr_closest_gj_vec;
+  std::vector<float> b_hadTruth_x_highest_j_vec; std::vector<float> b_hadTruth_dr_highest_j_vec;
+  std::vector<float> b_hadTruth_x_highest_gj_vec; std::vector<float> b_hadTruth_dr_highest_gj_vec;
   std::vector<int>   b_hadTruth_isClosestPair_j_vec; std::vector<int> b_hadTruth_isClosestPair_gj_vec; std::vector<int> b_hadTruth_isHighestPair_j_vec; std::vector<int> b_hadTruth_isHighestPair_gj_vec;
 
   // for CollectVar()
@@ -43,15 +56,21 @@ private:
   void MakeBranch(TTree* t);
   void MatchingForMC();
   void HadronAnalysis();
+  void GenHadronAnalysis();
   void GenAnalysis();
   void RecAnalysis();
 
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
   void CollectVar();
 
+  void Test();
+
 public:
   float m_jetConeSize = 0.4;
   void setOutput(std::string outputName);
+
+  // for Test()
+  float m_ngj = 0.; float m_k1 = 0.; float m_k2 = 0.; float m_k3 = 0.; float m_k4 = 0.; float m_xcut = 0.2;
 
   vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}

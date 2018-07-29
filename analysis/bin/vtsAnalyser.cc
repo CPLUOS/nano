@@ -109,7 +109,6 @@ void vtsAnalyser::Loop() {
     fChain->GetEntry(iev);
     if (h_fChain) h_fChain->GetEntry(iev);
     if (ht_fChain) ht_fChain->GetEntry(iev);
-
     cout << "event : " << iev << endl;
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
     ResetBranch();
@@ -117,6 +116,8 @@ void vtsAnalyser::Loop() {
     if (passedStep >= -1) { // -1 : No event selection, 0 : PV cut, reco lepton cut and so on, 1~4 : step 1 ~ 4
       MatchingForMC();
       HadronAnalysis();
+      Test();
+      GenHadronAnalysis();
       GenAnalysis();
       RecAnalysis();
     } else if (passedStep >= 0) {
@@ -124,6 +125,10 @@ void vtsAnalyser::Loop() {
     }
     m_tree->Fill();
   }
+  cout << "no cut : " << ((float)m_k1/(float)m_ngj)*100 << endl;
+  cout << "volcut : " << ((float)m_k2/(float)m_ngj)*100 << endl;
+  cout << "daucut : " << ((float)m_k3/(float)m_ngj)*100 << endl;
+  cout << "dr cut : " << ((float)m_k4/(float)m_ngj)*100 << endl;
 }
 
 void vtsAnalyser::setOutput(std::string outFileName) {
@@ -169,13 +174,26 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   BranchF(Jet_btagCSVV2); BranchF(Jet_btagDeepB); BranchF(Jet_btagDeepC); BranchF(Jet_btagCMVA);
   BranchF(Jet_area); BranchF(Jet_pt); BranchI(Jet_nConstituents); BranchI(Jet_nElectrons); BranchI(Jet_nMuons);
 
+  // For GenHadronAnalysis()
+  BranchVI(genHadron_isGenFrom_vec); BranchVO(genHadron_isGenFromTop_vec); BranchVO(genHadron_inVol_vec);
+  BranchVF(genHadron_d_vec); BranchVF(genHadron_pt_vec); BranchVF(genHadron_eta_vec); BranchVF(genHadron_phi_vec); BranchVF(genHadron_mass_vec);
+  BranchVF(genHadron_dau1_pt_vec); BranchVF(genHadron_dau1_eta_vec); BranchVF(genHadron_dau1_phi_vec); BranchVI(genHadron_dau1_pdgId_vec);
+  BranchVF(genHadron_dau2_pt_vec); BranchVF(genHadron_dau2_eta_vec); BranchVF(genHadron_dau2_phi_vec); BranchVI(genHadron_dau2_pdgId_vec);
+  BranchVF(genHadron_x_closest_j_vec); BranchVF(genHadron_dr_closest_j_vec);
+  BranchVF(genHadron_x_closest_gj_vec); BranchVF(genHadron_dr_closest_gj_vec); 
+  BranchVF(genHadron_x_highest_j_vec); BranchVF(genHadron_dr_highest_j_vec);
+  BranchVF(genHadron_x_highest_gj_vec); BranchVF(genHadron_dr_highest_gj_vec); 
+  BranchVI(genHadron_isClosestPair_j_vec); BranchVI(genHadron_isClosestPair_gj_vec); BranchVI(genHadron_isHighestPair_j_vec); BranchVI(genHadron_isHighestPair_gj_vec);
+
+  BranchVI(nSJet_vec); BranchVI(nBJet_vec); BranchVI(nGenSJet_vec); BranchVI(nGenBJet_vec);
+
   // For GenAnalysis()
   BranchVI(GenPart_isGenFrom_vec); BranchVO(GenPart_isGenFromTop_vec); BranchVO(GenPart_isGenFromW_vec); BranchVO(GenPart_isFromKstar_vec);
   BranchVF(GenPart_d_vec); BranchVF(GenPart_pt_vec); BranchVF(GenPart_eta_vec); BranchVF(GenPart_phi_vec); BranchVF(GenPart_mass_vec);
-  BranchVF(GenPart_x_closest_j_vec); BranchVF(GenPart_dr_closest_j_vec); BranchVO(GenPart_isInSJet_closest_j_vec);
-  BranchVF(GenPart_x_closest_gj_vec); BranchVF(GenPart_dr_closest_gj_vec); BranchVO(GenPart_isInSJet_closest_gj_vec);
-  BranchVF(GenPart_x_highest_j_vec); BranchVF(GenPart_dr_highest_j_vec); BranchVO(GenPart_isInSJet_highest_j_vec);
-  BranchVF(GenPart_x_highest_gj_vec); BranchVF(GenPart_dr_highest_gj_vec); BranchVO(GenPart_isInSJet_highest_gj_vec);
+  BranchVF(GenPart_x_closest_j_vec); BranchVF(GenPart_dr_closest_j_vec);
+  BranchVF(GenPart_x_closest_gj_vec); BranchVF(GenPart_dr_closest_gj_vec);
+  BranchVF(GenPart_x_highest_j_vec); BranchVF(GenPart_dr_highest_j_vec);
+  BranchVF(GenPart_x_highest_gj_vec); BranchVF(GenPart_dr_highest_gj_vec);
   BranchVI(GenPart_isClosestPair_j_vec); BranchVI(GenPart_isClosestPair_gj_vec); BranchVI(GenPart_isHighestPair_j_vec); BranchVI(GenPart_isHighestPair_gj_vec);
 
   // For RecAnalysis()
@@ -186,10 +204,10 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   BranchVF(hadTruth_angleXY_vec); BranchVF(hadTruth_angleXYZ_vec); BranchVF(hadTruth_chi2_vec); BranchVF(hadTruth_dca_vec);
   BranchVF(hadTruth_dau1_chi2_vec); BranchVF(hadTruth_dau1_ipsigXY_vec); BranchVF(hadTruth_dau1_ipsigZ_vec); BranchVF(hadTruth_dau1_pt_vec);
   BranchVF(hadTruth_dau2_chi2_vec); BranchVF(hadTruth_dau2_ipsigXY_vec); BranchVF(hadTruth_dau2_ipsigZ_vec); BranchVF(hadTruth_dau2_pt_vec);
-  BranchVF(hadTruth_x_closest_j_vec); BranchVF(hadTruth_dr_closest_j_vec); BranchVO(hadTruth_isInSJet_closest_j_vec);
-  BranchVF(hadTruth_x_closest_gj_vec); BranchVF(hadTruth_dr_closest_gj_vec); BranchVO(hadTruth_isInSJet_closest_gj_vec);
-  BranchVF(hadTruth_x_highest_j_vec); BranchVF(hadTruth_dr_highest_j_vec); BranchVO(hadTruth_isInSJet_highest_j_vec);
-  BranchVF(hadTruth_x_highest_gj_vec); BranchVF(hadTruth_dr_highest_gj_vec); BranchVO(hadTruth_isInSJet_highest_gj_vec);
+  BranchVF(hadTruth_x_closest_j_vec); BranchVF(hadTruth_dr_closest_j_vec);
+  BranchVF(hadTruth_x_closest_gj_vec); BranchVF(hadTruth_dr_closest_gj_vec);
+  BranchVF(hadTruth_x_highest_j_vec); BranchVF(hadTruth_dr_highest_j_vec);
+  BranchVF(hadTruth_x_highest_gj_vec); BranchVF(hadTruth_dr_highest_gj_vec);
   BranchVI(hadTruth_isClosestPair_j_vec); BranchVI(hadTruth_isClosestPair_gj_vec); BranchVI(hadTruth_isHighestPair_j_vec); BranchVI(hadTruth_isHighestPair_gj_vec);
 
   // For CollectVar()
@@ -206,13 +224,26 @@ void vtsAnalyser::ResetBranch() {
   b_hadTruth_isHadFromTsb = -1;
   b_hadTruth_isHadFromTop = false; b_hadTruth_isHadFromW = false; b_hadTruth_isHadFromS = false; b_hadTruth_isHadFromC = false; b_hadTruth_isHadFromB = false;
 
+  // For GenHadronAnalysis()
+  b_genHadron_isGenFrom_vec.clear(); b_genHadron_isGenFromTop_vec.clear(); b_genHadron_inVol_vec.clear();
+  b_genHadron_d_vec.clear(); b_genHadron_pt_vec.clear(); b_genHadron_eta_vec.clear(); b_genHadron_phi_vec.clear(); b_genHadron_mass_vec.clear();
+  b_genHadron_dau1_pt_vec.clear(); b_genHadron_dau1_eta_vec.clear(); b_genHadron_dau1_phi_vec.clear(); b_genHadron_dau1_pdgId_vec.clear();
+  b_genHadron_dau2_pt_vec.clear(); b_genHadron_dau2_eta_vec.clear(); b_genHadron_dau2_phi_vec.clear(); b_genHadron_dau2_pdgId_vec.clear();
+  b_genHadron_x_closest_j_vec.clear(); b_genHadron_dr_closest_j_vec.clear();
+  b_genHadron_x_closest_gj_vec.clear(); b_genHadron_dr_closest_gj_vec.clear();
+  b_genHadron_x_highest_j_vec.clear(); b_genHadron_dr_highest_j_vec.clear();
+  b_genHadron_x_highest_gj_vec.clear(); b_genHadron_dr_highest_gj_vec.clear();
+  b_genHadron_isClosestPair_j_vec.clear(); b_genHadron_isClosestPair_gj_vec.clear(); b_genHadron_isHighestPair_j_vec.clear(); b_genHadron_isHighestPair_gj_vec.clear();
+
+  b_nSJet_vec.clear(); b_nBJet_vec.clear(); b_nGenSJet_vec.clear(); b_nGenBJet_vec.clear();
+
   // For GenAnalysis()
   b_GenPart_isGenFrom_vec.clear(); b_GenPart_isGenFromTop_vec.clear(); b_GenPart_isGenFromW_vec.clear(); b_GenPart_isFromKstar_vec.clear();
   b_GenPart_d_vec.clear(); b_GenPart_pt_vec.clear(); b_GenPart_eta_vec.clear(); b_GenPart_phi_vec.clear(); b_GenPart_mass_vec.clear();
-  b_GenPart_x_closest_j_vec.clear(); b_GenPart_dr_closest_j_vec.clear(); b_GenPart_isInSJet_closest_j_vec.clear();
-  b_GenPart_x_closest_gj_vec.clear(); b_GenPart_dr_closest_gj_vec.clear(); b_GenPart_isInSJet_closest_gj_vec.clear();
-  b_GenPart_x_highest_j_vec.clear(); b_GenPart_dr_highest_j_vec.clear(); b_GenPart_isInSJet_highest_j_vec.clear();
-  b_GenPart_x_highest_gj_vec.clear(); b_GenPart_dr_highest_gj_vec.clear(); b_GenPart_isInSJet_highest_gj_vec.clear();
+  b_GenPart_x_closest_j_vec.clear(); b_GenPart_dr_closest_j_vec.clear();
+  b_GenPart_x_closest_gj_vec.clear(); b_GenPart_dr_closest_gj_vec.clear();
+  b_GenPart_x_highest_j_vec.clear(); b_GenPart_dr_highest_j_vec.clear();
+  b_GenPart_x_highest_gj_vec.clear(); b_GenPart_dr_highest_gj_vec.clear();
   b_GenPart_isClosestPair_j_vec.clear(); b_GenPart_isClosestPair_gj_vec.clear(); b_GenPart_isHighestPair_j_vec.clear(); b_GenPart_isHighestPair_gj_vec.clear();
 
   // For RecAnalysis()
@@ -223,10 +254,10 @@ void vtsAnalyser::ResetBranch() {
   b_hadTruth_angleXY_vec.clear(); b_hadTruth_angleXYZ_vec.clear(); b_hadTruth_chi2_vec.clear(); b_hadTruth_dca_vec.clear();
   b_hadTruth_dau1_chi2_vec.clear(); b_hadTruth_dau1_ipsigXY_vec.clear(); b_hadTruth_dau1_ipsigZ_vec.clear(); b_hadTruth_dau1_pt_vec.clear();
   b_hadTruth_dau2_chi2_vec.clear(); b_hadTruth_dau2_ipsigXY_vec.clear(); b_hadTruth_dau2_ipsigZ_vec.clear(); b_hadTruth_dau2_pt_vec.clear();
-  b_hadTruth_x_closest_j_vec.clear(); b_hadTruth_dr_closest_j_vec.clear(); b_hadTruth_isInSJet_closest_j_vec.clear();
-  b_hadTruth_x_closest_gj_vec.clear(); b_hadTruth_dr_closest_gj_vec.clear(); b_hadTruth_isInSJet_closest_gj_vec.clear();
-  b_hadTruth_x_highest_j_vec.clear(); b_hadTruth_dr_highest_j_vec.clear(); b_hadTruth_isInSJet_highest_j_vec.clear();
-  b_hadTruth_x_highest_gj_vec.clear(); b_hadTruth_dr_highest_gj_vec.clear(); b_hadTruth_isInSJet_highest_gj_vec.clear();
+  b_hadTruth_x_closest_j_vec.clear(); b_hadTruth_dr_closest_j_vec.clear();
+  b_hadTruth_x_closest_gj_vec.clear(); b_hadTruth_dr_closest_gj_vec.clear();
+  b_hadTruth_x_highest_j_vec.clear(); b_hadTruth_dr_highest_j_vec.clear();
+  b_hadTruth_x_highest_gj_vec.clear(); b_hadTruth_dr_highest_gj_vec.clear();
   b_hadTruth_isClosestPair_j_vec.clear(); b_hadTruth_isClosestPair_gj_vec.clear(); b_hadTruth_isHighestPair_j_vec.clear(); b_hadTruth_isHighestPair_gj_vec.clear();
 
   // For CollectVar()
@@ -460,10 +491,177 @@ bool vtsAnalyser::isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, 
   else return false;
 }
 
+void vtsAnalyser::Test() {
+  for (unsigned int j=0; j<nGenJet; ++j) {
+    if (abs(GenJet_partonFlavour[j]) != 3) continue;
+    m_ngj = m_ngj +1;
+    TLorentzVector gjet_tlv;
+    gjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+
+    auto maxPt = 0.; auto dr =0.; auto idx =0;
+    for (unsigned int i=0; i<ngenHadron; ++i) {
+      if (abs(genHadron_pdgId[i]) != 310) continue;
+      if (genHadron_isGenHadFromTsb[i] != GenJet_partonFlavour[j]) continue;
+      TLorentzVector ghad_tlv;
+      ghad_tlv.SetPtEtaPhiM(genHadron_pt[i], genHadron_eta[i], genHadron_phi[i], genHadron_mass[i]);
+      auto dRtmp = gjet_tlv.DeltaR(ghad_tlv);
+      auto x = genHadron_pt[i]/GenJet_pt[j];
+
+      if ( x < m_xcut) continue;
+      if (genHadron_pt[i] > maxPt) {
+        maxPt = genHadron_pt[i];
+        dr = dRtmp;
+        idx = i;
+      }
+      if (maxPt == 0) continue;
+      m_k1 = m_k1+1;
+
+      if (genHadron_inVol[idx] != 1) continue;
+      m_k2 = m_k2+1;
+
+      if (abs(genHadron_dau1_pdgId[idx]) != 211 || abs(genHadron_dau2_pdgId[idx]) != 211) continue;
+      m_k3 = m_k3+1;
+
+      if (dr > m_jetConeSize) continue;
+      m_k4 = m_k4+1;
+    }
+  }
+}
+
+void vtsAnalyser::GenHadronAnalysis() {
+  std::vector<std::pair<unsigned int, float>> drRec; std::vector<std::pair<unsigned int, float>> xRec;
+  std::vector<std::pair<unsigned int, float>> drGen;  std::vector<std::pair<unsigned int, float>> xGen;
+  int nGenHadKS = 0;
+  b_genHadron_dr_closest_j_vec.resize(ngenHadron);
+  b_genHadron_x_closest_j_vec.resize(ngenHadron);
+  b_genHadron_dr_closest_gj_vec.resize(ngenHadron); 
+  b_genHadron_x_closest_gj_vec.resize(ngenHadron);
+  b_genHadron_dr_highest_j_vec.resize(ngenHadron); 
+  b_genHadron_x_highest_j_vec.resize(ngenHadron);
+  b_genHadron_dr_highest_gj_vec.resize(ngenHadron); 
+  b_genHadron_x_highest_gj_vec.resize(ngenHadron);
+  for (unsigned int i=0; i<ngenHadron; ++i) {
+    if (abs(genHadron_pdgId[i]) != 310) continue;
+    ++nGenHadKS;
+    b_genHadron_isGenFrom_vec.push_back(genHadron_isGenHadFromTsb[i]);
+    b_genHadron_isGenFromTop_vec.push_back(genHadron_isGenHadFromTop[i]);
+    b_genHadron_inVol_vec.push_back(genHadron_inVol[i]);
+    b_genHadron_d_vec.push_back(GetD(genHadron_pt[i], genHadron_eta[i], genHadron_phi[i], genHadron_mass[i], genHadron_x[i], genHadron_y[i], genHadron_z[i]));
+    b_genHadron_pt_vec.push_back(genHadron_pt[i]);
+    b_genHadron_eta_vec.push_back(genHadron_eta[i]);
+    b_genHadron_phi_vec.push_back(genHadron_phi[i]);
+    b_genHadron_mass_vec.push_back(genHadron_mass[i]);
+    b_genHadron_dau1_pt_vec.push_back(genHadron_dau1_pt[i]);
+    b_genHadron_dau1_eta_vec.push_back(genHadron_dau1_eta[i]);
+    b_genHadron_dau1_phi_vec.push_back(genHadron_dau1_phi[i]);
+    b_genHadron_dau1_pdgId_vec.push_back(genHadron_dau1_pdgId[i]);
+    b_genHadron_dau2_pt_vec.push_back(genHadron_dau2_pt[i]);
+    b_genHadron_dau2_eta_vec.push_back(genHadron_dau2_eta[i]);
+    b_genHadron_dau2_phi_vec.push_back(genHadron_dau2_phi[i]);
+    b_genHadron_dau2_pdgId_vec.push_back(genHadron_dau2_pdgId[i]);
+
+    TLorentzVector gen_tlv;
+    gen_tlv.SetPtEtaPhiM(genHadron_pt[i], genHadron_eta[i], genHadron_phi[i], genHadron_mass[i]);
+
+    for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
+      TLorentzVector jet_tlv;
+      jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
+      auto dr = jet_tlv.DeltaR(gen_tlv);
+      auto x = genHadron_pt[i]/Jet_pt[j];
+      if (nGenHadKS==1) {
+        drRec.push_back({i, dr});
+        xRec.push_back({i, x});
+        if (abs(m_qjMapForMC[j]) == 3) b_nSJet_vec.push_back(j);
+        else if (abs(m_qjMapForMC[j]) == 5) b_nBJet_vec.push_back(j);
+      } else {
+        if (genHadron_isGenHadFromTsb[i] == m_qjMapForMC[j]) {
+          if (dr < drRec[j].second ) { // Find the closest gen KS for each Jets
+            drRec[j] = {i, dr};
+          } /*else if (dr == drRec[j].second) { // not completed
+          }*/
+          if (x > xRec[j].second ) { // Find the highest x gen KS for each Jets
+            xRec[j] = {i, x};
+          } /*else if (x == xRec[j].second) { // not completed
+          }*/
+        }
+      }
+    }
+    for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
+      TLorentzVector jet_tlv;
+      jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+      auto dr = jet_tlv.DeltaR(gen_tlv);
+      auto x = genHadron_pt[i]/GenJet_pt[j];
+      if (nGenHadKS==1) {
+        drGen.push_back({i, dr});
+        xGen.push_back({i, x});
+        if (abs(m_qgjMapForMC[j]) == 3) b_nGenSJet_vec.push_back(j);
+        else if (abs(m_qgjMapForMC[j]) == 5) b_nGenBJet_vec.push_back(j);
+      } else {
+        if (genHadron_isGenHadFromTsb[i] == m_qgjMapForMC[j]) {
+          if (dr < drGen[j].second ) { // Find the closest gen KS for each GenJets
+            drGen[j] = {i, dr};
+          } /*else if (dr == drGen[j].second) { // not completed
+          }*/
+          if (x > xGen[j].second ) { // Find the highest x gen KS for each GenJets
+            xGen[j] = {i, x};
+          } /*else if (x == xGen[j].second) { // not completed
+          }*/
+        }
+      }
+    }
+    b_genHadron_isClosestPair_j_vec.push_back(i); b_genHadron_isClosestPair_gj_vec.push_back(i);
+    b_genHadron_isHighestPair_j_vec.push_back(i); b_genHadron_isHighestPair_gj_vec.push_back(i);
+  }
+  if (nGenHadKS !=0) {
+    //  Save x and dr for the most closest(highest) KS for each jet
+    for (unsigned int j=0; j<nJet; ++j) {
+      int cRecIdx = drRec[j].first; int hRecIdx = xRec[j].first;
+      TLorentzVector hgen_tlv; TLorentzVector hjet_tlv;
+      hgen_tlv.SetPtEtaPhiM(genHadron_pt[hRecIdx], genHadron_eta[hRecIdx], genHadron_phi[hRecIdx], genHadron_mass[hRecIdx]);
+      hjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+      b_genHadron_dr_closest_j_vec[cRecIdx] = drRec[j].second;
+      b_genHadron_x_closest_j_vec[cRecIdx] = genHadron_pt[cRecIdx] / Jet_pt[j];
+      b_genHadron_dr_highest_j_vec[hRecIdx] = hgen_tlv.DeltaR(hjet_tlv);
+      b_genHadron_x_highest_j_vec[hRecIdx] = xRec[j].second;
+//      cout << "highest x : ( " << xRec[j].first << " , " << xRec[j].second << " , " << hgen_tlv.DeltaR(hjet_tlv) << " ) " << endl;
+
+    }
+    for (unsigned int j=0; j<nGenJet; ++j) {
+      int cGenIdx = drGen[j].first; int hGenIdx = xGen[j].first;
+      TLorentzVector hgen_tlv; TLorentzVector hjet_tlv;
+      hgen_tlv.SetPtEtaPhiM(genHadron_pt[hGenIdx], genHadron_eta[hGenIdx], genHadron_phi[hGenIdx], genHadron_mass[hGenIdx]);
+      hjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+      b_genHadron_dr_closest_gj_vec[cGenIdx] = drGen[j].second;
+      b_genHadron_x_closest_gj_vec[cGenIdx] = genHadron_pt[cGenIdx] / Jet_pt[j];
+      b_genHadron_dr_highest_gj_vec[hGenIdx] = hgen_tlv.DeltaR(hjet_tlv);
+      b_genHadron_x_highest_gj_vec[hGenIdx] = xGen[j].second;
+//      cout << "highest x : ( " << xGen[j].first << " , " << xGen[j].second << " , " << hgen_tlv.DeltaR(hjet_tlv) << " ) " << endl;
+    }
+    // Give flag ( == index) for the most closest(highest) KS-jet pair per event
+    std::sort(drRec.begin(), drRec.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second < b.second); } );
+    std::sort(drGen.begin(), drGen.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second < b.second); } );
+    std::sort(xRec.begin(), xRec.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second > b.second); } );
+    std::sort(xGen.begin(), xGen.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second > b.second); } );
+    int cRecIdx = drRec[0].first; int cGenIdx = drGen[0].first; int hRecIdx = xRec[0].first; int hGenIdx = xGen[0].first;
+    std::replace_if(b_genHadron_isClosestPair_j_vec.begin(), b_genHadron_isClosestPair_j_vec.end(), [&] (int a) { return (a != cRecIdx); }, -1);
+    std::replace_if(b_genHadron_isClosestPair_gj_vec.begin(), b_genHadron_isClosestPair_gj_vec.end(), [&] (int a) { return (a != cGenIdx); }, -1);
+    std::replace_if(b_genHadron_isHighestPair_j_vec.begin(), b_genHadron_isHighestPair_j_vec.end(), [&] (int a) { return (a != hRecIdx); }, -1);
+    std::replace_if(b_genHadron_isHighestPair_gj_vec.begin(), b_genHadron_isHighestPair_gj_vec.end(), [&] (int a) { return (a != hGenIdx); }, -1);
+  }
+}
+
 void vtsAnalyser::GenAnalysis() {
-  std::map<unsigned int, unsigned int> cRecMatched; std::map<unsigned int, unsigned int> hRecMatched; std::vector<std::pair<unsigned int, float>> drRec; std::vector<std::pair<unsigned int, float>> xRec;
-  std::map<unsigned int, unsigned int> cGenMatched; std::map<unsigned int, unsigned int> hGenMatched; std::vector<std::pair<unsigned int, float>> drGen;  std::vector<std::pair<unsigned int, float>> xGen;
+  std::vector<std::pair<unsigned int, float>> drRec; std::vector<std::pair<unsigned int, float>> xRec;
+  std::vector<std::pair<unsigned int, float>> drGen;  std::vector<std::pair<unsigned int, float>> xGen;
   int nGenKS = 0;
+  b_GenPart_dr_closest_j_vec.resize(nGenPart);
+  b_GenPart_x_closest_j_vec.resize(nGenPart);
+  b_GenPart_dr_closest_gj_vec.resize(nGenPart);
+  b_GenPart_x_closest_gj_vec.resize(nGenPart);
+  b_GenPart_dr_highest_j_vec.resize(nGenPart);
+  b_GenPart_x_highest_j_vec.resize(nGenPart);
+  b_GenPart_dr_highest_gj_vec.resize(nGenPart);
+  b_GenPart_x_highest_gj_vec.resize(nGenPart);
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (abs(GenPart_pdgId[i]) != 310) continue;
     ++nGenKS;
@@ -482,7 +680,6 @@ void vtsAnalyser::GenAnalysis() {
     b_GenPart_phi_vec.push_back(GenPart_phi[i]);
     b_GenPart_mass_vec.push_back(GenPart_mass[i]);
 
-    float cRec = 99; float hRec = -1;
     for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
       TLorentzVector jet_tlv;
       jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
@@ -492,25 +689,18 @@ void vtsAnalyser::GenAnalysis() {
         drRec.push_back({i, dr});
         xRec.push_back({i, x});
       } else { 
-        if (dr < cRec) { // Find the closest Jet for i-th gen KS
-          cRecMatched[i] = j;
-          cRec = dr;
+        if (isFrom == m_qjMapForMC[j]) {
+          if (dr < drRec[j].second ) { // Find the closest gen KS for each Jets
+            drRec[j] = {i, dr};
+          } /*else if (dr == drRec[j].second) { // not completed
+          }*/
+          if (x > xRec[j].second ) { // Find the highest x gen KS for each Jets
+            xRec[j] = {i, x};
+          } /*else if (x == xRec[j].second) { // not completed
+          }*/
         }
-        if (x > hRec) { // Find the Jet giving highest x for i-th gen KS
-          hRecMatched[i] = j;
-          hRec = x;
-        }
-        if (dr < drRec[j].second ) { // Find the closest gen KS for each Jets
-          drRec[j] = {i, dr};
-        } /*else if (dr == drRec[j].second) { // not completed
-        }*/
-        if (x > xRec[j].second ) { // Find the highest x gen KS for each Jets
-          xRec[j] = {i, x};
-        } /*else if (x == xRec[j].second) { // not completed
-        }*/
       }
     }
-    float cGen = 99; float hGen = -1;
     for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
       TLorentzVector jet_tlv;
       jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
@@ -520,55 +710,44 @@ void vtsAnalyser::GenAnalysis() {
         drGen.push_back({i, dr});
         xGen.push_back({i, x});
       } else {
-        if (dr < cGen) { // Find the closest GenJet for i-th gen KS
-          cGenMatched[i] = j;
-          cGen = dr;
+        if (isFrom == m_qgjMapForMC[j]) {
+          if (dr < drGen[j].second ) { // Find the closest gen KS for each GenJets
+            drGen[j] = {i, dr};
+          } /*else if (dr == drGen[j].second) { // not completed
+          }*/
+          if (x > xGen[j].second ) { // Find the highest x gen KS for each GenJets
+            xGen[j] = {i, x};
+          } /*else if (x == xGen[j].second) { // not completed
+          }*/
         }
-        if (x > hGen) { // Find the GenJet giving highest x for i-th gen KS
-          hGenMatched[i] = j;
-          hGen = x;
-        }
-        if (dr < drGen[j].second ) { // Find the closest gen KS for each GenJets
-          drGen[j] = {i, dr};
-        } /*else if (dr == drGen[j].second) { // not completed
-        }*/
-        if (x > xGen[j].second ) { // Find the highest x gen KS for each GenJets
-          xGen[j] = {i, x};
-        } /*else if (x == xGen[j].second) { // not completed
-        }*/
       }
     }
-    auto cRecJidx = cRecMatched[i]; auto hRecJidx = hRecMatched[i]; auto cGenJidx = cGenMatched[i]; auto hGenJidx = hGenMatched[i];
-    TLorentzVector jet_hRec_tlv, jet_hGen_tlv;
-    jet_hRec_tlv.SetPtEtaPhiM(Jet_pt[hRecJidx], Jet_eta[hRecJidx], Jet_phi[hRecJidx], Jet_mass[hRecJidx]);
-    jet_hGen_tlv.SetPtEtaPhiM(GenJet_pt[hGenJidx], GenJet_eta[hGenJidx], GenJet_phi[hGenJidx], GenJet_mass[hGenJidx]);
-    auto hRecDr = jet_hRec_tlv.DeltaR(gen_tlv); auto hGenDr = jet_hGen_tlv.DeltaR(gen_tlv);
-
-    bool isInRecSJetC = (cRec < m_jetConeSize && GenPart_pdgId[i] == m_qjMapForMC[cRecJidx] && abs(GenPart_pdgId[i]) == 3);
-    bool isInGenSJetC = (cGen < m_jetConeSize && GenPart_pdgId[i] == m_qgjMapForMC[cGenJidx] && abs(GenPart_pdgId[i]) == 3);
-    bool isInRecSJetH = (hRecDr < m_jetConeSize && GenPart_pdgId[i] == m_qjMapForMC[hRecJidx] && abs(GenPart_pdgId[i]) == 3);
-    bool isInGenSJetH = (hGenDr < m_jetConeSize && GenPart_pdgId[i] == m_qgjMapForMC[hGenJidx] && abs(GenPart_pdgId[i]) == 3);
-
-    b_GenPart_dr_closest_j_vec.push_back(cRec);
-    b_GenPart_x_closest_j_vec.push_back(GenPart_pt[i]/Jet_pt[cRecJidx]);
-    b_GenPart_isInSJet_closest_j_vec.push_back(isInRecSJetC);
-    b_GenPart_dr_closest_gj_vec.push_back(cGen);
-    b_GenPart_x_closest_gj_vec.push_back(GenPart_pt[i]/GenJet_pt[cGenJidx]);
-    b_GenPart_isInSJet_closest_gj_vec.push_back(isInGenSJetC);
-    b_GenPart_dr_highest_j_vec.push_back(hRec);
-    b_GenPart_x_highest_j_vec.push_back(GenPart_pt[i]/Jet_pt[hRecJidx]);
-    b_GenPart_isInSJet_highest_j_vec.push_back(isInRecSJetH);
-    b_GenPart_dr_highest_gj_vec.push_back(hGen);
-    b_GenPart_x_highest_gj_vec.push_back(GenPart_pt[i]/GenJet_pt[hGenJidx]);
-    b_GenPart_isInSJet_highest_gj_vec.push_back(isInGenSJetH);
-
-    b_GenPart_isClosestPair_j_vec.push_back(i);
-    b_GenPart_isClosestPair_gj_vec.push_back(i);
-    b_GenPart_isHighestPair_j_vec.push_back(i);
-    b_GenPart_isHighestPair_gj_vec.push_back(i);
+    b_GenPart_isClosestPair_j_vec.push_back(i); b_GenPart_isClosestPair_gj_vec.push_back(i);
+    b_GenPart_isHighestPair_j_vec.push_back(i); b_GenPart_isHighestPair_gj_vec.push_back(i);
   }
   if (nGenKS !=0) {
-    // Give flag for the most closest(highest) KS-jet pair per event
+    //  Save x and dr for the most closest(highest) KS for each jet
+    for (unsigned int j=0; j<nJet; ++j) {
+      int cRecIdx = drRec[j].first; int hRecIdx = xRec[j].first;
+      TLorentzVector hgen_tlv; TLorentzVector hjet_tlv;
+      hgen_tlv.SetPtEtaPhiM(GenPart_pt[hRecIdx], GenPart_eta[hRecIdx], GenPart_phi[hRecIdx], GenPart_mass[hRecIdx]);
+      hjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+      b_GenPart_dr_closest_j_vec[cRecIdx] = drRec[j].second;
+      b_GenPart_x_closest_j_vec[cRecIdx] = GenPart_pt[cRecIdx] / Jet_pt[j];
+      b_GenPart_dr_highest_j_vec[hRecIdx] = hgen_tlv.DeltaR(hjet_tlv);
+      b_GenPart_x_highest_j_vec[hRecIdx] = xRec[j].second;
+    }
+    for (unsigned int j=0; j<nGenJet; ++j) {
+      int cGenIdx = drGen[j].first; int hGenIdx = xGen[j].first;
+      TLorentzVector hgen_tlv; TLorentzVector hjet_tlv;
+      hgen_tlv.SetPtEtaPhiM(GenPart_pt[hGenIdx], GenPart_eta[hGenIdx], GenPart_phi[hGenIdx], GenPart_mass[hGenIdx]);
+      hjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+      b_GenPart_dr_closest_gj_vec[cGenIdx] = drGen[j].second;
+      b_GenPart_x_closest_gj_vec[cGenIdx] = GenPart_pt[cGenIdx] / Jet_pt[j];
+      b_GenPart_dr_highest_gj_vec[hGenIdx] = hgen_tlv.DeltaR(hjet_tlv);
+      b_GenPart_x_highest_gj_vec[hGenIdx] = xGen[j].second;
+    }
+    // Give flag ( == index) for the most closest(highest) KS-jet pair per event
     std::sort(drRec.begin(), drRec.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second < b.second); } );
     std::sort(drGen.begin(), drGen.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second < b.second); } );
     std::sort(xRec.begin(), xRec.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second > b.second); } );
@@ -582,9 +761,17 @@ void vtsAnalyser::GenAnalysis() {
 }
 
 void vtsAnalyser::RecAnalysis() {
-  std::map<unsigned int, unsigned int> cRecMatched; std::map<unsigned int, unsigned int> hRecMatched; std::vector<std::pair<unsigned int, float>> drRec; std::vector<std::pair<unsigned int, float>> xRec;
-  std::map<unsigned int, unsigned int> cGenMatched; std::map<unsigned int, unsigned int> hGenMatched; std::vector<std::pair<unsigned int, float>> drGen;  std::vector<std::pair<unsigned int, float>> xGen;
+  std::vector<std::pair<unsigned int, float>> drRec; std::vector<std::pair<unsigned int, float>> xRec;
+  std::vector<std::pair<unsigned int, float>> drGen;  std::vector<std::pair<unsigned int, float>> xGen;
   int nRecKS = 0;
+  b_hadTruth_dr_closest_j_vec.resize(nhad);
+  b_hadTruth_x_closest_j_vec.resize(nhad);
+  b_hadTruth_dr_closest_gj_vec.resize(nhad);
+  b_hadTruth_x_closest_gj_vec.resize(nhad);
+  b_hadTruth_dr_highest_j_vec.resize(nhad);
+  b_hadTruth_x_highest_j_vec.resize(nhad);
+  b_hadTruth_dr_highest_gj_vec.resize(nhad);
+  b_hadTruth_x_highest_gj_vec.resize(nhad);
   for (unsigned int i=0; i<nhad; ++i) {
     if (had_pdgId[i] != 310) continue;
     ++nRecKS;
@@ -621,7 +808,6 @@ void vtsAnalyser::RecAnalysis() {
 
     TLorentzVector had_tlv;
     had_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
-    float cRec = 99; float hRec = -1;
     for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
       TLorentzVector jet_tlv;
       jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
@@ -631,25 +817,18 @@ void vtsAnalyser::RecAnalysis() {
         drRec.push_back({i, dr});
         xRec.push_back({i, x});
       } else {
-        if (dr < cRec) { // Find the closest Jet for i-th reco KS
-          cRecMatched[i] = j; 
-          cRec = dr;
+        if (hadTruth_isHadFromTsb[i] == m_qjMapForMC[j]) {
+          if (dr < drRec[j].second ) { // Find the closest reco KS for each Jets
+            drRec[j] = {i, dr};
+          } /*else if (dr == drRec[j].second) { // not completed
+          }*/
+          if (x > xRec[j].second ) { // Find the highest x reco KS for each Jets
+            xRec[j] = {i, x};
+          } /*else if (x == xRec[j].second) { // not completed
+          }*/
         }
-        if (x > hRec) { // Find the Jet giving highest x for i-th reco KS
-          hRecMatched[i] = j; 
-          hRec = x;
-        }
-        if (dr < drRec[j].second ) { // Find the closest reco KS for each Jets
-          drRec[j] = {i, dr};
-        } /*else if (dr == drRec[j].second) { // not completed
-        }*/
-        if (x > xRec[j].second ) { // Find the highest x reco KS for each Jets
-          xRec[j] = {i, x};
-        } /*else if (x == xRec[j].second) { // not completed
-        }*/
       }
     }
-    float cGen = 99; float hGen = -1;
     for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
       TLorentzVector jet_tlv;
       jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
@@ -659,55 +838,44 @@ void vtsAnalyser::RecAnalysis() {
         drGen.push_back({i, dr});
         xGen.push_back({i, x});
       } else {
-        if (dr < cGen) { // Find the closest GenJet for i-th reco KS
-          cGenMatched[i] = j;
-          cGen = dr;
+        if (hadTruth_isHadFromTsb[i] == m_qgjMapForMC[j]) {
+          if (dr < drGen[j].second ) { // Find the closest reco KS for each GenJets
+            drGen[j] = {i, dr};
+          } /*else if (dr == drGen[j].second) { // not completed
+          }*/
+          if (x > xGen[j].second ) { // Find the highest x reco KS for each GenJets
+            xGen[j] = {i, x};
+          } /*else if (x == xGen[j].second) { // not completed
+          }*/
         }
-        if (x > hGen) { // Find the GenJet giving highest x for i-th reco KS
-          hGenMatched[i] = j;
-          hGen = x;
-        }
-        if (dr < drGen[j].second ) { // Find the closest reco KS for each GenJets
-          drGen[j] = {i, dr};
-        } /*else if (dr == drGen[j].second) { // not completed
-        }*/
-        if (x > xGen[j].second ) { // Find the highest x reco KS for each GenJets
-          xGen[j] = {i, x};
-        } /*else if (x == xGen[j].second) { // not completed
-        }*/
       }
     }
-    auto cRecJidx = cRecMatched[i]; auto hRecJidx = hRecMatched[i]; auto cGenJidx = cGenMatched[i]; auto hGenJidx = hGenMatched[i];
-    TLorentzVector jet_hRec_tlv, jet_hGen_tlv;
-    jet_hRec_tlv.SetPtEtaPhiM(Jet_pt[hRecJidx], Jet_eta[hRecJidx], Jet_phi[hRecJidx], Jet_mass[hRecJidx]);
-    jet_hGen_tlv.SetPtEtaPhiM(GenJet_pt[hGenJidx], GenJet_eta[hGenJidx], GenJet_phi[hGenJidx], GenJet_mass[hGenJidx]);
-    auto hRecDr = jet_hRec_tlv.DeltaR(had_tlv); auto hGenDr = jet_hGen_tlv.DeltaR(had_tlv);
-
-    bool isInRecSJetC = (cRec < m_jetConeSize && hadTruth_isHadFromTsb[i] == m_qjMapForMC[cRecJidx] && abs(hadTruth_isHadFromTsb[i]) == 3);
-    bool isInGenSJetC = (cGen < m_jetConeSize && hadTruth_isHadFromTsb[i] == m_qgjMapForMC[cGenJidx] && abs(hadTruth_isHadFromTsb[i]) == 3);
-    bool isInRecSJetH = (hRecDr < m_jetConeSize && hadTruth_isHadFromTsb[i] == m_qjMapForMC[hRecJidx] && abs(hadTruth_isHadFromTsb[i]) == 3);
-    bool isInGenSJetH = (hGenDr < m_jetConeSize && hadTruth_isHadFromTsb[i] == m_qgjMapForMC[hGenJidx] && abs(hadTruth_isHadFromTsb[i]) == 3);
-
-    b_hadTruth_dr_closest_j_vec.push_back(cRec);
-    b_hadTruth_x_closest_j_vec.push_back(had_pt[i]/Jet_pt[cRecJidx]);
-    b_hadTruth_isInSJet_closest_j_vec.push_back(isInRecSJetC);
-    b_hadTruth_dr_closest_gj_vec.push_back(cGen);
-    b_hadTruth_x_closest_gj_vec.push_back(had_pt[i]/GenJet_pt[cGenJidx]);
-    b_hadTruth_isInSJet_closest_gj_vec.push_back(isInGenSJetC);
-    b_hadTruth_dr_highest_j_vec.push_back(hRecDr);
-    b_hadTruth_x_highest_j_vec.push_back(had_pt[i]/Jet_pt[hRecJidx]);
-    b_hadTruth_isInSJet_highest_j_vec.push_back(isInRecSJetH);
-    b_hadTruth_dr_highest_gj_vec.push_back(hGenDr);
-    b_hadTruth_x_highest_gj_vec.push_back(had_pt[i]/GenJet_pt[hGenJidx]);
-    b_hadTruth_isInSJet_highest_gj_vec.push_back(isInGenSJetH);
-
-    b_hadTruth_isClosestPair_j_vec.push_back(i);
-    b_hadTruth_isClosestPair_gj_vec.push_back(i);
-    b_hadTruth_isHighestPair_j_vec.push_back(i);
-    b_hadTruth_isHighestPair_gj_vec.push_back(i);
+    b_hadTruth_isClosestPair_j_vec.push_back(i); b_hadTruth_isClosestPair_gj_vec.push_back(i);
+    b_hadTruth_isHighestPair_j_vec.push_back(i); b_hadTruth_isHighestPair_gj_vec.push_back(i);
   }
   if (nRecKS != 0) {
-    // Give flag for the most closest(highest) KS-jet pair per event
+    //  Save x and dr for the most closest(highest) KS for each jet
+    for (unsigned int j=0; j<nJet; ++j) {
+      int cRecIdx = drRec[j].first; int hRecIdx = xRec[j].first;
+      TLorentzVector hhad_tlv; TLorentzVector hjet_tlv;
+      hhad_tlv.SetPtEtaPhiM(had_pt[hRecIdx], had_eta[hRecIdx], had_phi[hRecIdx], had_mass[hRecIdx]);
+      hjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+      b_hadTruth_dr_closest_j_vec[cRecIdx] = drRec[j].second;
+      b_hadTruth_x_closest_j_vec[cRecIdx] = had_pt[cRecIdx] / Jet_pt[j];
+      b_hadTruth_dr_highest_j_vec[hRecIdx] = hhad_tlv.DeltaR(hjet_tlv);
+      b_hadTruth_x_highest_j_vec[hRecIdx] = xRec[j].second;
+    }
+    for (unsigned int j=0; j<nGenJet; ++j) {
+      int cGenIdx = drGen[j].first; int hGenIdx = xGen[j].first;
+      TLorentzVector hhad_tlv; TLorentzVector hjet_tlv;
+      hhad_tlv.SetPtEtaPhiM(had_pt[hGenIdx], had_eta[hGenIdx], had_phi[hGenIdx], had_mass[hGenIdx]);
+      hjet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+      b_hadTruth_dr_closest_gj_vec[cGenIdx] = drGen[j].second;
+      b_hadTruth_x_closest_gj_vec[cGenIdx] = had_pt[cGenIdx] / Jet_pt[j];
+      b_hadTruth_dr_highest_gj_vec[hGenIdx] = hhad_tlv.DeltaR(hjet_tlv);
+      b_hadTruth_x_highest_gj_vec[hGenIdx] = xGen[j].second;
+    }
+    // Give flag ( == index) for the most closest(highest) KS-jet pair per event
     std::sort(drRec.begin(), drRec.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second < b.second); } );
     std::sort(drGen.begin(), drGen.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second < b.second); } );
     std::sort(xRec.begin(), xRec.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second > b.second); } );
