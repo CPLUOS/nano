@@ -26,6 +26,7 @@ void topEventSelectionSL::Reset()
   b_njet = -9; b_nvertex = -9;
 
   b_lep.SetPtEtaPhiM(0,0,0,0); b_lep_pid = 0;
+  b_isolep = -1;
 
   b_met = -9; b_met_phi = -9; b_weight = 1; b_genweight = 1; b_puweight = 1.0; b_btagweight = 1.0;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;

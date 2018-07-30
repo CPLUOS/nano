@@ -285,6 +285,8 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("bjet1", "TLorentzVector", &b_bjet1);
   t->Branch("bjet2", "TLorentzVector", &b_bjet2);
   
+  t->Branch("isolep", &b_isolep, "isolep/F");
+  
   t->Branch("CSVv2_jet1", &b_CSVjet1, "CSVv2_jet1/F");
   t->Branch("CSVv2_bjet1", &b_CSVbjet1, "CSVv2_bjet1/F");
   t->Branch("CSVv2_bjet2", &b_CSVbjet2, "CSVv2_bjet2/F");

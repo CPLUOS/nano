@@ -17,6 +17,7 @@ vector<TParticle> topObjectSelection::elecSelection() {
     if (Electron_cutBased[i] < 4) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
+    if ( Electron_pfRelIso03_all[ i ] > 0.0588 ) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
 
@@ -26,6 +27,7 @@ vector<TParticle> topObjectSelection::elecSelection() {
     elec.SetWeight(el_scEta);
     elec.SetFirstMother(i);
     elecs.push_back(elec);
+    b_isolep = Electron_pfRelIso03_all[ i ];
   }
   return elecs;
 }
@@ -48,6 +50,7 @@ vector<TParticle> topObjectSelection::muonSelection() {
     muon.SetMomentum(mom);
     muon.SetFirstMother(i);
     muons.push_back(muon);
+    b_isolep = Muon_pfRelIso04_all[ i ];
   }
   return muons;
 }
