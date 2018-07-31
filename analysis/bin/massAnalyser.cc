@@ -26,7 +26,7 @@ void massAnalyser::Loop() {
     fChain->GetEntry(iev);
     int keep = EventSelection();
     if (keep != 0) {
-      //collectTMVAvalues();
+      collectTMVAvalues();
       cmesonSelection();
       m_tree->Fill();
     }
@@ -92,7 +92,7 @@ void massAnalyser::setOutput(std::string outputName) {
   m_tree = new TTree("event", "event");
   MakeBranch(m_tree);
 
-  /*
+  
   bdtg = new TMVA::Reader();
   bdtg->AddVariable("cme_lxy", &b_cme_lxy);
   bdtg->AddVariable("cme_lxyE", &b_cme_lxyE);
@@ -126,7 +126,7 @@ void massAnalyser::setOutput(std::string outputName) {
   bdtg->AddVariable("cme_dau2_pt", &b_cme_dau2_pt);
   bdtg->AddSpectator("cme_mass", &b_cme_mass);
   bdtg->BookMVA("BDTG", "/cms/scratch/jdj0715/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/dataset/weights/TMVAClassification_BDTG.weights.d0.xml");
-  */
+  
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
   h_weights = new TH1D("weight", "weight", 1, 0, 1);
