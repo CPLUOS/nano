@@ -3,7 +3,6 @@
 
 #include "topObjectSelection.h"
 #include "nano/external/interface/TopTriggerSF.h"
-//#include "nano/external/interface/TTbarModeDefs.h"
 
 class topEventSelectionDL : public topObjectSelection
 {
@@ -15,7 +14,7 @@ protected:
   TH1D* h_cutFlow;
 
   //Variables
-  TLorentzVector b_lep1, b_lep2, b_dilep, b_jet1, b_jet2;
+  TLorentzVector b_lep1, b_lep2, b_dilep, b_jet, b_bjet;
   TParticle recolep1, recolep2;
   int b_lep1_pid, b_lep2_pid, b_lep1_idx, b_lep2_idx;
   float b_jet1_CSVInclV2, b_jet2_CSVInclV2;
@@ -34,7 +33,7 @@ protected:
 //  TH1D* hist_mc;
   MuonScaleFactorEvaluator muonSF_;
   ElecScaleFactorEvaluator elecSF_;
-
+ 
   //For C meson
   std::vector<TLorentzVector> d0s;
   TLorentzVector b_d0;

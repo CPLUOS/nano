@@ -98,8 +98,15 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
 }
 
 vector<TParticle> topObjectSelection::jetSelection() {
+  BTagCalibration calib("csvv2", "/cms/scratch/jdj0715/nanoAOD/src/nano/analysis/data/btagSF/CSVv2_Moriond17_B_H.csv");
+  BTagCalibrationReader reader(BTagEntry::OP_MEDIUM, "central", {"up", "down"});
+  reader.load(calib, BTagEntry::FLAV_B, "comb");
+  //reader.load(calib, BTagEntry::FLAV_C, "comb");
+  //reader.load(calib, BTagEntry::FLAV_UDSG, "comb");
+
   vector<TParticle> jets;
-  float Jet_SF_CSV[19] = {1.0,};
+  //float Jet_SF_CSV[19] = {1.0,};
+  b_bbtagweight = 1.0;
   for (UInt_t i = 0; i < nJet; ++i){
     if (Jet_pt[i] < 30) continue;
     if (std::abs(Jet_eta[i]) > 2.4) continue;
@@ -115,13 +122,15 @@ vector<TParticle> topObjectSelection::jetSelection() {
     jet.SetMomentum(mom);
     jet.SetFirstMother(i);
     jets.push_back(jet);
-    for (UInt_t iu = 0; iu < 19; iu++) {
-     // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
-    }
+    b_btagCSVV2 = Jet_btagCSVV2[i];
+    //BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+    BTagEntry::JetFlavor JF;
+    if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
+    //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
+    auto bjetSF = reader.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+    b_bbtagweight *= bjetSF;
   }
-  for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
-  b_btagweight = Jet_SF_CSV[0];
-  
+
   return jets;
 }
 

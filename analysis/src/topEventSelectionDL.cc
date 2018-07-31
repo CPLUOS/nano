@@ -133,10 +133,12 @@ int topEventSelectionDL::EventSelection() {
   b_tri_dn = computeTrigSF(recolep1, recolep2, -1);
 
   if (b_dilep.M() < 20. || mulpdg > 0) return b_step;
+  b_step1 = true;
   b_step = 1;
   h_cutFlow->Fill(4);
 
   if (b_channel == CH_MUEL || b_dilep.M() < 76 || b_dilep.M() > 106) {
+    b_step2 = true;
     b_step = 2;
     h_cutFlow->Fill(5);
   }
@@ -144,6 +146,7 @@ int topEventSelectionDL::EventSelection() {
   b_met = MET_pt;
 
   if (b_channel == CH_MUEL || b_met > 40) {
+    b_step3 = true;
     if (b_step == 2) {
       ++b_step;
       h_cutFlow->Fill(6);
@@ -154,6 +157,9 @@ int topEventSelectionDL::EventSelection() {
   b_njet = jets.size();
 
   if (b_njet >= 2) {
+    b_step4 = true;
+    jets[0].Momentum(b_jet);
+    jets[1].Momentum(b_jet);
     if (b_step == 3) {
       ++b_step;
       h_cutFlow->Fill(7);
@@ -164,6 +170,8 @@ int topEventSelectionDL::EventSelection() {
   b_nbjet = bjets.size();
 
   if (b_nbjet > 0) {
+    b_step5 = true;
+    bjets[0].Momentum(b_bjet);
     if (b_step == 4) {
       ++b_step;
       h_cutFlow->Fill(8);
@@ -178,14 +186,15 @@ int topEventSelectionDL::EventSelection() {
 void topEventSelectionDL::Reset() {
 
   recolep1.Clear(); recolep2.Clear();
-  b_lep1.SetPtEtaPhiM(0,0,0,0); b_lep2.SetPtEtaPhiM(0,0,0,0); b_dilep.SetPtEtaPhiM(0,0,0,0); b_jet1.SetPtEtaPhiM(0,0,0,0); b_jet2.SetPtEtaPhiM(0,0,0,0);
+  b_lep1.SetPtEtaPhiM(0,0,0,0); b_lep2.SetPtEtaPhiM(0,0,0,0); b_dilep.SetPtEtaPhiM(0,0,0,0); b_jet.SetPtEtaPhiM(0,0,0,0); b_bjet.SetPtEtaPhiM(0,0,0,0);
 
   b_lep1_pid = 0; b_lep2_pid = 0; b_lep1_idx = -1; b_lep2_idx = -1;
   b_jet1_CSVInclV2 = -1; b_jet2_CSVInclV2 = -1;
   b_csvweights.clear();
-
+  b_step1 = 0; b_step2 = 0; b_step3 = 0; b_step4 = 0; b_step5 = 0; b_step6 = 0; b_step7 = 0; 
   b_nvertex = -1; b_step = -1; b_channel = 0; b_njet = -1; b_nbjet = -1;
   b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; b_btagweight = 1;
+  b_bbtagweight = 1;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 
