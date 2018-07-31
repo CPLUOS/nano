@@ -1,0 +1,145 @@
+{
+  "listDatasets": {
+    "SIG": ["SingleTop_t-channel", "SingleTbar_t-channel"], 
+    
+    "BKG": [
+      "SingleTop_s-channel", 
+      "SingleTop_tW", 
+      "SingleTbar_tW", 
+      "TT_powheg", 
+      "WToLNu_0J", 
+      "WToLNu_1J", 
+      "WToLNu_2J", 
+      "DYJets_MG", 
+      "DYJets_MG_10to50", 
+      "WW", 
+      "WZ", 
+      "ZZ"
+    ],
+    
+    "BKG_MU": [
+      "QCD_Pt-15to20_MuEnriched", 
+      "QCD_Pt-20to30_MuEnriched", 
+      "QCD_Pt-30to50_MuEnriched", 
+      "QCD_Pt-50to80_MuEnriched", 
+      "QCD_Pt-80to120_MuEnriched", 
+      "QCD_Pt-120to170_MuEnriched", 
+      "QCD_Pt-170to300_MuEnriched", 
+      "QCD_Pt-300to470_MuEnriched", 
+      "QCD_Pt-470to600_MuEnriched", 
+      "QCD_Pt-600to800_MuEnriched", 
+      "QCD_Pt-800to1000_MuEnriched", 
+      "QCD_Pt-1000toInf_MuEnriched"
+    ], 
+    
+    "BKG_EL": [
+      "QCD_Pt-20to30_EMEnriched", 
+      "QCD_Pt-30to50_EMEnriched", 
+      "QCD_Pt-50to80_EMEnriched", 
+      "QCD_Pt-80to120_EMEnriched", 
+      "QCD_Pt-120to170_EMEnriched", 
+      "QCD_Pt-170to300_EMEnriched", 
+      "QCD_Pt-300toInf_EMEnriched"
+    ], 
+    
+    "BKG_ALTERNATIVE": [
+      "DYJetsToLL_M-50_HT-70to100", 
+      "DYJetsToLL_M-50_HT-100to200", 
+      "DYJetsToLL_M-50_HT-200to400", 
+      "DYJetsToLL_M-50_HT-400to600", 
+      "DYJetsToLL_M-50_HT-600to800", 
+      "DYJetsToLL_M-50_HT-800to1200", 
+      "DYJetsToLL_M-50_HT-1200to2500", 
+      "DYJetsToLL_M-50_HT-2500toInf", 
+      "WJetsToLNu_HT-70To100", 
+      "WJetsToLNu_HT-100To200", 
+      "WJetsToLNu_HT-200To400", 
+      "WJetsToLNu_HT-400To600", 
+      "WJetsToLNu_HT-600To800", 
+      "WJetsToLNu_HT-800To1200", 
+      "WJetsToLNu_HT-1200To2500", 
+      "WJetsToLNu_HT-2500ToInf"
+    ], 
+    
+    "RDEL": [
+      "SingleElectron_Run2016B", 
+      "SingleElectron_Run2016C", 
+      "SingleElectron_Run2016D", 
+      "SingleElectron_Run2016E", 
+      "SingleElectron_Run2016F", 
+      "SingleElectron_Run2016G", 
+      "SingleElectron_Run2016H"
+    ], 
+    
+    "RDMU": [
+      "SingleMuon_Run2016B", 
+      "SingleMuon_Run2016C", 
+      "SingleMuon_Run2016D", 
+      "SingleMuon_Run2016E", 
+      "SingleMuon_Run2016F", 
+      "SingleMuon_Run2016G", 
+      "SingleMuon_Run2016H"
+    ]
+  }, 
+   
+  "Additional": {
+    "QCD_Pt-15to20_MuEnriched":    {"AddWeight": 0.003}, 
+    "QCD_Pt-20to30_MuEnriched":    {"AddWeight": 0.0053}, 
+    "QCD_Pt-30to50_MuEnriched":    {"AddWeight": 0.01182}, 
+    "QCD_Pt-50to80_MuEnriched":    {"AddWeight": 0.02276}, 
+    "QCD_Pt-80to120_MuEnriched":   {"AddWeight": 0.03844}, 
+    "QCD_Pt-120to170_MuEnriched":  {"AddWeight": 0.05362}, 
+    "QCD_Pt-170to300_MuEnriched":  {"AddWeight": 0.07335}, 
+    "QCD_Pt-300to470_MuEnriched":  {"AddWeight": 0.10196}, 
+    "QCD_Pt-470to600_MuEnriched":  {"AddWeight": 0.071}, 
+    "QCD_Pt-600to800_MuEnriched":  {"AddWeight": 0.13412}, 
+    "QCD_Pt-800to1000_MuEnriched": {"AddWeight": 0.144552}, 
+    "QCD_Pt-1000toInf_MuEnriched": {"AddWeight": 0.15544}
+  }, 
+  
+  "CosmetCustom": {
+    "t#bar{t}+Jets": {"colour": 6}, 
+    "SingleTop": {"title": "Single top others"}
+  }, 
+  
+  "Vars": {
+    "step*0+0.5": {"bin": [1, 0, 1], "xaxis": "(Number of entries)", "yaxis": "Events"}, 
+    
+    "npvs": {"bin": [50, -0.5, 199.5], "xaxis": "Number of vertices", "yaxis": "Events"}, 
+    
+    "njet":  {"bin": [10, -0.5, 9.5], "xaxis": "Number of jets", "yaxis": "Events"}, 
+    "nbjet": {"bin": [10, -0.5, 9.5], "xaxis": "Number of b-tagged jets", "yaxis": "Events"}, 
+    "njet - nbjet": {"bin": [10, -0.5, 9.5], "xaxis": "Number of non-b-tagged jets", "yaxis": "Events"}, 
+    
+    "lep.Pt()":       {"bin": [20, 10, 210], "xaxis": "lepton p_T (GeV)", "yaxis": "Events"}, 
+    "abs(lep.Eta())": {"bin": [21, 0, 2.4], "xaxis": "lepton |#eta|", "yaxis": "Events"}, 
+    "lep.Phi()":      {"bin": [20, -3.2, 3.2], "xaxis": "lepton #phi", "yaxis": "Events"}, 
+    
+    "jet1.Pt()":       {"bin": [20, 20, 220], "xaxis": "jet p_T (GeV)", "yaxis": "Events"}, 
+    "abs(jet1.Eta())": {"bin": [20, 0, 4.7], "xaxis": "jet #eta", "yaxis": "Events"}, 
+    "jet1.Phi()":      {"bin": [20, -3.2, 3.2], "xaxis": "jet #phi", "yaxis": "Events"}, 
+    
+    "bjet1.Pt()":       {"bin": [40, 20, 220], "xaxis": "b-tagged jet p_T (GeV)", "yaxis": "Events"}, 
+    "abs(bjet1.Eta())": {"bin": [20, 0, 2.6], "xaxis": "b-tagged jet |#eta|", "yaxis": "Events"}, 
+    "bjet1.Phi()":      {"bin": [40, -3.2, 3.2], "xaxis": "b-tagged jet #phi", "yaxis": "Events"}, 
+    
+    "met": {"bin": [30, 0, 200], "xaxis": "MET (GeV)", "yaxis": "Events"}, 
+    "met_phi": {"bin": [40, -3.2, 3.2], "xaxis": "MET #phi", "yaxis": "Events", "min": 0.0}, 
+    
+    "jetQ1": {"bin": [40, 0, 1], "xaxis": "1st eigenvalue of sphericity", "yaxis": "Events"}, 
+    "jetQ2": {"bin": [40, 0, 1], "xaxis": "2nd eigenvalue of sphericity", "yaxis": "Events"}, 
+    "jetQ3": {"bin": [40, 0, 1], "xaxis": "3rd eigenvalue of sphericity", "yaxis": "Events"}, 
+    "jetC":  {"bin": [40, 0, 1], "xaxis": "3-jet structure constant from sphericity", "yaxis": "Events"}, 
+    
+    "top1.M()":        {"bin": [20, 0, 600], "xaxis": "Mass of reco. top quark (GeV)", "yaxis": "Events"}, 
+    "top1.Pt()":       {"bin": [20, 0, 500], "xaxis": "p_T of reco. top quark (GeV)", "yaxis": "Events"}, 
+    "abs(top1.Eta())": {"bin": [20, 0, 3.0], "xaxis": "|#eta| of reco. top quark (GeV)", "yaxis": "Events"}, 
+    "top1.Phi()":      {"bin": [20, 0, 3.5], "xaxis": "Phi of reco. top quark (GeV)", "yaxis": "Events"}, 
+    
+    "CSVv2_jet1":  {"bin": [40, 0, 1], "xaxis": "CSVv2 value of the 1st non-b-tagged jet", "yaxis": "Events"}, 
+    "CSVv2_bjet1": {"bin": [40, 0, 1], "xaxis": "CSVv2 value of the 1st b-tagged jet", "yaxis": "Events"}, 
+    "CSVv2_bjet2": {"bin": [40, 0, 1], "xaxis": "CSVv2 value of the 2nd b-tagged jet", "yaxis": "Events"}
+  }
+  
+  
+}

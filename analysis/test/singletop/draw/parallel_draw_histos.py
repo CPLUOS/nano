@@ -187,7 +187,7 @@ else:
   #weight = "genweight * puweight * btagweight"
   #weight = "puweight"
   #cut  = "step >= 4"
-  cut  = "trig_m > 0 && step >= 4"
+  cut  = "step >= 4"
   #cut += " && ( njet - nbjet ) >= 1 && nbjet >= 1"
   #cut += " && njet == 2 && nbjet == 1"
   #cut += " && lep.Pt() >= 40"
@@ -203,7 +203,7 @@ else:
   strHelpHowto = "Usage : ./[name of this py file] [dir name of roots] " + \
     "-a <channel> -c <cut> -w <weight> -n <local running> -l <listSet JSON file>"
   try:
-    opts, args = getopt.getopt(sys.argv[ 2: ], "hmd:a:c:w:l:", 
+    opts, args = getopt.getopt(sys.argv[ 2: ], "hnd:a:c:w:l:", 
       ["channel", "cut", "cutadd", "weight", "listset"])
   except getopt.GetoptError:          
     sys.stderr.write(strHelpHowto + "\n")
@@ -233,9 +233,9 @@ else:
   if channel != 0: 
     strSign = "" if channel > 0 else "-"
     if abs(channel) == 1: 
-      cut += " && lep_pid == %s11"%strSign
+      cut += " && trig_e > 0 && lep_pid == %s11"%strSign
     if abs(channel) == 2: 
-      cut += " && lep_pid == %s13"%strSign
+      cut += " && trig_m > 0 && lep_pid == %s13"%strSign
     if abs(channel) == 3: 
       cut += " && ( lep_pid == %s11 || lep_pid == %s113)"%(strSign, strSign)
   
@@ -254,8 +254,11 @@ else:
   listSets = []
   if channel == 0 or ( abs(channel) & 1 ) != 0: listSets += dicSet[ "listDatasets" ][ "RDEL" ]
   if channel == 0 or ( abs(channel) & 2 ) != 0: listSets += dicSet[ "listDatasets" ][ "RDMU" ]
+  
   listSets += dicSet[ "listDatasets" ][ "SIG" ]
   listSets += dicSet[ "listDatasets" ][ "BKG" ]
+  if abs(channel) == 1: listSets += dicSet[ "listDatasets" ][ "BKG_EL" ]
+  if abs(channel) == 2: listSets += dicSet[ "listDatasets" ][ "BKG_MU" ]
   
   dicOut = {}
   strDirHist = datetime.datetime.now().strftime("%y%m%d_%H%M%S")

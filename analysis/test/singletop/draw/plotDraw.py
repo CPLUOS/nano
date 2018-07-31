@@ -57,6 +57,18 @@ fMaxPlot = None if "max" not in dicSetDef[ "Vars" ][ plotvar ] else dicSetDef[ "
 
 strDirHist = sys.argv[ 1 ].replace("/", "")
 
+# Determining what is the channel of the given histograms
+listDirInFile = os.listdir(os.path.join(strPathDraw, strDirHist))
+nIsChEl = 0
+nIsChMu = 0
+
+for strFile in listDirInFile: 
+  if "Run" in strFile: 
+    if "Electron" in strFile: nIsChEl = 1
+    if "Muon"     in strFile: nIsChMu = 1
+
+channel = nIsChEl + 2 * nIsChMu
+
 strVarName = valToName(plotvar)
 
 dicSet= {}
@@ -69,8 +81,10 @@ dicSet[ "SingleTop_t-channel" ] = {"TYPE": "SIG"}
 for strKey in dicSetDef[ "listDatasets" ][ "BKG" ]: dicSet[ strKey ] = {"TYPE": "BKG"}
 
 if channel == 0 or ( abs(channel) & 1 ) != 0: 
+  for strKey in dicSetDef[ "listDatasets" ][ "BKG_EL" ]: dicSet[ strKey ] = {"TYPE": "BKG"}
   for strKey in dicSetDef[ "listDatasets" ][ "RDEL" ]: dicSet[ strKey ] = {"TYPE": "RD"}
 if channel == 0 or ( abs(channel) & 2 ) != 0: 
+  for strKey in dicSetDef[ "listDatasets" ][ "BKG_MU" ]: dicSet[ strKey ] = {"TYPE": "BKG"}
   for strKey in dicSetDef[ "listDatasets" ][ "RDMU" ]: dicSet[ strKey ] = {"TYPE": "RD"}
 
 for strKey in dicSet.keys():
