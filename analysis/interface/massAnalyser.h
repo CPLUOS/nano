@@ -29,7 +29,6 @@ private:
   void resetBranch();
   bool analysis();
 
-  void bTagTest();
 
   //TMVA
   TMVA::Reader* bdtg;

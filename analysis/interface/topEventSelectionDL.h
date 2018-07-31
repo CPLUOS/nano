@@ -3,7 +3,6 @@
 
 #include "topObjectSelection.h"
 #include "nano/external/interface/TopTriggerSF.h"
-//#include "nano/external/interface/TTbarModeDefs.h"
 
 class topEventSelectionDL : public topObjectSelection
 {
@@ -34,7 +33,7 @@ protected:
 //  TH1D* hist_mc;
   MuonScaleFactorEvaluator muonSF_;
   ElecScaleFactorEvaluator elecSF_;
-
+ 
   //For C meson
   std::vector<TLorentzVector> d0s;
   TLorentzVector b_d0;

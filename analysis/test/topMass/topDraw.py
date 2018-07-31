@@ -25,7 +25,7 @@ mcfilelist = [
 #rdfilelist = []
 rdfilelist = ['ch_fullme','ch_fullee','ch_fullmm']
 
-rootfileDir = "/xrootd/store/user/jdj0715/nanoAOD/test12/results_merged/topmass_"
+rootfileDir = "/xrootd/store/user/jdj0715/nanoAOD/test_0727_3/results_merged/topmass_"
 #rootfileDir = "/xrootd/store/user/dayoung/nano/test/results_merged/topmass_"
 
 channel_name = ['MuEl', 'ElEl', 'MuMu']
@@ -34,31 +34,36 @@ datasets = json.load(open("%s/src/nano/nanoAOD/data/dataset/dataset.json" % os.e
 
 #default
 step = 5
-channel = 1
+channel = 0
 #cut = 'vecSumLepSV.M()>0&&ncmeson>0&&tri!=0&&cmeson_pdgId==421&&cmeson_lxy>0.1&&cmeson_l3D>0'
 #cut = 'ncmeson>0&&tri!=0&&cmeson_pdgId==443&&cmeson_lxy>0.1&&cmeson_l3D>0.15'
 #cut = 'tri !=0&&bjet.Pt()>30&&dilep.Pt()>20&&jet2.Pt()>30&&jet1.Pt()>30'
 #cut = 'tri !=0&&abs(cme_pdgId)==443&&cme_tmva_bdtg>0.5'
 #cut = 'nbjet<4&&njet<7&&tri !=0&&(lep1.Eta()<1.4442||1.566<lep1.Eta())&&(lep2.Eta()<1.4442||1.566<lep2.Eta())'
 cut = 'tri !=0'#&&cme_tmva_bdtg>0.5'
-weight = 'genweight*puweight*eleffweight*mueffweight*tri'#*topPtWeight'
-#plotvar = 'vecSumLepSV.M()'
-#plotvar = 'njet'
-plotvar = 'dilep.M()'
+weight = 'genweight*puweight*eleffweight*mueffweight*bbtagweight*tri'#*topPtWeight'
+#plotvar = 'd0.M()'
+#plotvar = 'nbjet'
+#plotvar = 'met'
+plotvar = 'btagCSVV2'
+#plotvar = 'dilep.M()'
 #binning = [20,2.8,3.4]
 #binning = [20,1.7,2.2]
 #binning = [60,1,1000]
+#binning = [8, 0, 8]
 #binning = [20, 0, 200]
 #binning = [60, 1.7, 2.0]
-binning = [60, 20, 320]
-x_name = 'Invariant mass(ll) [GeV]'
+#binning = [60, 20, 320]
+binning = [20, 0, 1]
+#x_name = 'Invariant mass(ll) [GeV]'
+x_name = 'b tag discriminator'
 #x_name = 'Missing Energy [GeV]'
 #x_name = 'Invariant mass of J/#psi [GeV]'
-#x_name = 'mass_{J/#psi} [GeV]'
-#x_name = 'Jet Multiplicity'
+#x_name = 'mass_{d0} [GeV]'
+#x_name = 'b jet Multiplicity'
 y_name = 'Events'
-dolog = False
 dolog = True
+#dolog = False
 tname = "event"
 #get input
 try:
@@ -129,7 +134,7 @@ for imc,mcname in enumerate(mcfilelist):
     mchist.SetFillColor(colour)
     mchist.SetLineColor(colour)
     mchistList.append(mchist)
-
+'''
     remchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
     if "TT_powheg" in mcname:
       sig += remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
@@ -159,16 +164,11 @@ for imc,mcname in enumerate(mcfilelist):
       SingleTop = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
     if "SingleTbar_tW" in mcname:
       SingleTbar = remchist.Integral(remchist.FindBin(120), remchist.FindBin(130))
-
+'''
 
 if dolog == True:
    minp = 0.05
    maxp = 1000000000
-
-
-
-
-
 
 #data histo
 if channel != 0:
