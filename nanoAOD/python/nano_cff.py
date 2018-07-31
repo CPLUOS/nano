@@ -27,6 +27,9 @@ def customise(process, doHadron=True, fastSim=False):
     
     process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
     if doHadron:
+        process.load('nano.nanoAOD.jetMLID_cff')
+        process.nanoAOD_step += process.jetMLIDTables
+
         process.load('nano.nanoAOD.hadrons_cff')
         process.nanoAOD_step += process.hadTables
 
