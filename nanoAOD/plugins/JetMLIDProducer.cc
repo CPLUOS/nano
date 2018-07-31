@@ -1,5 +1,6 @@
 #include "JetMLIDProducer.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include <cmath>
 
 //#define debugMode
 using namespace edm;
@@ -31,7 +32,8 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByToken(jetLabel_, jets);
 
   // saving all variables
-  vector<float> jet_delta, jet_axis2, jet_axis1, jet_ptD;
+  vector<float> jet_delta, jet_axis2, jet_axis1, jet_ptD, jet_cpt1, jet_cpt2, jet_cpt3;
+  vector<int> jet_cmult, jet_nmult;
 
   for (auto jet = jets->begin();  jet != jets->end(); ++jet) {
 
@@ -42,8 +44,7 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     float JetAngularity = 0., GeoMoment = 0., HalfPtMoment = 0., DRSquareMoment = 0., SmallDRPT = 0., MassMoment = 0., PTSquare = 0., MyMoment = 0.;
     int ParticleCount = 0;
 
-    float Pi = 3.141592;
-
+    std::vector<float> chargedPt;
 
     //Loop over the jet constituents
     for(auto daughter : jet->getJetConstituentsQuick()){
@@ -51,6 +52,7 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       auto part = static_cast<const pat::PackedCandidate*>(daughter);
 
       if(part->charge()){
+	chargedPt.push_back(part->pt());
 	if(!(part->fromPV() > 1 && part->trackHighPurity()))
 	  continue;
 	if(useQC){
@@ -75,7 +77,7 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
       //Calculate pt_dr_log and some vars                                                                                                                                
       float dr = reco::deltaR(*jet, *part);
-      float theta = (Pi*dr)/(2*0.4);
+      float theta = (M_PI*dr)/(2*0.4);
 
       pt_dr_log += std::log(part->pt()/dr);
 
@@ -125,7 +127,14 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_axis2.push_back(axis2);
     jet_axis1.push_back(axis1);
     jet_ptD.push_back(ptD);
+
+    jet_nmult.push_back(nmult);
     
+    jet_cmult.push_back(cmult);
+    while (chargedPt.size() < 3) chargedPt.push_back(0.);
+    jet_cpt1.push_back(chargedPt[0]);
+    jet_cpt2.push_back(chargedPt[0] + chargedPt[1]);
+    jet_cpt3.push_back(chargedPt[0] + chargedPt[1] + chargedPt[2]);
   }
   
   auto jetID_table = make_unique<nanoaod::FlatTable>(jets->size(),"jetID",false);
@@ -133,6 +142,12 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   jetID_table->addColumn<float>("axis2",jet_axis2,"axis2",nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<float>("axis1",jet_axis1,"axis1",nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<float>("ptD",jet_ptD,"ptD",nanoaod::FlatTable::FloatColumn);
+
+  jetID_table->addColumn<float>("cpt1",jet_cpt1,"cpt1",nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("cpt2",jet_cpt2,"cpt2",nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("cpt3",jet_cpt3,"cpt3",nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<int>("cmult",jet_cmult,"cmult",nanoaod::FlatTable::IntColumn);
+  jetID_table->addColumn<int>("nmult",jet_nmult,"nmult",nanoaod::FlatTable::IntColumn);
 
   iEvent.put(move(jetID_table),"jetID");
 }
