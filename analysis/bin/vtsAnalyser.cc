@@ -829,18 +829,21 @@ void vtsAnalyser::RecAnalysis() {
   }
 }
 
+void vtsAnalyser::JetAnalysis() {
+  for (unsigned int i=0; i<nJet; ++i) {
+    if (Jet_pt[i] < 30.) continue;
+    if (abs(Jet_eta[i]) > 2.4) continue;
+    if (Jet_jetId[i] < 1) continue;
+    if (abs(Jet_partonFlavour[i]) == 3 || abs(Jet_partonFlavour[i]) == 5) {
+      if (Jet_partonFlavour[i] == m_qjMapForMC[i]) b_Jet_isCorrectMat.push_back(Jet_partonFlavour[i]);
+      else b_Jet_isCorrectMat.push_back(0);
+    }
+  }
+}
+
 void vtsAnalyser::CollectVar() {
   b_MET_pt = MET_pt;
   b_MET_phi = MET_phi;
   b_MET_sumEt = MET_sumEt;
 }
 
-void vtsAnalyser::JetAnalysis() {
-  for (unsigned int i=0; i<nJet; ++i) {
-    if (Jet_pt[i] < 30.) continue;
-    if (abs(Jet_eta[i]) > 2.4) continue;
-    if (Jet_jetId[i] < 1) continue;
-    if (Jet_partonFlavour[i] == m_qjMapForMC[i] && ( abs(Jet_partonFlavour[i]) == 3 || abs(Jet_partonFlavour[i]) == 5 )) b_Jet_isCorrectMat.push_back(Jet_partonFlavour[i]);
-    else b_Jet_isCorrectMat.push_back(0);
-  }
-}
