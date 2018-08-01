@@ -32,6 +32,7 @@ public :
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
+
    UInt_t          run;
    UInt_t          luminosityBlock;
    ULong64_t       event;
@@ -101,15 +102,15 @@ public :
    Int_t           FatJet_subJetIdx1[10];   //[nFatJet]
    Int_t           FatJet_subJetIdx2[10];   //[nFatJet]
    UInt_t          nGenJetAK8;
-   Float_t         GenJetAK8_eta[10];   //[nGenJetAK8]
-   Float_t         GenJetAK8_mass[10];   //[nGenJetAK8]
-   Float_t         GenJetAK8_phi[10];   //[nGenJetAK8]
-   Float_t         GenJetAK8_pt[10];   //[nGenJetAK8]
+   Float_t         GenJetAK8_eta[40];   //[nGenJetAK8]
+   Float_t         GenJetAK8_mass[40];   //[nGenJetAK8]
+   Float_t         GenJetAK8_phi[40];   //[nGenJetAK8]
+   Float_t         GenJetAK8_pt[40];   //[nGenJetAK8]
    UInt_t          nGenJet;
-   Float_t         GenJet_eta[20];   //[nGenJet]
-   Float_t         GenJet_mass[20];   //[nGenJet]
-   Float_t         GenJet_phi[20];   //[nGenJet]
-   Float_t         GenJet_pt[20];   //[nGenJet]
+   Float_t         GenJet_eta[40];   //[nGenJet]
+   Float_t         GenJet_mass[40];   //[nGenJet]
+   Float_t         GenJet_phi[40];   //[nGenJet]
+   Float_t         GenJet_pt[40];   //[nGenJet]
    UInt_t          nGenPart;
    Float_t         GenPart_eta[5000];   //[nGenPart]
    Float_t         GenPart_mass[5000];   //[nGenPart]
@@ -165,6 +166,19 @@ public :
    Int_t           had_idx[7000];   //[nhad]
    Int_t           had_dau1_idx[7000];   //[nhad]
    Int_t           had_dau2_idx[7000];   //[nhad]
+   UInt_t          njetID;
+   Float_t         jetID_delta[35];   //[njetID]
+   Float_t         jetID_axis2[35];   //[njetID]
+   Float_t         jetID_axis1[35];   //[njetID]
+   Float_t         jetID_ptD[35];   //[njetID]
+   Float_t         jetID_cpt1[35];   //[njetID]
+   Float_t         jetID_cpt2[35];   //[njetID]
+   Float_t         jetID_cpt3[35];   //[njetID]
+   Float_t         jetID_npt1[35];   //[njetID]
+   Float_t         jetID_npt2[35];   //[njetID]
+   Float_t         jetID_npt3[35];   //[njetID]
+   Int_t           jetID_cmult[35];   //[njetID]
+   Int_t           jetID_nmult[35];   //[njetID]
    UInt_t          nJet;
    Float_t         Jet_area[35];   //[nJet]
    Float_t         Jet_btagCMVA[35];   //[nJet]
@@ -357,10 +371,10 @@ public :
    Float_t         SV_pAngle[9];   //[nSV]
    Int_t           Electron_genPartIdx[10];   //[nElectron]
    UChar_t         Electron_genPartFlav[10];   //[nElectron]
-   Int_t           GenJetAK8_partonFlavour[10];   //[nGenJetAK8]
-   UChar_t         GenJetAK8_hadronFlavour[10];   //[nGenJetAK8]
-   Int_t           GenJet_partonFlavour[20];   //[nGenJet]
-   UChar_t         GenJet_hadronFlavour[20];   //[nGenJet]
+   Int_t           GenJetAK8_partonFlavour[40];   //[nGenJetAK8]
+   UChar_t         GenJetAK8_hadronFlavour[40];   //[nGenJetAK8]
+   Int_t           GenJet_partonFlavour[40];   //[nGenJet]
+   UChar_t         GenJet_hadronFlavour[40];   //[nGenJet]
    Float_t         had_chi2[7000];   //[nhad]
    Float_t         had_eta[7000];   //[nhad]
    Float_t         had_mass[7000];   //[nhad]
@@ -1195,6 +1209,19 @@ public :
    TBranch        *b_had_idx;   //!
    TBranch        *b_had_dau1_idx;   //!
    TBranch        *b_had_dau2_idx;   //!
+   TBranch        *b_njetID;   //!
+   TBranch        *b_jetID_delta;   //!
+   TBranch        *b_jetID_axis2;   //!
+   TBranch        *b_jetID_axis1;   //!
+   TBranch        *b_jetID_ptD;   //!
+   TBranch        *b_jetID_cpt1;   //!
+   TBranch        *b_jetID_cpt2;   //!
+   TBranch        *b_jetID_cpt3;   //!
+   TBranch        *b_jetID_npt1;   //!
+   TBranch        *b_jetID_npt2;   //!
+   TBranch        *b_jetID_npt3;   //!
+   TBranch        *b_jetID_cmult;   //!
+   TBranch        *b_jetID_nmult;   //!
    TBranch        *b_nJet;   //!
    TBranch        *b_Jet_area;   //!
    TBranch        *b_Jet_btagCMVA;   //!
@@ -2294,6 +2321,19 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
    fChain->SetBranchAddress("GenVisTau_genPartIdxMother", GenVisTau_genPartIdxMother, &b_GenVisTau_genPartIdxMother);
    fChain->SetBranchAddress("GenVisTau_status", GenVisTau_status, &b_GenVisTau_status);
    fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
+   fChain->SetBranchAddress("njetID", &njetID, &b_njetID);
+   fChain->SetBranchAddress("jetID_delta", jetID_delta, &b_jetID_delta);
+   fChain->SetBranchAddress("jetID_axis2", jetID_axis2, &b_jetID_axis2);
+   fChain->SetBranchAddress("jetID_axis1", jetID_axis1, &b_jetID_axis1);
+   fChain->SetBranchAddress("jetID_ptD", jetID_ptD, &b_jetID_ptD);
+   fChain->SetBranchAddress("jetID_cpt1", jetID_cpt1, &b_jetID_cpt1);
+   fChain->SetBranchAddress("jetID_cpt2", jetID_cpt2, &b_jetID_cpt2);
+   fChain->SetBranchAddress("jetID_cpt3", jetID_cpt3, &b_jetID_cpt3);
+   fChain->SetBranchAddress("jetID_npt1", jetID_npt1, &b_jetID_npt1);
+   fChain->SetBranchAddress("jetID_npt2", jetID_npt2, &b_jetID_npt2);
+   fChain->SetBranchAddress("jetID_npt3", jetID_npt3, &b_jetID_npt3);
+   fChain->SetBranchAddress("jetID_cmult", jetID_cmult, &b_jetID_cmult);
+   fChain->SetBranchAddress("jetID_nmult", jetID_nmult, &b_jetID_nmult);
    fChain->SetBranchAddress("nJet", &nJet, &b_nJet);
    fChain->SetBranchAddress("Jet_area", Jet_area, &b_Jet_area);
    fChain->SetBranchAddress("Jet_btagCMVA", Jet_btagCMVA, &b_Jet_btagCMVA);
