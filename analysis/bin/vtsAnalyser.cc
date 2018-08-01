@@ -840,7 +840,7 @@ void vtsAnalyser::JetAnalysis() {
     if (Jet_pt[i] < 30.) continue;
     if (abs(Jet_eta[i]) > 2.4) continue;
     if (Jet_jetId[i] < 1) continue;
-    if (Jet_partonFlavour[i] == m_qjMapForMC[i] && m_qjMapForMC[i] != 0) b_Jet_isCorrectMat.push_back(Jet_partonFlavour[i]);
+    if (Jet_partonFlavour[i] == m_qjMapForMC[i] && ( abs(Jet_partonFlavour[i]) == 3 || abs(Jet_partonFlavour[i]) == 5 )) b_Jet_isCorrectMat.push_back(Jet_partonFlavour[i]);
     else b_Jet_isCorrectMat.push_back(0);
   }
 }
