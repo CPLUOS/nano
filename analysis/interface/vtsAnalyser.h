@@ -50,6 +50,11 @@ private:
   std::vector<int>   b_hadTruth_isClosestPair_xOrder_j_vec;  std::vector<int> b_hadTruth_isHighestPair_xOrder_j_vec;
   std::vector<int>   b_hadTruth_isClosestPair_xOrder_gj_vec; std::vector<int> b_hadTruth_isHighestPair_xOrder_gj_vec;
 
+  /* for JetAnalysis() */
+  //float b_Jet_axis1, b_Jet_axis2, b_Jet_cpt1, b_Jet_cpt2, b_Jet_cpt3, b_Jet_npt1, b_Jet_npt2, b_Jet_npt3, b_Jet_ptD, b_Jet_delta;
+  //int b_Jet_nmult, b_Jet_cmult;
+  std::vector<int> b_Jet_isCorrectMat;
+
   /* for CollectVar() */
   float b_MET_pt, b_MET_phi, b_MET_sumEt;
 

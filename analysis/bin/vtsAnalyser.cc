@@ -119,6 +119,7 @@ void vtsAnalyser::Loop() {
       GenHadronAnalysis();
       GenAnalysis();
       RecAnalysis();
+      JetAnalysis();
     } else if (passedStep >= 0) {
       CollectVar();
     }
@@ -209,6 +210,9 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   BranchVI(hadTruth_isClosestPair_xOrder_j_vec);  BranchVI(hadTruth_isHighestPair_xOrder_j_vec);
   BranchVI(hadTruth_isClosestPair_xOrder_gj_vec); BranchVI(hadTruth_isHighestPair_xOrder_gj_vec);
 
+  /* For JetAnalysis() */
+  BranchVI(Jet_isCorrectMat);
+
   /* For CollectVar() */
   BranchF(MET_pt); BranchF(MET_phi); BranchF(MET_sumEt);
   BranchI(lep1_pid); BranchI(lep2_pid);
@@ -262,6 +266,9 @@ void vtsAnalyser::ResetBranch() {
   b_hadTruth_x_closest_gj_vec.clear(); b_hadTruth_dr_closest_gj_vec.clear(); b_hadTruth_x_highest_gj_vec.clear(); b_hadTruth_dr_highest_gj_vec.clear();
   b_hadTruth_isClosestPair_xOrder_j_vec.clear();  b_hadTruth_isHighestPair_xOrder_j_vec.clear();
   b_hadTruth_isClosestPair_xOrder_gj_vec.clear(); b_hadTruth_isHighestPair_xOrder_gj_vec.clear();
+
+  /* For JetAnalysis() */
+  b_Jet_isCorrectMat.clear();
 
   /* For CollectVar() */
   b_MET_pt = -1; b_MET_phi = -99; b_MET_sumEt = -1;
@@ -829,43 +836,11 @@ void vtsAnalyser::CollectVar() {
 }
 
 void vtsAnalyser::JetAnalysis() {
-}
-
-/*
-std::tuple<Double_t, Double_t> computeAxes(const std::vector<double> & dau_deta, const std::vector<double> & dau_dphi, const std::vector<double> & dau_pt) {
-  Double_t pt_squared = 0.0, pt_squared_sum = 0.0;
-  Double_t m00 = 0.0, m01 = 0.0, m11 = 0.0;
-  for (size_t ic = 0; ic < dau_pt.size(); ++ic) {
-    double deta = dau_deta[ic];
-    double dphi = dau_dphi[ic];
-
-    pt_squared = std::pow(dau_pt[ic], 2);
-    pt_squared_sum += pt_squared;
-
-    m00 += pt_squared * std::pow(deta, 2);
-    m11 += pt_squared * std::pow(dphi, 2);
-    m01 -= pt_squared * std::fabs(deta) * std::fabs(dphi); 
+  for (unsigned int i=0; i<nJet; ++i) {
+    if (Jet_pt[i] < 30.) continue;
+    if (abs(Jet_eta[i]) > 2.4) continue;
+    if (Jet_jetId[i] < 1) continue;
+    if (Jet_partonFlavour[i] == m_qjMapForMC[i] && m_qjMapForMC[i] != 0) b_Jet_isCorrectMat.push_back(Jet_partonFlavour[i]);
+    else b_Jet_isCorrectMat.push_back(0);
   }
-
-  TMatrixDSym jet_shape_matrix(2);
-  jet_shape_matrix(0, 0) = m00;
-  jet_shape_matrix(0, 1) = m01;
-  jet_shape_matrix(1, 1) = m11;
-
-  TVectorD eigenvalues;
-  jet_shape_matrix.EigenVectors(eigenvalues);
-
-  // sigma
-  // float s1_squared = lambda1 / pt_squared_sum;
-  // float s2_squared = lambda2 / pt_squared_sum;
-  // major_axis = std::sqrt(s1_squared);
-  // minor_axis = std::sqrt(s2_squared);
-  // if (major_axis < minor_axis) std::cout << "Major axis < minor axis" << std::endl;
-  // average_width = std::sqrt(s1_squared + s2_squared);
-  // eccentricity = std::sqrt(1 - (s2_squared / s1_squared));
-  Double_t major_axis = std::sqrt(eigenvalues[0] / pt_squared_sum);
-  Double_t minor_axis = std::sqrt(eigenvalues[1] / pt_squared_sum);
-  
-  return std::make_tuple(major_axis, minor_axis);
 }
-*/
