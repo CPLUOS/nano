@@ -6,16 +6,21 @@
 class vtsAnalyser : public hadAnalyser 
 {
 private:
+  bool b_passedEvent;
+
   /* for MatchingForMC() */
   std::map<unsigned int, int> m_qjMapForMC; std::map<unsigned int, int> m_qgjMapForMC;
+  std::map<unsigned int, int> m_closestRecJetForLep1; std::map<unsigned int, int> m_closestRecJetForLep2; 
+  std::map<unsigned int, int> m_closestGenJetForLep1; std::map<unsigned int, int> m_closestGenJetForLep2;
   std::vector<int> m_tqMC; std::vector<int> m_wqMC;
-  std::vector<struct JetStat> m_recoJet; std::vector<struct JetStat> m_genJet;
 
   float b_Jet_dr_closest_s, b_Jet_dr_closest_b;
   float b_SelJet_dr_closest_s, b_SelJet_dr_closest_b;
   float b_GenJet_dr_closest_s, b_GenJet_dr_closest_b;
-  int   b_GenJet_CheckClosestPF_s,       b_GenJet_CheckClosestPF_b;
-  int   b_GenJet_CheckClosestPF_drCut_s, b_GenJet_CheckClosestPF_drCut_b;
+
+  bool b_GenSJet,             b_GenBJet,             b_GenBothJet,             b_RecSJet,             b_RecBJet,             b_RecBothJet;
+  bool b_GenSJetClosestToLep, b_GenBJetClosestToLep, b_GenBothJetClosestToLep, b_RecSJetClosestToLep, b_RecBJetClosestToLep, b_RecBothJetClosestToLep;
+  bool b_GenSJetIsHighest,    b_GenBJetIsHighest,    b_GenBothJetIsHighest,    b_RecSJetIsHighest,    b_RecBJetIsHighest,    b_RecBothJetIsHighest;
 
   /* for GenHaronAnalysis() */
   std::vector<int>   b_genHadron_isGenFrom_vec; std::vector<bool> b_genHadron_isGenFromTop_vec; std::vector<bool> b_genHadron_inVol_vec;
@@ -51,8 +56,8 @@ private:
   std::vector<int>   b_hadTruth_isClosestPair_xOrder_gj_vec; std::vector<int> b_hadTruth_isHighestPair_xOrder_gj_vec;
 
   /* for JetAnalysis() */
-  //float b_Jet_axis1, b_Jet_axis2, b_Jet_cpt1, b_Jet_cpt2, b_Jet_cpt3, b_Jet_npt1, b_Jet_npt2, b_Jet_npt3, b_Jet_ptD, b_Jet_delta;
-  //int b_Jet_nmult, b_Jet_cmult;
+  float b_Jet_axis1, b_Jet_axis2, b_Jet_cpt1, b_Jet_cpt2, b_Jet_cpt3, b_Jet_npt1, b_Jet_npt2, b_Jet_npt3, b_Jet_ptD, b_Jet_delta;
+  int b_Jet_nmult, b_Jet_cmult;
   std::vector<int> b_Jet_isCorrectMat;
 
   /* for CollectVar() */
@@ -71,7 +76,12 @@ private:
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
   void CollectVar();
 
+  void MatchingForMCpT();
+
 public:
+  /* temp */
+  bool isSJ = false; bool isMJ = false; bool isSSJ = false; bool isSBJ = false;
+
   float m_jetConeSize = 0.4; float m_xCut = 0.2;
   void setOutput(std::string outputName);
 
