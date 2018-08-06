@@ -115,19 +115,16 @@ void vtsAnalyser::Loop() {
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
     ResetBranch();
     int passedStep = EventSelection();
-    if (passedStep >= 4) b_passedEvent = true;
-    else b_passedEvent = false;
     if (passedStep >= 4) { // -1 : No event selection, 0 : PV cut, reco lepton cut and so on, 1~4 : step 1 ~ 4
+      b_passedEvent = true;
       MatchingForMC();
       HadronAnalysis();
       GenHadronAnalysis();
       GenAnalysis();
       RecAnalysis();
       JetAnalysis();
-    } else if (passedStep >= 0) {
       CollectVar();
-    } 
-    if (passedStep >= 4) MatchingForMCpT();
+    } else b_passedEvent = false; 
     m_tree->Fill();
     if (isSJ) ++chk;
     if (isMJ) ++jchk;
@@ -428,6 +425,11 @@ void vtsAnalyser::MatchingForMC() {
       if (m_closestGenJetForLep1[std::get<0>(drGen[0])] != 0 || m_closestGenJetForLep2[std::get<0>(drGen[0])] != 0) b_GenBJetClosestToLep = true;
     }
     sort(drGen.begin(), drGen.begin(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<1>(a) > std::get<1>(b)); } );
+/*
+    cout << "pT ordering check || first  ==> pT : " << std::get<1>(drGen[0]) << " , dR(s,j) : " << std::get<2>(drGen[0]) << " , dR(b,j) : " << std::get<3>(drGen[0]) << " , Idx : " << std::get<0>(drGen[0]) << " , PID : " << m_qgjMapForMC[std::get<0>(drGen[0])] << endl;
+    cout << "pT ordering check || second ==> pT : " << std::get<1>(drGen[1]) << " , dR(s,j) : " << std::get<2>(drGen[1]) << " , dR(b,j) : " << std::get<3>(drGen[1]) << " , Idx : " << std::get<0>(drGen[1]) << " , PID : " << m_qgjMapForMC[std::get<0>(drGen[1])] << endl;
+    cout << "Idx Chk : [ " << GenSJidx << " , " << GenBJidx << " ] , [ " << std::get<0>(drGen[0]) << " , " << std::get<0>(drGen[1]) << " ] " << endl;
+*/
     if ((int)std::get<0>(drGen[0]) == GenSJidx || (int)std::get<0>(drGen[1]) == GenSJidx) b_GenSJetIsHighest = true;
     if ((int)std::get<0>(drGen[0]) == GenBJidx || (int)std::get<0>(drGen[1]) == GenBJidx) b_GenBJetIsHighest = true;
     if (b_GenSJet && b_GenBJet) {
@@ -454,6 +456,11 @@ void vtsAnalyser::MatchingForMC() {
       if (m_closestRecJetForLep1[std::get<0>(drRec[0])] != 0 || m_closestRecJetForLep2[std::get<0>(drRec[0])] != 0) b_RecBJetClosestToLep = true;
     }
     sort(drRec.begin(), drRec.begin(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<1>(a) > std::get<1>(b)); } );
+/*
+    cout << "pT ordering check || first  ==> pT : " << std::get<1>(drRec[0]) << " , dR(s,j) : " << std::get<2>(drRec[0]) << " , dR(b,j) : " << std::get<3>(drRec[0]) << " , Idx : " << std::get<0>(drRec[0]) << " , PID : " << m_qjMapForMC[std::get<0>(drRec[0])] << endl;
+    cout << "pT ordering check || second ==> pT : " << std::get<1>(drRec[1]) << " , dR(s,j) : " << std::get<2>(drRec[1]) << " , dR(b,j) : " << std::get<3>(drRec[1]) << " , Idx : " << std::get<0>(drRec[1]) << " , PID : " << m_qjMapForMC[std::get<0>(drRec[1])] << endl;
+    cout << "Idx Chk : [ " << RecSJidx << " , " << RecBJidx << " ] , [ " << std::get<0>(drRec[0]) << " , " << std::get<0>(drRec[1]) << " ] " << endl;
+*/
     if ((int)std::get<0>(drRec[0]) == RecSJidx || (int)std::get<0>(drRec[1]) == RecSJidx) b_RecSJetIsHighest = true;
     if ((int)std::get<0>(drRec[0]) == RecBJidx || (int)std::get<0>(drRec[1]) == RecBJidx) b_RecBJetIsHighest = true;
     if (b_RecSJet && b_RecBJet) {
@@ -462,72 +469,6 @@ void vtsAnalyser::MatchingForMC() {
       if (b_RecSJetClosestToLep && b_RecBJetClosestToLep) b_RecBothJetClosestToLep = true;
     }
   }
-}
-
-void vtsAnalyser::MatchingForMCpT() {
-  /* Find s quark from Gen Info. */
-  /*
- status is case of pythia 
- top quark statusFlag(status) : 10497(62) 
- s/b quark from top  statusFlag(status) : 22913(23)
- W boson (t->W->q) statusFlag(status) : 14721(22)
- W boson 1 (t->W1->W2->q) statusFlag(status) : 4481(22)  W boson 2 (t->W1->W2->q)  statusFlag(status) : 10497(52)
- quark from W boson statusFlag(status) : 22913(23) or 4481(23)
-  */
-  for (unsigned int i=0; i<nGenPart; ++i) {
-    if (std::abs(GenPart_status[i]) != 23 ) continue;
-    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) {
-      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && GenPart_status[GenPart_genPartIdxMother[i]] == 62 ) ) {
-        m_tqMC.push_back(i);
-      }
-      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 24 && (GenPart_status[GenPart_genPartIdxMother[i]] == 22 || GenPart_status[GenPart_genPartIdxMother[i]] == 52)) ) {
-        m_wqMC.push_back(i);
-      }
-    }
-  }
-  if (m_tqMC.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
-  /* Select quarks originated from t->qW */
-  int tq1 = -1; int tq2 = -1;
-  if (abs(GenPart_pdgId[m_tqMC[0]]) == 3) { tq1 = m_tqMC[0]; tq2 = m_tqMC[1]; }
-  else if (abs(GenPart_pdgId[m_tqMC[0]]) == 5) { tq1 = m_tqMC[1]; tq2 = m_tqMC[0]; }
-  TLorentzVector tq1_tlv;
-  tq1_tlv.SetPtEtaPhiM(GenPart_pt[tq1], GenPart_eta[tq1], GenPart_phi[tq1], GenPart_mass[tq1]);
-  TLorentzVector tq2_tlv;
-  tq2_tlv.SetPtEtaPhiM(GenPart_pt[tq2], GenPart_eta[tq2], GenPart_phi[tq2], GenPart_mass[tq2]);
-  /* Select quarks from W->qq (not yet used) */
-  int wq1;
-  TLorentzVector wq1_tlv;
-  int wq2;
-  TLorentzVector wq2_tlv;
-  if (m_wqMC.size() != 0) {
-    wq1 = m_wqMC[0];
-    wq1_tlv.SetPtEtaPhiM(GenPart_pt[wq1], GenPart_eta[wq1], GenPart_phi[wq1], GenPart_mass[wq1]);
-    if (m_wqMC.size() == 2) {
-      wq2 = m_wqMC[1];
-      wq2_tlv.SetPtEtaPhiM(GenPart_pt[wq2], GenPart_eta[wq2], GenPart_phi[wq2], GenPart_mass[wq2]);
-    }
-  }
-  /* Gen Partcle & Selected Reco Jet Matching */
-  std::vector<std::tuple<unsigned int, float, float, float>> ptReco1;
-  auto selectedJet = jetSelection();
-  if (selectedJet.size() != 0) {
-    isSJ = true;
-    for (unsigned int ij=0; ij<selectedJet.size();++ij) {
-      auto j = selectedJet[ij].GetFirstMother();
-      TLorentzVector jet_tlv;
-      jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-      auto dr1 = tq1_tlv.DeltaR(jet_tlv); 
-      auto dr2 = tq2_tlv.DeltaR(jet_tlv);
-      ptReco1.push_back({j, Jet_pt[j], dr1, dr2});
-    }
-    sort(ptReco1.begin(), ptReco1.end(), [] (std::tuple<unsigned int, float, float, float> a, std::tuple<unsigned int, float, float, float> b) { return (std::get<1>(a) > std::get<1>(b)); } );
-    cout << "pT ordering check || first  ==> pT : " << std::get<1>(ptReco1[0]) << " , dR(s,j) : " << std::get<2>(ptReco1[0]) << " , dR(b,j) : " << std::get<3>(ptReco1[0]) << " , pF : " << Jet_partonFlavour[std::get<0>(ptReco1[0])] << endl;
-    cout << "pT ordering check || second ==> pT : " << std::get<1>(ptReco1[1]) << " , dR(s,j) : " << std::get<2>(ptReco1[1]) << " , dR(b,j) : " << std::get<3>(ptReco1[1]) << " , pF : " << Jet_partonFlavour[std::get<0>(ptReco1[1])] << endl;
-
-    if (abs(Jet_partonFlavour[std::get<0>(ptReco1[0])]) == 3 || abs(Jet_partonFlavour[std::get<0>(ptReco1[0])]) == 5 || abs(Jet_partonFlavour[std::get<0>(ptReco1[1])]) == 3 || abs(Jet_partonFlavour[std::get<0>(ptReco1[1])]) == 5) isMJ = true;
-    if (abs(Jet_partonFlavour[std::get<0>(ptReco1[0])]) == 3 || abs(Jet_partonFlavour[std::get<0>(ptReco1[1])]) == 3) isSSJ = true;
-    if (abs(Jet_partonFlavour[std::get<0>(ptReco1[0])]) == 5 || abs(Jet_partonFlavour[std::get<0>(ptReco1[1])]) == 5) isSBJ = true;
-  } else cout << "Size of selectedJets is zero" << endl;
 }
 
 void vtsAnalyser::HadronAnalysis() {

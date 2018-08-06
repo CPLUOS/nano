@@ -76,8 +76,6 @@ private:
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
   void CollectVar();
 
-  void MatchingForMCpT();
-
 public:
   /* temp */
   bool isSJ = false; bool isMJ = false; bool isSSJ = false; bool isSBJ = false;
