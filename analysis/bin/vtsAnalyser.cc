@@ -358,20 +358,30 @@ void vtsAnalyser::MatchingForMC() {
   sort(drRec2.begin(), drRec2.end(), [] (std::pair<unsigned int, float> a, std::pair<unsigned int, float> b) { return (a.second < b.second); } );
 */
   /* Gen Particle & Gen Jet matching */
+  int noverlap = 0;
   std::vector<std::tuple<unsigned int, float, float, float, float, float>> drGen;
   for (unsigned int j=0; j<nGenJet; ++j) {
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
     auto drs = tq1_tlv.DeltaR(jet_tlv); auto drb = tq2_tlv.DeltaR(jet_tlv);
     auto drl1 = b_lep1.DeltaR(jet_tlv); auto drl2 = b_lep2.DeltaR(jet_tlv);
+    if (drl1 < 0.4 || drl2 < 0.4) { ++noverlap; continue; }
     drGen.push_back({j, GenJet_pt[j], drs, drb, drl1, drl2});
   }
-//  cout << "Gen1 chk : " << std::get<0>(drGen[0]) << " , " << std::get<1>(drGen[0]) << " , " << std::get<2>(drGen[0]) << " , " << std::get<3>(drGen[0]) << " , " << std::get<4>(drGen[0]) << endl;
+  if (noverlap > 2) std::cout << " >>>> BAD GENJET OVERLAP REMOVAL FOR EVENT <<<< " << std::endl;
+  
+  //  cout << "Gen1 chk : " << std::get<0>(drGen[0]) << " , " << std::get<1>(drGen[0]) << " , " << std::get<2>(drGen[0]) << " , " << std::get<3>(drGen[0]) << " , " << std::get<4>(drGen[0]) << endl;
   /* Find closest gen jet to l+ or l- */
   sort(drGen.begin(), drGen.end(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<4>(a) < std::get<4>(b)); } );
   m_closestGenJetForLep1[std::get<0>(drGen[0])] = b_lep1_pid;
+
+//  cout << "dr ordering check || lep1  ==> pT : " << std::get<1>(drGen[0]) << " , dR(s,j) : " << std::get<2>(drGen[0]) << " , dR(b,j) : " << std::get<3>(drGen[0]) << " , dR(l1,j) : " << std::get<4>(drGen[0]) << " , dR(l2,j) : " << std::get<5>(drGen[0]) << " , Idx : " << std::get<0>(drGen[0]) << " , PID : " << m_closestGenJetForLep1[std::get<0>(drGen[0])] << endl;
+
   sort(drGen.begin(), drGen.end(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<5>(a) < std::get<5>(b)); } );
   m_closestGenJetForLep2[std::get<0>(drGen[0])] = b_lep2_pid;
+
+//  cout << "dr ordering check || lep2  ==> pT : " << std::get<1>(drGen[0]) << " , dR(s,j) : " << std::get<2>(drGen[0]) << " , dR(b,j) : " << std::get<3>(drGen[0]) << " , dR(l1,j) : " << std::get<4>(drGen[0]) << " , dR(l2,j) : " << std::get<5>(drGen[0]) << " , Idx : " << std::get<0>(drGen[0]) << " , PID : " << m_closestGenJetForLep2[std::get<0>(drGen[0])] << endl;
+
   /* Find closest gen jet to s or b */
   sort(drGen.begin(), drGen.end(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<2>(a) < std::get<2>(b)); } );
   if (std::get<2>(drGen[0]) <= m_jetConeSize) m_qgjMapForMC[std::get<0>(drGen[0])] = GenPart_pdgId[tq1]; // if jet is inside dRCut == 0.4, then label the tag about s/b
@@ -402,14 +412,15 @@ void vtsAnalyser::MatchingForMC() {
     if (std::get<3>(drRec[0]) <= m_jetConeSize) m_qjMapForMC[std::get<0>(drRec[0])] = GenPart_pdgId[tq2];
   } else cout << "Size of selectedJets is zero" << endl;
 
+  
   /* Save closest jet dr for s/b, Rec(Gen)S(B/Both)Jet, Rec(Gen)S(B/Both)Jet which is closest to l+ or l- and is in highest 2 pT jets */
   /*
   if (drRec1.size() != 0) b_Jet_dr_closest_s = drRec1[0].second;
   if (drRec2.size() != 0) b_Jet_dr_closest_b = drRec2[0].second;
   */
   /* GenJet */
+  int GenSJidx = -1, GenBJidx = -1;
   if (drGen.size() != 0) {
-    int GenSJidx = -1; int GenBJidx = -1;
     sort(drGen.begin(), drGen.end(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<2>(a) < std::get<2>(b)); } );
     b_GenJet_dr_closest_s = std::get<2>(drGen[0]);
     if (b_GenJet_dr_closest_s <= m_jetConeSize) {
@@ -424,7 +435,7 @@ void vtsAnalyser::MatchingForMC() {
       b_GenBJet = true;
       if (m_closestGenJetForLep1[std::get<0>(drGen[0])] != 0 || m_closestGenJetForLep2[std::get<0>(drGen[0])] != 0) b_GenBJetClosestToLep = true;
     }
-    sort(drGen.begin(), drGen.begin(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<1>(a) > std::get<1>(b)); } );
+    sort(drGen.begin(), drGen.end(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<1>(a) > std::get<1>(b)); } );
 /*
     cout << "pT ordering check || first  ==> pT : " << std::get<1>(drGen[0]) << " , dR(s,j) : " << std::get<2>(drGen[0]) << " , dR(b,j) : " << std::get<3>(drGen[0]) << " , Idx : " << std::get<0>(drGen[0]) << " , PID : " << m_qgjMapForMC[std::get<0>(drGen[0])] << endl;
     cout << "pT ordering check || second ==> pT : " << std::get<1>(drGen[1]) << " , dR(s,j) : " << std::get<2>(drGen[1]) << " , dR(b,j) : " << std::get<3>(drGen[1]) << " , Idx : " << std::get<0>(drGen[1]) << " , PID : " << m_qgjMapForMC[std::get<0>(drGen[1])] << endl;
@@ -439,8 +450,8 @@ void vtsAnalyser::MatchingForMC() {
     }
   }
   /* SelectedJet */
+  int RecSJidx = -1, RecBJidx = -1;
   if (drRec.size() != 0) {
-    int RecSJidx = -1; int RecBJidx = -1;
     sort(drRec.begin(), drRec.end(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<2>(a) < std::get<2>(b)); } ); 
     b_SelJet_dr_closest_s = std::get<2>(drRec[0]);
     if (b_SelJet_dr_closest_s <= m_jetConeSize) {
@@ -455,7 +466,7 @@ void vtsAnalyser::MatchingForMC() {
       b_RecBJet = true;
       if (m_closestRecJetForLep1[std::get<0>(drRec[0])] != 0 || m_closestRecJetForLep2[std::get<0>(drRec[0])] != 0) b_RecBJetClosestToLep = true;
     }
-    sort(drRec.begin(), drRec.begin(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<1>(a) > std::get<1>(b)); } );
+    sort(drRec.begin(), drRec.end(), [] (std::tuple<unsigned int, float, float, float, float, float> a, std::tuple<unsigned int, float, float, float, float, float> b) { return (std::get<1>(a) > std::get<1>(b)); } );
 /*
     cout << "pT ordering check || first  ==> pT : " << std::get<1>(drRec[0]) << " , dR(s,j) : " << std::get<2>(drRec[0]) << " , dR(b,j) : " << std::get<3>(drRec[0]) << " , Idx : " << std::get<0>(drRec[0]) << " , PID : " << m_qjMapForMC[std::get<0>(drRec[0])] << endl;
     cout << "pT ordering check || second ==> pT : " << std::get<1>(drRec[1]) << " , dR(s,j) : " << std::get<2>(drRec[1]) << " , dR(b,j) : " << std::get<3>(drRec[1]) << " , Idx : " << std::get<0>(drRec[1]) << " , PID : " << m_qjMapForMC[std::get<0>(drRec[1])] << endl;
@@ -655,7 +666,7 @@ void vtsAnalyser::GenHadronAnalysis() {
         else if (abs(m_qjMapForMC[j]) == 5) b_nBJet_vec.push_back(j);
       }
       if (genHadron_isGenHadFromTsb[i] != m_qjMapForMC[j]) continue;
-      if (x > 1.) continue;
+      //if (x > 1.) continue;
       if (dr < drMin1) recPair1[j] = {i,dr,x};
       else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
       if (x > xMax2) recPair2[j] = {i,dr,x};
@@ -673,7 +684,7 @@ void vtsAnalyser::GenHadronAnalysis() {
         else if (abs(m_qgjMapForMC[j]) == 5) b_nGenBJet_vec.push_back(j);
       }
       if (genHadron_isGenHadFromTsb[i] != m_qgjMapForMC[j]) continue;
-      if (x > 1.) continue;
+      //if (x > 1.) continue;
       if (dr < drMin1) genPair1[j] = {i,dr,x};
       else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
       if (x > xMax2) genPair2[j] = {i,dr,x};
