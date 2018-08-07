@@ -69,29 +69,20 @@ int topEventSelectionSL::EventSelection()
 
   //Triggers
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
-  b_trig_e = HLT_Ele27_WPTight_Gsf;
-
-  // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
+  b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf;
   
-  // if (b_channel == CH_MU) {
-  //   if (!b_trig_m) return b_step;
-  // }
+  
+  // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
+  if (b_channel == CH_MU) {
+     if (!b_trig_m) return b_step;
+  }
 
-  // if (b_channel == CH_EL) {
-  //   if (!b_trig_e) return b_step;
-  // }
-
-  //leptonS
-  b_mueffweight    = muonSF_.getScaleFactor(recolep, 13, 0);
-  b_mueffweight_up = muonSF_.getScaleFactor(recolep, 13, 1);
-  b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
-
-  b_eleffweight    = elecSF_.getScaleFactor(recolep, 11, 0);
-  b_eleffweight_up = elecSF_.getScaleFactor(recolep, 11, 1);
-  b_eleffweight_dn = elecSF_.getScaleFactor(recolep, 11, -1);
+  if (b_channel == CH_EL) {
+    if (!b_trig_e) return b_step;
+  }
 
   b_tri = b_tri_up = b_tri_dn = 0;
-  b_tri = 1; //computeTrigSF(recolep1, recolep2);
+  b_tri = 1;//computeTrigSF(recolep);
   b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
   b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
 
@@ -121,8 +112,17 @@ int topEventSelectionSL::EventSelection()
       b_channel = CH_EL;
   }
 
-  recolep.Momentum(b_lep);
+  //leptonS
+  b_mueffweight    = muonSF_.getScaleFactor(recolep, 13, 0);
+  b_mueffweight_up = muonSF_.getScaleFactor(recolep, 13, 1);
+  b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
 
+  b_eleffweight    = elecSF_.getScaleFactor(recolep, 11, 0);
+  b_eleffweight_up = elecSF_.getScaleFactor(recolep, 11, 1);
+  b_eleffweight_dn = elecSF_.getScaleFactor(recolep, 11, -1);
+  
+  recolep.Momentum(b_lep);
+  b_lep_pid = recolep.GetPdgCode();
   recoleps.push_back(b_lep);
 
   // Veto Leptons
@@ -139,7 +139,7 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlow) h_cutFlow->Fill(4);
   if (h_cutFlowLep) h_cutFlowLep->Fill(2);
 
-  if (b_njet > 0) {
+  if (b_njet > 2) {
     b_step = 3;
     if (h_cutFlow) h_cutFlow->Fill(5);
     if (h_cutFlowLep) h_cutFlowLep->Fill(3);

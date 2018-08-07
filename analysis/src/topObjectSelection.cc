@@ -12,9 +12,10 @@ vector<TParticle> topObjectSelection::elecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
     if (Electron_pt[i] < 20) continue;
-    if (isSemiLep) { if (Electron_pt[i] < 30) continue; }
-    if (std::abs(Electron_eta[i]) > 2.4) continue;
+    if (isSemiLep) { if (Electron_pt[i] < 34) continue; }
+    if (std::abs(Electron_eta[i]) > 2.1) continue;
     if (Electron_cutBased[i] < 3) continue; 
+    if (Electron_pfRelIso03_all[i] > 0.1) continue;
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
     TLorentzVector mom;
@@ -36,7 +37,6 @@ vector<TParticle> topObjectSelection::muonSelection() {
     if (Muon_pt[i] < 20) continue;
     if (isSemiLep) { if (Muon_pt[i] < 26) continue; }
     if (std::abs(Muon_eta[i]) > 2.4) continue;
-    if (isSemiLep) { if (std::abs(Muon_eta[i]) > 2.1) continue; }
     if (Muon_pfRelIso04_all[i] > 0.15) continue;
     if (!Muon_globalMu[i]) continue;
     if (!Muon_isPFcand[i]) continue;
@@ -112,7 +112,6 @@ vector<TParticle> topObjectSelection::jetSelection() {
     if (hasOverLap) continue;
     auto jet = TParticle();
     jet.SetMomentum(mom);
-    jet.SetFirstMother(i);
     jets.push_back(jet);
     for (UInt_t iu = 0; iu < 19; iu++) {
      // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);

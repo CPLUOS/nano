@@ -27,7 +27,7 @@ protected:
   float b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
         b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
   float b_tri, b_tri_up, b_tri_dn;
-
+  float b_nhad;
   //Triggers
   Bool_t b_trig_m, b_trig_e;
 
