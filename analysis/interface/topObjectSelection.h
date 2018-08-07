@@ -10,12 +10,10 @@ class topObjectSelection : public nanoBase
 protected:
   std::vector<Float_t> b_csvweights;
   float b_btagweight;
-  float b_bbtagweight;
   float b_btagCSVV2;
 
   bool isDilep, isSemiLep;
   
-  BTagCalibrationReader reader;  
 
 public:
   std::vector<TParticle> muonSelection();

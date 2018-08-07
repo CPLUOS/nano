@@ -178,8 +178,7 @@ int topEventSelectionDL::EventSelection() {
     }
   }
 
-  if (nhad < 1) return 0;
-  else return b_step;
+  return b_step;
 }
 
 
@@ -194,7 +193,6 @@ void topEventSelectionDL::Reset() {
   b_step1 = 0; b_step2 = 0; b_step3 = 0; b_step4 = 0; b_step5 = 0; b_step6 = 0; b_step7 = 0; 
   b_nvertex = -1; b_step = -1; b_channel = 0; b_njet = -1; b_nbjet = -1;
   b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; b_btagweight = 1;
-  b_bbtagweight = 1;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 
