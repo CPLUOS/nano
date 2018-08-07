@@ -87,17 +87,19 @@ else:
   
   #weight = "1"
   weight = "genweight * puweight * mueffweight * btagweight"
-  #weight += " * lumicheck"
-  cut  = "objstep >= 4 && ( njet - nbjet ) >= 1 && nbjet >= 1"
-  #cut  = "objstep >= 4"
-  cut += " && lep1.Pt() >= 40 && lep1_reliso < 0.12"
-  cut += " && jet1.Pt() >= 40 && bjet1.Pt() >= 40 && met > 45"
+  cut  = "step >= 4"
+  #cut  = " && ( njet - nbjet ) >= 1 && nbjet >= 1"
+  cut += " && lep.Pt() >= 26"
+  cut += " && jet1.Pt() >= 40 && bjet.Pt() >= 40"
+  cut += " && met > 45"
   #cut += " && njet == 2"
-  cut += " && jetC < 0.03 && ( 100 < top1.M() && top1.M() < 200 ) && njet <= 3 && abs(jet1.Eta()) > 1.2"
+  #cut += " && jetC < 0.03 && ( 100 < top1.M() && top1.M() < 200 ) && njet <= 3 && abs(jet1.Eta()) > 1.2"
   
-  strHelpHowto = "Usage : ./[name of the py file] [dir name of roots] -a <channel> -c <cut> -w <weight>"
+  strCutAdd = ""
+  
+  strHelpHowto = "Usage : ./[name of this py file] [dir name of roots] -a <channel> -c <cut> -w <weight>"
   try:
-    opts, args = getopt.getopt(sys.argv[ 2: ], "hda:c:w:", ["channel", "cut", "weight"])
+    opts, args = getopt.getopt(sys.argv[ 2: ], "hd:a:c:w:", ["channel", "cut", "cutadd", "weight"])
   except getopt.GetoptError:          
     sys.stderr.write(strHelpHowto + "\n")
     sys.exit(2)
@@ -110,6 +112,8 @@ else:
       channel = int(arg)
     elif opt in ("-c", "--cut"):
       cut = arg
+    elif opt in ("-d", "--cutadd"):
+      strCutAdd = arg
     elif opt in ("-w", "--weight"):
       weight = arg
   
@@ -121,6 +125,9 @@ else:
       cut += " && lep1_pid == %s13"%strSign
     if abs(channel) == 3: 
       cut += " && ( lep1_pid == %s11 || lep1_pid == %s113)"%(strSign, strSign)
+  
+  cut += " && " if len(strCutAdd) > 0 else ""
+  cut += strCutAdd
   
   strSrcPath = "/xrootd/store/user/quark2930/singletop/%s/"%sys.argv[ 1 ]
   

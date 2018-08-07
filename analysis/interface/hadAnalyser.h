@@ -13,8 +13,9 @@ protected:
   int b_had_isFrom;
   bool b_had_isHadJetMatched;
   float b_had_d, b_had_x, b_had_dr;
+  float b_had_pt, b_had_eta, b_had_phi, b_had_mass;
   float b_had_lxy, b_had_lxySig, b_had_angleXY, b_had_angleXYZ, b_had_chi2, b_had_dca;
-  float b_had_pt, b_had_eta, b_had_l3D, b_had_l3DSig, b_had_legDR, b_had_mass; 
+  float b_had_l3D, b_had_l3DSig, b_had_legDR; 
   int b_had_pdgId; 
 
   float b_had_dau1_chi2, b_had_dau1_ipsigXY, b_had_dau1_ipsigZ, b_had_dau1_pt;

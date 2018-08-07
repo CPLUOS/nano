@@ -26,11 +26,15 @@ void topEventSelectionSL::Reset()
   b_njet = -9; b_nvertex = -9;
 
   b_lep.SetPtEtaPhiM(0,0,0,0); b_lep_pid = 0;
+  b_isolep = -1;
 
-  b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; b_btagweight = 1;
+  b_met = -9; b_met_phi = -9; b_weight = 1; b_genweight = 1; b_puweight = 1.0; b_btagweight = 1.0;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
   b_tri = 0;
+  
+  m_jets.clear();
+  m_jetsCMVA.clear();
 
   recoleps.clear();
   b_csvweights.clear();
@@ -52,8 +56,8 @@ int topEventSelectionSL::EventSelection()
     if (h_genweights) h_genweights->Fill(0.5, b_genweight);
     b_weight = b_genweight * b_puweight;
   } else {
-    b_puweight = 1;
-    b_genweight = 0;
+    b_puweight = 1.0;
+    b_genweight = 1.0;
     if (!(m_lumi->LumiCheck(run, luminosityBlock))) return b_step;
   }
 
@@ -64,38 +68,58 @@ int topEventSelectionSL::EventSelection()
   if (std::abs(PV_z) >= 24.) return b_step;
   if (PV_npvs == 0) return b_step;
   if (PV_ndof < 4) return b_step;
+  
+  b_nvertex = PV_npvs;
 
   if (h_cutFlow) h_cutFlow->Fill(2);
 
   //Triggers
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
+  //b_trig_e = HLT_Ele27_WPTight_Gsf;
   b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf;
-  
-  
+
   // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
-  if (b_channel == CH_MU) {
-     if (!b_trig_m) return b_step;
+  
+  // if (b_channel == CH_MU) {
+  //   if (!b_trig_m) return b_step;
+  // }
+
+  // if (b_channel == CH_EL) {
+  //   if (!b_trig_e) return b_step;
+  // }
+  
+  Bool_t IsoMu24 = false;
+  Bool_t IsoTkMu24 = false;
+  
+  for ( UInt_t i = 0 ; i < nTrigObj ; i++ ) {
+    if ( TrigObj_id[ i ] != 13 ) continue;
+    if ( TrigObj_pt[ i ] < 24 ) continue;
+    Int_t bits = TrigObj_filterBits[ i ];
+    if ( bits & 0x2 ) IsoMu24 = true;
+    if ( bits & 0x1 ) IsoTkMu24 = true;  
   }
+  
+  //if ( !( IsoMu24 || IsoTkMu24 ) ) return b_step;
+
+  //leptonS
+  b_mueffweight    = muonSF_.getScaleFactor(recolep, 13, 0);
+  b_mueffweight_up = muonSF_.getScaleFactor(recolep, 13, 1);
+  b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
 
   if (b_channel == CH_EL) {
     if (!b_trig_e) return b_step;
   }
 
   b_tri = b_tri_up = b_tri_dn = 0;
-  b_tri = 1;//computeTrigSF(recolep);
+  b_tri = ( IsoMu24 || IsoTkMu24 ? 1.0 : 0.0 ); //computeTrigSF(recolep1, recolep2);
   b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
   b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
 
   b_met = MET_pt;
+  b_met_phi = MET_phi;
 
   auto muons = muonSelection();
   auto elecs = elecSelection();
-
-  auto bjets = bjetSelection();
-  b_nbjet = bjets.size();
-
-  auto jets = jetSelection();
-  b_njet = jets.size();
 
   if (muons.size() + elecs.size() != 1) return b_step;
   b_step = 1;
@@ -112,19 +136,6 @@ int topEventSelectionSL::EventSelection()
       b_channel = CH_EL;
   }
 
-  //leptonS
-  b_mueffweight    = muonSF_.getScaleFactor(recolep, 13, 0);
-  b_mueffweight_up = muonSF_.getScaleFactor(recolep, 13, 1);
-  b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
-
-  b_eleffweight    = elecSF_.getScaleFactor(recolep, 11, 0);
-  b_eleffweight_up = elecSF_.getScaleFactor(recolep, 11, 1);
-  b_eleffweight_dn = elecSF_.getScaleFactor(recolep, 11, -1);
-  
-  recolep.Momentum(b_lep);
-  b_lep_pid = recolep.GetPdgCode();
-  recoleps.push_back(b_lep);
-
   // Veto Leptons
 
   auto vetoMu = vetoMuonSelection();
@@ -134,6 +145,36 @@ int topEventSelectionSL::EventSelection()
     return b_step;
   if ((elecs.size() == 0 && vetoEl.size() > 0) || (elecs.size() == 1 && vetoEl.size() > 1))
     return b_step;
+
+  recolep.Momentum(b_lep);
+  b_lep_pid = recolep.GetPdgCode();
+
+  recoleps.push_back(b_lep);
+  /*for ( UInt_t i = 0 ; i < nMuon ; i++ ) {
+    if ( !Muon_softId[ i ] ) continue;
+    TLorentzVector mom;
+    mom.SetPtEtaPhiM(Muon_pt[ i ], Muon_eta[ i ], Muon_phi[ i ], Muon_mass[ i ]);
+    recoleps.push_back(mom);
+  }
+  
+  for ( UInt_t i = 0 ; i < nElectron ; i++ ) {
+    if ( Electron_cutBased[ i ] < 2 ) continue;
+    TLorentzVector mom;
+    mom.SetPtEtaPhiM(Electron_pt[ i ], Electron_eta[ i ], Electron_phi[ i ], Electron_mass[ i ]);
+    recoleps.push_back(mom);
+  }*/
+
+  auto bjets = bjetSelection();
+  b_nbjet = bjets.size();
+
+  auto jets = jetSelection(&m_jetsCMVA);
+  b_njet = jets.size();
+  
+  for ( Int_t i = 0 ; i < b_njet ; i++ ) {
+    TLorentzVector mom;
+    jets[ i ].Momentum(mom);
+    m_jets.push_back(mom);
+  }
   
   b_step = 2;
   if (h_cutFlow) h_cutFlow->Fill(4);
@@ -145,7 +186,7 @@ int topEventSelectionSL::EventSelection()
     if (h_cutFlowLep) h_cutFlowLep->Fill(3);
   } else return b_step;
   
-  if (b_nbjet > 0) {
+  if (b_nbjet >= 0) {
     b_step = 4;
     if (h_cutFlow) h_cutFlow->Fill(6);
     if (h_cutFlowLep) h_cutFlowLep->Fill(4);

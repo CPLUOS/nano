@@ -10,6 +10,7 @@ class topObjectSelection : public nanoBase
 protected:
   std::vector<Float_t> b_csvweights;
   float b_btagweight;
+  Float_t b_isolep;
 
   bool isDilep, isSemiLep;
   
@@ -19,7 +20,7 @@ public:
   std::vector<TParticle> vetoMuonSelection();
   std::vector<TParticle> vetoElecSelection();
   std::vector<TLorentzVector> recoleps;
-  std::vector<TParticle> jetSelection();
+  std::vector<TParticle> jetSelection(std::vector<Float_t> *csvVal = NULL);
   std::vector<TParticle> bjetSelection();
 
   topObjectSelection(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t isDilep = true, Bool_t isSemiLep = false);

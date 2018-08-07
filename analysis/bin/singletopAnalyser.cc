@@ -1,7 +1,8 @@
 //#define nanoAnalyser_cxx
 #define Events_cxx
 #include "DataFormats/HepMCCandidate/interface/GenStatusFlags.h"
-#include "nano/analysis/interface/nanoBase.h"
+//#include "nano/analysis/interface/nanoBase.h"
+#include "nano/analysis/interface/topEventSelectionSL.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -24,19 +25,18 @@ To run (for the author):
 singletopAnalyser -q [LIST_FILE_OF_FILES] ["MC" or "RD"] [idx of the first root file] [(idx+1) of the last root file]
 
 To throw jobs to condor:
-python makejobs.py nanoAOD j`python batch_nanoAOD.py n [# OF FILES PER JOB]`
+python makejobs.py [DEST DIR] j`python batch_nanoAOD.py n [# OF FILES PER JOB]`
 */
 
 
-class singletopAnalyser : public nanoBase {
+class singletopAnalyser : public topEventSelectionSL {
 private: 
-  TH1F *m_h1Weights, *m_h1GenWeights;
+  Long64_t m_nEventIdx;
   
   TH1F *m_h1CosS;
   TH1F *m_h1CosSReco;
   TH1F *m_h1IsHighPtMuon, *m_h1DRMuon;
   
-  //Bool_t m_isMC;
   Bool_t m_isSig;
   int m_nBkgType;
   Bool_t m_isFullGen;
@@ -46,17 +46,17 @@ private:
   
   Int_t m_nIdxGenNeu, m_nIDGenNeu;
   
-  TVector3 arrvec3Jets[ 3 ];
-  
   Int_t b_onlyGen;
   
-  Int_t b_objstep, b_step, b_channel, b_njets, b_nbjets;
+  Float_t b_met_sumEt;
+  
+  Int_t b_filter_met;
   
   TLorentzVector b_gentop1;
   TLorentzVector b_genW;
   
   Int_t m_nIdxGenTop2nd;
-  Int_t m_nIdxGenBFromT2nd, m_nIdxGenLep2nd;
+  Int_t m_nIdxGenW2nd, m_nIdxGenBFromT2nd, m_nIdxGenLep2nd;
   Int_t m_nIDGenLep2nd;
   
   TLorentzVector b_ttbar_gentop2;
@@ -64,19 +64,27 @@ private:
   
   TLorentzVector b_ttbar_genLep1;
   TLorentzVector b_ttbar_genLep2;
+  Int_t b_ttbar_lep1_pdgId, b_ttbar_lep2_pdgId;
+  
   TLorentzVector b_ttbar_genB1;
   TLorentzVector b_ttbar_genB2;
   
   Float_t b_ttbar_deltaR_B1_B2;
   
   Int_t b_ttbar_channel;
+  Int_t b_ttbar_missedlep;
   
-  TParticle recolep1;
+  TLorentzVector b_ttbar_lep1;
+  TLorentzVector b_ttbar_lep2;
+  Float_t b_ttbar_lep1_deltaRGen, b_ttbar_lep2_deltaRGen;
+  Float_t b_ttbar_lep1_reliso, b_ttbar_lep2_reliso;
   
-  TLorentzVector b_lep1, b_jet1, b_bjet1, b_bjet2;
-  Int_t b_lep1_pid;
-  Float_t b_lep1_reliso;
-  Float_t b_met, b_met_phi;
+  TLorentzVector b_lep2NonIso;
+  Int_t b_lep2NonIso_pid;
+  Float_t b_lep2NonIso_reliso;
+  
+  TLorentzVector b_jet1, b_bjet1, b_bjet2;
+  Float_t b_CSVjet1, b_CSVbjet1, b_CSVbjet2;
   
   Float_t b_jetQ1, b_jetQ2, b_jetQ3;
   Float_t b_jetC;
@@ -104,21 +112,11 @@ private:
   Int_t b_truthtop1_imaginaryOn;
   Float_t b_truthtop1_lowhighNeuPT;
   
-  Bool_t b_tri;
-  Float_t b_triw, b_triw_up, b_triw_dn;
+  TLorentzVector b_fatjet;
+  Int_t b_nfatjet;
+  Int_t b_nsubjet;
   
-  Int_t b_npvs;
-  Float_t b_pvz, b_pv_ndof;
-  
-  Float_t b_lumicheck;
-  Float_t b_weight, b_genweight;
-  Float_t b_puweight, b_puweight_up, b_puweight_dn;
-  Float_t b_btagweight, b_btagweight_up, b_btagweight_dn;
-  Float_t b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
-  Float_t b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
-  
-  std::vector<Int_t> b_jetPu;
-  std::vector<Float_t> b_csvweights;
+  Int_t b_nhadcand;
   
   Float_t b_cos_star_gen;
   Float_t b_cos_star_bjet_gen;
@@ -144,6 +142,22 @@ public:
     MY_FLAG_BKGTYPE_ST_OTHERS
   };
   
+  enum {
+    // # of final lepton = 0
+    MY_TYPE_TTBAR_FULLHADRONIC = 1, // Full-hadronic
+    MY_TYPE_TTBAR_MONOTAU_HADRONIC, // Semileptonic
+    MY_TYPE_TTBAR_DITAU_HADRONIC, // Dileptonic
+    // # of final lepton = 1
+    MY_TYPE_TTBAR_SEMILEPTONIC, // Semileptonic
+    MY_TYPE_TTBAR_ONETAU_LEPTONIC, 
+    MY_TYPE_TTBAR_ONELEPTON_ONETAU_HADRONIC, // Dileptonic
+    MY_TYPE_TTBAR_DITAU_LEPTONIC_HADRONIC, 
+    // # of final lepton = 2 (Only from Dileptonic)
+    MY_TYPE_TTBAR_DILEPTONIC, 
+    MY_TYPE_TTBAR_ONELEPTON_ONETAU_LEPTONIC, 
+    MY_TYPE_TTBAR_DITAU_DILEPTONIC, 
+  };
+  
 public: 
   //set output file
   void setOutput(std::string outputName);
@@ -151,8 +165,8 @@ public:
   void resetBranch();
   void LoadModules(pileUpTool* pileUp, lumiTool* lumi);
   //void collectTMVAvalues();
-  singletopAnalyser(TTree *tree=0, Bool_t flag = false, 
-      Bool_t isSig = false, int nBkgType = 0, Bool_t isFullGen = false);
+  singletopAnalyser(TTree *tree=0, TTree *had=0, TTree *hadtruth=0, 
+      Bool_t isMC = false, Bool_t isSig = false, int nBkgType = 0, Bool_t isFullGen = false);
   ~singletopAnalyser();
   virtual void     Loop();
   
@@ -165,27 +179,20 @@ public:
   int GetIdxGenAssoQuark();
   int GetIdxGenLepton(int nIsFor2nd = 0);
   int GetIdxGenBFromTop(int nIsFor2nd = 0);
-  int GetIdxGenWFromTop();
+  int GetIdxGenWFromTop(int nIsFor2nd = 0);
   int GetIdxGenNeutrino();
   
   int GetGenInfoSignal();
   
   int GetIdxGenTop2nd();
+  int GetLeptonInfoMatching();
   
   int GetGenInfoTTbar();
   int GetGenInfoQCD();
   int GetGenInfoWJets();
   int GetGenInfoSTOthers();
   
-  bool hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad);
-  Double_t roccoR(TLorentzVector m, int &q, int &nGen, int &nTrackerLayers);
-  
-  vector<TParticle> muonSelection();
-  vector<TParticle> elecSelection();
-  vector<TParticle> jetSelection(vector<int> &vecIdx);
-  vector<TParticle> bjetSelection(vector<int> &vecIdx);
-  
-  int ObjectSelection();
+  int GetJets();
   int CalcSphericity();
   
   TLorentzVector RecoWFromTop(double *pdDiffMET, int nFlag = MY_FLAG_RECOW_WRESTRICTION);
@@ -194,8 +201,9 @@ public:
 };
 
 
-singletopAnalyser::singletopAnalyser(TTree *tree, Bool_t flag, 
-  Bool_t isSig, int nBkgType, Bool_t isFullGen) : nanoBase(tree, flag), 
+singletopAnalyser::singletopAnalyser(TTree *tree, TTree *had, TTree *hadtruth, 
+  Bool_t isMC, Bool_t isSig, int nBkgType, Bool_t isFullGen) : 
+  topEventSelectionSL(tree, had, hadtruth, isMC), 
   m_isSig(isSig), m_nBkgType(nBkgType), m_isFullGen(isFullGen)
 {
   m_output = NULL;
@@ -219,8 +227,13 @@ void singletopAnalyser::setOutput(std::string outputName) {
   m_tree = new TTree("event", "event");
   MakeBranch(m_tree);
   
-  m_h1Weights = new TH1F("weight", "weight", 2, -1, 1);
-  m_h1GenWeights = new TH1F("genweight", "genweight", 2, -1, 1);
+  h_nevents = new TH1D("nevents", "nevents", 2, -1, 1);
+  h_weights = new TH1D("weight", "weight", 2, -1, 1);
+  h_genweights = new TH1D("genweight", "genweight", 2, -1, 1);
+  
+  h_cutFlow = new TH1D("cutFlow", "cutFlow", 7, 0, 7);
+  h_cutFlowEl = new TH1D("cutFlowEl", "cutFlowEl", 7, 0, 7);
+  h_cutFlowMu = new TH1D("cutFlowMu", "cutFlowMu", 7, 0, 7);
   
   m_h1CosS = new TH1F("cos_star", "cos_star", 10, -1, 1);
   m_h1CosSReco = new TH1F("cos_star_reco", "cos_star_reco", 10, -1, 1);
@@ -232,11 +245,14 @@ void singletopAnalyser::setOutput(std::string outputName) {
 void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("onlyGen", &b_onlyGen, "onlyGen/I");
   
-  t->Branch("objstep", &b_objstep, "objstep/I");
   t->Branch("step", &b_step, "step/I");
   t->Branch("channel", &b_channel, "channel/I");
-  t->Branch("njet", &b_njets, "njet/I");
-  t->Branch("nbjet", &b_nbjets, "nbjet/I");
+  t->Branch("njet", &b_njet, "njet/I");
+  t->Branch("nbjet", &b_nbjet, "nbjet/I");
+  
+  t->Branch("met_sumEt", &b_met_sumEt, "met_sumEt/I");
+  
+  t->Branch("filter_met", &b_filter_met, "filter_met/I");
   
   t->Branch("gentop1", "TLorentzVector", &b_gentop1);
   t->Branch("genW", "TLorentzVector", &b_genW);
@@ -246,28 +262,48 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   
   t->Branch("ttbar_genLep1", "TLorentzVector", &b_ttbar_genLep1);
   t->Branch("ttbar_genLep2", "TLorentzVector", &b_ttbar_genLep2);
+  t->Branch("ttbar_lep1_pdgId", &b_ttbar_lep1_pdgId, "ttbar_lep1_pdgId/I");
+  t->Branch("ttbar_lep2_pdgId", &b_ttbar_lep2_pdgId, "ttbar_lep2_pdgId/I");
+  
   t->Branch("ttbar_genB1", "TLorentzVector", &b_ttbar_genB1);
   t->Branch("ttbar_genB2", "TLorentzVector", &b_ttbar_genB2);
   
   t->Branch("ttbar_deltaR_B1_B2", &b_ttbar_deltaR_B1_B2, "ttbar_deltaR_B1_B2/F");
   
   t->Branch("ttbar_channel", &b_ttbar_channel, "ttbar_channel/I");
+  t->Branch("ttbar_missedlep", &b_ttbar_missedlep, "ttbar_missedlep/I");
   
-  t->Branch("lep1", "TLorentzVector", &b_lep1);
+  t->Branch("ttbar_lep1", "TLorentzVector", &b_ttbar_lep1);
+  t->Branch("ttbar_lep2", "TLorentzVector", &b_ttbar_lep2);
+  t->Branch("ttbar_lep1_deltaRGen", &b_ttbar_lep1_deltaRGen, "ttbar_lep1_deltaRGen/F");
+  t->Branch("ttbar_lep2_deltaRGen", &b_ttbar_lep2_deltaRGen, "ttbar_lep2_deltaRGen/F");
+  t->Branch("ttbar_lep1_reliso", &b_ttbar_lep1_reliso, "ttbar_lep1_reliso/F");
+  t->Branch("ttbar_lep2_reliso", &b_ttbar_lep2_reliso, "ttbar_lep2_reliso/F");
+  
+  t->Branch("lep", "TLorentzVector", &b_lep);
   t->Branch("jet1", "TLorentzVector", &b_jet1);
   t->Branch("bjet1", "TLorentzVector", &b_bjet1);
   t->Branch("bjet2", "TLorentzVector", &b_bjet2);
+  
+  t->Branch("isolep", &b_isolep, "isolep/F");
+  
+  t->Branch("CSVv2_jet1", &b_CSVjet1, "CSVv2_jet1/F");
+  t->Branch("CSVv2_bjet1", &b_CSVbjet1, "CSVv2_bjet1/F");
+  t->Branch("CSVv2_bjet2", &b_CSVbjet2, "CSVv2_bjet2/F");
   
   t->Branch("DiffLepMom11", "TLorentzVector", &b_DiffLepMom11);
   t->Branch("DiffLepMom12", "TLorentzVector", &b_DiffLepMom12);
   t->Branch("DiffLepMom21", "TLorentzVector", &b_DiffLepMom21);
   t->Branch("DiffLepMom22", "TLorentzVector", &b_DiffLepMom22);
   
-  t->Branch("lep1_pid", &b_lep1_pid, "lep1_pid/I");
-  t->Branch("lep1_reliso", &b_lep1_reliso, "lep1_reliso/F");
+  t->Branch("lep_pid", &b_lep_pid, "lep_pid/I");
   
   t->Branch("met", &b_met, "met/F");
   t->Branch("met_phi", &b_met_phi, "met_phi/F");
+  
+  t->Branch("lep2NonIso", "TLorentzVector", &b_lep2NonIso);
+  t->Branch("lep2NonIso_pid", &b_lep2NonIso_pid, "lep2NonIso_pid/I");
+  t->Branch("lep2NonIso_reliso", &b_lep2NonIso_reliso, "lep2NonIso_reliso/F");
   
   t->Branch("top1", "TLorentzVector", &b_top1);
   t->Branch("top1_lower", "TLorentzVector", &b_top1_lower);
@@ -292,29 +328,25 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("jetQ3", &b_jetQ3, "jetQ3/F");
   t->Branch("jetC", &b_jetC, "jetC/F");
   
-  t->Branch("trigger", &b_tri, "trigger/O");
-  t->Branch("tri", &b_triw, "tri/F");
-  t->Branch("tri_up", &b_triw_up, "tri_up/F");
-  t->Branch("tri_dn", &b_triw_dn, "tri_dn/F");
+  t->Branch("fatjet", "TLorentzVector", &b_fatjet);
+  t->Branch("nfatjet", &b_nfatjet, "nfatjet/I");
+  t->Branch("nsubjet", &b_nsubjet, "nsubjet/I");
   
-  t->Branch("npvs", &b_npvs, "npvs/I");
-  t->Branch("PVz", &b_pvz, "PVz/F");
-  t->Branch("PV_nDoF", &b_pv_ndof, "PV_nDoF/F");
+  t->Branch("nhadcand", &b_nhadcand, "nhadcand/I");
   
-  t->Branch("lumicheck", &b_lumicheck, "lumicheck/F");
+  t->Branch("trig_e", &b_trig_e, "trig_e/O");
+  t->Branch("trig_m", &b_trig_m, "trig_m/O");
+  
+  t->Branch("tri", &b_tri, "tri/F");
+  t->Branch("tri_up", &b_tri_up, "tri_up/F");
+  t->Branch("tri_dn", &b_tri_dn, "tri_dn/F");
+  
+  t->Branch("npvs", &b_nvertex, "npvs/I");
+  
   t->Branch("weight", &b_weight, "weight/F");
-  
   t->Branch("puweight", &b_puweight, "puweight/F");
-  t->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
-  t->Branch("puweight_dn", &b_puweight_dn, "puweight_dn/F");
-  
   t->Branch("genweight", &b_genweight, "genweight/F");
-  t->Branch("jetPu", "std::vector<Int_t>", &b_jetPu);
-  t->Branch("csvweight", "std::vector<Float_t>", &b_csvweights);
-  
   t->Branch("btagweight", &b_btagweight, "btagweight/F");
-  t->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
-  t->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
   
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   t->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
@@ -334,13 +366,13 @@ void singletopAnalyser::MakeBranch(TTree *t) {
 
 
 void singletopAnalyser::resetBranch() {
+  topEventSelectionSL::Reset();
+  
   b_onlyGen = 0;
   
-  b_objstep = -1;
-  b_step = -1;
-  b_channel = 0;
-  b_njets = 0;
-  b_nbjets = 0;
+  b_met_sumEt = -9;
+  
+  b_filter_met = 0;
   
   b_gentop1.SetPtEtaPhiM(0, 0, 0, 0);
   b_genW.SetPtEtaPhiM(0, 0, 0, 0);
@@ -350,23 +382,35 @@ void singletopAnalyser::resetBranch() {
   
   b_ttbar_genLep1.SetPtEtaPhiM(0, 0, 0, 0);
   b_ttbar_genLep2.SetPtEtaPhiM(0, 0, 0, 0);
+  b_ttbar_lep1_pdgId = b_ttbar_lep2_pdgId = 0;
+  
   b_ttbar_genB1.SetPtEtaPhiM(0, 0, 0, 0);
   b_ttbar_genB2.SetPtEtaPhiM(0, 0, 0, 0);
   
   b_ttbar_deltaR_B1_B2 = 0;
   
   b_ttbar_channel = 0;
+  b_ttbar_missedlep = 0;
   
-  b_lep1.SetPtEtaPhiM(0, 0, 0, 0);
+  b_ttbar_lep1.SetPtEtaPhiM(0, 0, 0, 0);
+  b_ttbar_lep2.SetPtEtaPhiM(0, 0, 0, 0);
+  b_ttbar_lep1_deltaRGen = b_ttbar_lep2_deltaRGen = 0;
+  b_ttbar_lep1_reliso = b_ttbar_lep2_reliso = 0;
+  
   b_jet1.SetPtEtaPhiM(0, 0, 0, 0);
   b_bjet1.SetPtEtaPhiM(0, 0, 0, 0);
   b_bjet2.SetPtEtaPhiM(0, 0, 0, 0);
+  
+  b_CSVjet1 = -1.0;
+  b_CSVbjet1 = -1.0;
+  b_CSVbjet2 = -1.0;
+  
   b_jetQ1 = b_jetQ2 = b_jetQ3 = 0;
   b_jetC = 0;
-  b_met = 0;
-  b_met_phi = 0;
-  b_lep1_pid = 0;
-  b_lep1_reliso = 0;
+  
+  b_lep2NonIso.SetPtEtaPhiM(0, 0, 0, 0);
+  b_lep2NonIso_pid = 0;
+  b_lep2NonIso_reliso = 0;
   
   b_DiffLepMom11.SetPtEtaPhiM(0, 0, 0, 0);
   b_DiffLepMom12.SetPtEtaPhiM(0, 0, 0, 0);
@@ -391,21 +435,11 @@ void singletopAnalyser::resetBranch() {
   b_truthtop1_imaginaryOn = 0;
   b_truthtop1_lowhighNeuPT = 0.0;
   
-  b_tri = false;
-  b_triw = b_triw_up = b_triw_dn = 1.0;
+  b_fatjet.SetPtEtaPhiM(0, 0, 0, 0);
+  b_nfatjet = -1;
+  b_nsubjet = -1;
   
-  b_npvs = 0;
-  b_pvz = 0.0;
-  b_pv_ndof = 0;
-  
-  b_lumicheck = 1.0;
-  b_weight = b_genweight = 1.0;
-  b_puweight = b_puweight_up = b_puweight_dn = 1.0;
-  b_btagweight = b_btagweight_up = b_btagweight_dn = 1.0;
-  b_mueffweight = b_mueffweight_up = b_mueffweight_dn = 1.0;
-  b_eleffweight = b_eleffweight_up = b_eleffweight_dn = 1.0;
-  b_jetPu.clear();
-  b_csvweights.clear();
+  b_nhadcand = 0;
   
   b_cos_star_gen = b_cos_star_bjet_gen = -2;
   b_cos_labf_gen = b_cos_labf_bjet_gen = -2;
@@ -451,44 +485,6 @@ int singletopAnalyser::GetIdxGenAssoQuark() {
 }
 
 
-int singletopAnalyser::GetIdxGenLepton(int nIsFor2nd) {
-  UInt_t i;
-  Int_t j;
-  
-  Int_t nIdxTop = ( nIsFor2nd == 0 ? m_nIdxGenTop : m_nIdxGenTop2nd );
-  
-  // Finding the lepton from the top quark
-  for ( i = 0 ; i < nGenPart ; i++ ) {
-    int nPID = abs(GenPart_pdgId[ i ]);
-    int nPassW = 0;
-    
-    if ( ( nPID == 11 || nPID == 13 ) ) {
-      for ( j = GenPart_genPartIdxMother[ i ] ; j >= 0 ; j = GenPart_genPartIdxMother[ j ] ) {
-        int nParentID = abs(GenPart_pdgId[ j ]);
-        
-        if ( nParentID == 24 ) {
-          int nGrandParentID = abs(GenPart_pdgId[ GenPart_genPartIdxMother[ j ] ]);
-          if ( nGrandParentID == 6 ) {
-            nPassW = 1;
-            m_nIdxGenW = j;
-          }
-        }
-        
-        if ( nPassW == 1 && j == nIdxTop ) break;
-      }
-      
-      if ( j < 0 ) continue;
-      
-      m_nIdxGenLep = i;
-      m_nIDGenLep = GenPart_pdgId[ i ];
-      break;
-    }
-  }
-  
-  return ( i < nGenPart ? 0 : -1 );
-}
-
-
 int singletopAnalyser::GetIdxGenBFromTop(int nIsFor2nd) {
   UInt_t i;
   Int_t j;
@@ -520,8 +516,11 @@ int singletopAnalyser::GetIdxGenBFromTop(int nIsFor2nd) {
 }
 
 
-int singletopAnalyser::GetIdxGenWFromTop() {
+int singletopAnalyser::GetIdxGenWFromTop(int nIsFor2nd) {
   UInt_t i;
+  Int_t j;
+  
+  Int_t nIdxTop = ( nIsFor2nd == 0 ? m_nIdxGenTop : m_nIdxGenTop2nd );
   
   // Finding the W from the top quark
   for ( i = 0 ; i < nGenPart ; i++ ) {
@@ -533,7 +532,47 @@ int singletopAnalyser::GetIdxGenWFromTop() {
     
     if ( GenPart_pdgId[ nIdxMother ] * nPID != 6 * 24 ) continue;
     
+    // Checking whether the mother top quark is same as what we are looking at (nIdxTop)
+    for ( j = nIdxMother ; j >= 0 ; j = GenPart_genPartIdxMother[ j ] ) {
+      if ( j == nIdxTop ) break;
+    }
+    
+    if ( j < 0 ) continue;
+    
     m_nIdxGenW = i;
+    break;
+  }
+  
+  return ( i < nGenPart ? 0 : -1 );
+}
+
+
+int singletopAnalyser::GetIdxGenLepton(int nIsFor2nd) {
+  UInt_t i;
+  Int_t j;
+  
+  Int_t nIdxW = ( nIsFor2nd == 0 ? m_nIdxGenW : m_nIdxGenW2nd );
+  
+  // Finding the lepton from the top quark
+  for ( i = 0 ; i < nGenPart ; i++ ) {
+    int nPID = GenPart_pdgId[ i ];
+    if ( abs(nPID) != 11 && abs(nPID) != 13 ) continue;
+    
+    int nIdxMother = GenPart_genPartIdxMother[ i ];
+    if ( nIdxMother < 0 ) continue;
+    
+    if ( abs(nPID) == 11 && GenPart_pdgId[ nIdxMother ] * nPID != 24 * -11 ) continue;
+    if ( abs(nPID) == 13 && GenPart_pdgId[ nIdxMother ] * nPID != 24 * -13 ) continue;
+    
+    // Checking whether the mother top quark is same as what we are looking at (nIdxTop)
+    for ( j = nIdxMother ; j >= 0 ; j = GenPart_genPartIdxMother[ j ] ) {
+      if ( j == nIdxW ) break;
+    }
+    
+    if ( j < 0 ) continue;
+    
+    m_nIdxGenLep = i;
+    m_nIDGenLep = GenPart_pdgId[ i ];
     break;
   }
   
@@ -600,6 +639,7 @@ int singletopAnalyser::GetGenInfoSignal() {
   // If any one of them holds, then it is reaaaaally strange!
   if ( GetIdxGenTop() != 0 ) return -1;
   if ( GetIdxGenAssoQuark() != 0 ) return -1;
+  if ( GetIdxGenWFromTop() != 0 ) return -1;
   if ( GetIdxGenLepton() != 0 ) return -1;
   if ( GetIdxGenBFromTop() != 0 ) return -1;
   if ( GetIdxGenNeutrino() != 0 ) return -1;
@@ -664,14 +704,14 @@ int singletopAnalyser::GetIdxGenTop2nd() {
   return ( i < nGenPart ? 0 : -1 );
 }
 
-  
+ 
 int singletopAnalyser::GetGenInfoTTbar() {
-  Int_t nIdxBuf, nIDBuf;
+  Int_t nIdxBuf;
   
   int nRes;
   
-  if ( GetIdxGenTop() != 0 ) return -1;
-  if ( GetIdxGenTop2nd() != 0 ) return -1;
+  if ( GetIdxGenTop() != 0 ) return 0;
+  if ( GetIdxGenTop2nd() != 0 ) return 0;
   
   // Ordering the top quarks by ID
   if ( GenPart_pdgId[ m_nIdxGenTop ] < 0 ) {
@@ -681,13 +721,20 @@ int singletopAnalyser::GetGenInfoTTbar() {
   }
   
   // Getting the indices of b quarks from top quarks
-  if ( GetIdxGenBFromTop() != 0 ) return -1;
+  if ( GetIdxGenBFromTop() != 0 ) return 0;
   
   // Getting the 2nd b quark (NOTE: the idx of the found b quark is kept in m_nIdxGenBFromT)
   nIdxBuf = m_nIdxGenBFromT;
-  if ( GetIdxGenBFromTop(1) != 0 ) return -1;
+  if ( GetIdxGenBFromTop(1) != 0 ) return 0;
   m_nIdxGenBFromT2nd = m_nIdxGenBFromT;
   m_nIdxGenBFromT = nIdxBuf;
+  
+  if ( GetIdxGenWFromTop() != 0 ) return 0;
+  
+  nIdxBuf = m_nIdxGenW;
+  if ( GetIdxGenWFromTop(1) != 0 ) return 0;
+  m_nIdxGenW2nd = m_nIdxGenW;
+  m_nIdxGenW = nIdxBuf;
   
   b_ttbar_channel = 1;
   
@@ -697,8 +744,8 @@ int singletopAnalyser::GetGenInfoTTbar() {
   if ( nRes == 0 ) {
     b_ttbar_channel++;
     
+    b_ttbar_lep1_pdgId = m_nIDGenLep;
     nIdxBuf = m_nIdxGenLep;
-    nIDBuf = m_nIDGenLep;
     
     // Getting the 2nd lepton
     nRes = GetIdxGenLepton(1);
@@ -709,7 +756,6 @@ int singletopAnalyser::GetGenInfoTTbar() {
       m_nIdxGenLep = nIdxBuf;
       
       m_nIDGenLep2nd = m_nIDGenLep;
-      m_nIDGenLep = nIDBuf;
       
       b_ttbar_channel++;
     }
@@ -729,6 +775,110 @@ int singletopAnalyser::GetGenInfoTTbar() {
   // Calculating further variables
   
   b_ttbar_deltaR_B1_B2 = b_ttbar_genB2.DeltaR(b_ttbar_genB1);
+  
+  GetLeptonInfoMatching();
+  
+  return 0;
+}
+
+
+int singletopAnalyser::GetLeptonInfoMatching() {
+  Int_t n;
+  UInt_t i;
+  //Float_t fNearest;
+  
+  TLorentzVector vec4Res;
+  Int_t nIdx, nIdxFound = 0;
+  //Float_t fRelIso = 0;
+  
+  b_ttbar_missedlep = 0;
+  
+  for ( n = 0 ; n < b_ttbar_channel - 1 ; n++ ) {
+    Int_t nIdxGenLep;
+    TLorentzVector vec4Gen;
+    //Int_t nID;
+    
+    if ( n == 0 ) {
+      nIdxGenLep = m_nIdxGenLep;
+      vec4Gen = b_ttbar_genLep1;
+      //nID = b_ttbar_lep1_pdgId;
+    } else {
+      nIdxGenLep = m_nIdxGenLep2nd;
+      vec4Gen = b_ttbar_genLep2;
+      //nID = b_ttbar_lep2_pdgId;
+    }
+    
+    nIdxFound = -1;
+    
+    for ( i = 0 ; i < nElectron ; i++ ) {
+      for ( nIdx = Electron_genPartIdx[ i ] ; nIdx >= 0 ; nIdx = GenPart_genPartIdxMother[ nIdx ] ) {
+        Int_t nIDTmp = abs(GenPart_pdgId[ nIdx ]);
+        
+        if ( nIDTmp != 11 ) break;
+        
+        if ( nIdx == nIdxGenLep ) {
+          nIdxFound = i;
+          break;
+        }
+      }
+      
+      if ( nIdxFound >= 0 ) break;
+    }
+    
+    if ( nIdxFound >= 0 ) { // When electron is Found
+      //printf("%i\n", nIdxFound);
+    } else {
+      for ( i = 0 ; i < nMuon ; i++ ) {
+        for ( nIdx = Muon_genPartIdx[ i ] ; nIdx >= 0 ; nIdx = GenPart_genPartIdxMother[ nIdx ] ) {
+          Int_t nIDTmp = abs(GenPart_pdgId[ nIdx ]);
+          
+          if ( nIDTmp != 11 && nIDTmp != 13 ) break;
+          
+          if ( nIdx == nIdxGenLep ) {
+            nIdxFound = i;
+            break;
+          }
+        }
+          
+        if ( nIdxFound >= 0 ) break;
+      }
+    }
+    
+    if ( nIdxFound >= 0 ) { // When muon is Found
+      //printf("%i\n", nIdxFound);
+    } else { // No matching reco lepton
+      b_ttbar_missedlep++;
+      /*printf("################# %i-th of %i LEPTON (%i) CANNOT BE FOUND! ###################\n", 
+        n + 1, b_ttbar_channel - 1, nIdxGenLep);
+      
+      for ( Int_t i = 0 ; i < (int)nElectron ; i++ ) {
+        printf("%i - %i\n", Electron_pdgId[ i ], Electron_genPartIdx[ i ]);
+      }
+      
+      for ( Int_t i = 0 ; i < (int)nMuon ; i++ ) {
+        printf("%i - %i\n", Muon_pdgId[ i ], Muon_genPartIdx[ i ]);
+      }
+      
+      printf("================ GEN PARTICLES %10i ==========\n", (int)m_nEventIdx);
+      printf("Top idx : %i, %i\n", m_nIdxGenTop, m_nIdxGenTop2nd);
+      printf("W idx : %i, %i\n", m_nIdxGenW, m_nIdxGenW2nd);
+      if ( b_ttbar_channel >= 2 ) printf("1st lepton idx : %i\n", m_nIdxGenLep);
+      if ( b_ttbar_channel >= 3 ) printf("2nd lepton idx : %i\n", m_nIdxGenLep2nd);
+      
+      for ( Int_t i = 0 ; i < (int)nGenPart ; i++ ) {
+        TLorentzVector vec4P4;
+        vec4P4.SetPtEtaPhiM(GenPart_pt[ i ], GenPart_eta[ i ], GenPart_phi[ i ], GenPart_mass[ i ]);
+        printf("%5i - %7i | %5i %4X %4X (%i %i) | %8.3f %8.3f %8.3f | %8.3f %8.3f %8.3f %8.3f\n", 
+          i, GenPart_pdgId[ i ], 
+          GenPart_genPartIdxMother[ i ], GenPart_status[ i ], GenPart_statusFlags[ i ], 
+          ( GenPart_statusFlags[ i ] >> 12 ) & 0x3, ( GenPart_statusFlags[ i ] >> 7 ) & 0x3,
+          GenPart_pt[ i ], GenPart_eta[ i ], GenPart_phi[ i ], 
+          vec4P4.X(), vec4P4.Y(), vec4P4.Z(), GenPart_mass[ i ]);
+      }
+      
+      printf("==================================================\n");*/
+    }
+  }
   
   return 0;
 }
@@ -763,267 +913,51 @@ int singletopAnalyser::GetGenInfoSTOthers() {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-bool singletopAnalyser::hasOverLap(TLorentzVector cand, vector<TParticle> objects, Float_t rad) {
-  for ( auto obj: objects ) {
-    TLorentzVector mom;
-    obj.Momentum(mom);
-    if ( cand.DeltaR(mom) < rad ) return true;
-  }
-  return false;
-}
-
-
-Double_t singletopAnalyser::roccoR(TLorentzVector m, int &q, int &nGen, int &nTrackerLayers) {
-  Float_t u1 = gRandom->Rndm();
-  Float_t u2 = gRandom->Rndm();
+int singletopAnalyser::GetJets() {
+  Int_t i;
   
-  if ( !m_isMC ) {
-    return m_rocCor->kScaleDT(q, m.Pt(), m.Eta(), m.Phi(), 0, 0);
-  } else {
-    if (nGen > -1) {
-      return m_rocCor->kScaleFromGenMC(q, m.Pt(), m.Eta(), m.Phi(),
-        nTrackerLayers, GenPart_pt[ nGen ], u1, 0, 0);
-    } else {
-      return m_rocCor->kScaleAndSmearMC(q, m.Pt(), m.Eta(), m.Phi(),
-        nTrackerLayers, u1, u2, 0, 0);
-    }
-  }
-}
-
-
-vector<TParticle> singletopAnalyser::muonSelection() {
-  UInt_t i;
+  // Getting the first non-b-tagged jet
   
-  vector<TParticle> muons;
-  
-  for ( i = 0 ; i < nMuon ; i++ ) {
-    if ( !Muon_trackerMu[ i ] ) continue;
-    if ( !Muon_globalMu[ i ] ) continue;
-    if ( !Muon_tightId[ i ] ) continue;
-    if ( Muon_pfRelIso04_all[ i ] > 0.25 ) continue;
-    
-    if ( Muon_pt[ i ] < 10 ) continue;
-    if ( std::abs(Muon_eta[ i ]) > 2.4 ) continue;
-    
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Muon_pt[ i ], Muon_eta[ i ], Muon_phi[ i ], Muon_mass[ i ]);
-    //mom = mom * roccoR(mom, Muon_charge[i], Muon_genPartIdx[i], Muon_nTrackerLayers[i]);
-    
-    auto muon = TParticle();
-    muon.SetPdgCode(13 * Muon_charge[ i ]* -1);
-    muon.SetMomentum(mom);
-    
-    muons.push_back(muon);
-    b_lep1_reliso = Muon_pfRelIso04_all[ i ];
-  }
-  
-  return muons;
-}
-
-
-vector<TParticle> singletopAnalyser::elecSelection() {
-  UInt_t i;
-  
-  vector<TParticle> elecs;
-  
-  for ( i = 0 ; i < nElectron ; i++ ) {
-    if ( Electron_pt[ i ] < 10 ) continue;
-    if ( std::abs(Electron_eta[ i ]) > 2.5 ) continue;
-    if ( Electron_cutBased[ i ] < 3 ) continue;
-    
-    float el_scEta = Electron_deltaEtaSC[ i ] + Electron_eta[ i ];
-    if ( std::abs(el_scEta) > 1.4442 && std::abs(el_scEta) < 1.566 ) continue;
-    
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Electron_pt[ i ], Electron_eta[ i ], Electron_phi[ i ], Electron_mass[ i ]);
-    
-    if ( hasOverLap(mom, elecs, 0.3) ) continue;
-   
-    auto elec = TParticle();
-    elec.SetPdgCode(11 * Electron_charge[ i ] * -1);
-    elec.SetMomentum(mom);
-    elec.SetWeight(el_scEta);
-    
-    elecs.push_back(elec);
-  }
-  
-  return elecs;
-}
-
-
-vector<TParticle> singletopAnalyser::jetSelection(vector<int> &vecIdx) {
-  UInt_t i, j;
-  
-  vector<TParticle> jets; 
-  float Jet_SF_CSV[ 19 ] = {1.0,};
-  
-  for ( i = 0 ; i < nJet ; i++ ) {
-    if ( Jet_pt[ i ] < 20 ) continue;
-    if ( std::abs(Jet_eta[ i ]) > 4.7 ) continue;
-    //if ( std::abs(Jet_eta[ i ]) >= 2.4 && Jet_pt[ i ] < 30 ) continue;
-    //if ( std::abs(Jet_eta[ i ]) < 2.4 && Jet_pt[ i ] < 20 ) continue;
-    if ( Jet_jetId[ i ] < 1 ) continue;
-    
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Jet_pt[ i ], Jet_eta[ i ], Jet_phi[ i ], Jet_mass[ i ]);
-    
-    if ( mom.TLorentzVector::DeltaR(b_lep1) < 0.4 ) continue;
-    
-    auto jet = TParticle();
-    jet.SetMomentum(mom);
-    jets.push_back(jet);
-    
-    for ( j = 0 ; j < 19 ; j++ ) {   
-      //Jet_SF_CSV[ j ] *= m_btagSF.getSF(jet, Jet_btagCSVV2[ i ], Jet_hadronFlavour[ i ], j);
-    }
-    
-    vecIdx.push_back(i);
-    b_jetPu.push_back(Jet_puId[ i ]);
-    
-    // Keeping the momentum of jets for calculation of sphericity
-    if ( i < 3 ) {
-      arrvec3Jets[ i ] = mom.Vect();
+  for ( i = 0 ; i < b_njet ; i++ ) {
+    if ( m_jetsCMVA[ i ] <= 0.9432 ) {
+      b_jet1 = m_jets[ i ];
+      b_CSVjet1 = m_jetsCMVA[ i ];
+      break;
     }
   }
   
-  for ( i = 0 ; i < 19 ; i++ ) b_csvweights.push_back(Jet_SF_CSV[ i ]);
+  // Finding associated b-tagged jet with the lepton
   
-  return jets;
-}
-
-
-vector<TParticle> singletopAnalyser::bjetSelection(vector<int> &vecIdx) {
-  UInt_t i, j;
+  Float_t fDRMin = 1048576;
+  Int_t nIdx = -1;
   
-  vector<TParticle> bjets; 
-  
-  for ( i = 0; i < nJet ; i++ ){
-    if ( Jet_pt[ i ] < 20 ) continue;
-    if ( std::abs(Jet_eta[ i ]) > 2.4 ) continue;
-    if ( Jet_jetId[ i ] < 1 ) continue;
-    if ( Jet_btagCSVV2[ i ] < 0.8484 ) continue;
+  for ( Int_t i = 0 ; i < b_njet ; i++ ) {
+    if ( m_jetsCMVA[ i ] <= 0.9432 ) continue;
+    nIdx = i;
+    break;
     
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Jet_pt[ i ], Jet_eta[ i ], Jet_phi[ i ], Jet_mass[ i ]);
-    if ( mom.TLorentzVector::DeltaR(b_lep1) < 0.4 ) continue;
+    Float_t fDR = b_lep.DeltaR(m_jets[ i ]);
     
-    auto bjet = TParticle();
-    bjet.SetMomentum(mom);
-    bjets.push_back(bjet);
-    
-    for ( j = 0 ; j < vecIdx.size() ; j++ ) if ( vecIdx[ j ] >= 0 && (UInt_t)vecIdx[ j ] == i ) break;
-    if ( j < vecIdx.size() ) vecIdx[ j ] = -1 * vecIdx[ j ] - 1;
+    if ( fDRMin > fDR ) {
+      fDRMin = fDR;
+      nIdx = i;
+    }
   }
   
-  return bjets;
-}
-
-
-int singletopAnalyser::ObjectSelection() {
-  UInt_t i;
-  
-  // Getting weights
-  
-  if ( m_isMC ) {
-    Int_t nVtx = Pileup_nTrueInt;
-    
-    b_puweight = m_pileUp->getWeight(nVtx);
-    b_puweight_up = m_pileUp->getWeight(nVtx, 1);
-    b_puweight_dn = m_pileUp->getWeight(nVtx, -1);
-    
-    b_genweight = genWeight;
-    b_weight = b_genweight * b_puweight;
-    
-    m_h1GenWeights->Fill(0.5, b_genweight);
-    m_h1Weights->Fill(0.5, b_weight);
-  } else {
-    b_puweight = 1;
-    b_genweight = 1;
-    
-    if ( !m_lumi->LumiCheck(run, luminosityBlock) ) b_lumicheck = 0.0; //return 1;
+  if ( nIdx >= 0 ) {
+    b_bjet1 = m_jets[ nIdx ];
+    b_CSVbjet1 = m_jetsCMVA[ i ];
   }
   
-  b_objstep = 1;
+  // Getting the second b-tagged jet
   
-  // Checking pile-up configuration
-  
-  b_pvz = PV_z;
-  b_npvs = PV_npvs;
-  b_pv_ndof = PV_ndof;
-  
-  if ( fabs(PV_z) >= 24. ) return 1;
-  if ( PV_npvs == 0 ) return 1;
-  if ( PV_ndof < 4 ) return 1;
-  
-  b_objstep = 2;
-  
-  // Trigger
-  
-  b_tri = HLT_IsoTkMu24 || HLT_IsoMu24;
-  
-  Bool_t IsoMu24 = false;
-  Bool_t IsoTkMu24 = false;
-  
-  for ( i = 0 ; i < nTrigObj ; i++ ) {
-    if ( TrigObj_id[ i ] != 13 ) continue;
-    if ( TrigObj_pt[ i ] < 24 ) continue;
-    Int_t bits = TrigObj_filterBits[ i ];
-    if ( bits & 0x2 ) IsoMu24 = true;
-    if ( bits & 0x8 ) IsoTkMu24 = true;  
+  for ( i = 0 ; i < b_njet ; i++ ) {
+    if ( i != nIdx && m_jetsCMVA[ i ] > 0.9432 ) {
+      b_bjet2 = m_jets[ i ];
+      b_CSVbjet2 = m_jetsCMVA[ i ];
+      break;
+    }
   }
-  
-  if ( !( IsoMu24 || IsoTkMu24 ) ) return 1;
-  
-  b_objstep = 3;
-  
-  // Gathering leptons
-  
-  auto muons = muonSelection();
-  auto elecs = elecSelection();
-  
-  if ( muons.size() + elecs.size() < 1 ) return 1;
-  
-  double dPtMuon = ( muons.size() > 0 ? muons[ 0 ].Pt() : -1.0 );
-  double dPtElec = ( elecs.size() > 0 ? elecs[ 0 ].Pt() : -1.0 );
-  
-  if ( muons.size() > 0 && dPtMuon > dPtElec ) {
-    muons[ 0 ].Momentum(b_lep1);
-    b_lep1_pid = muons[ 0 ].GetPdgCode();
-    
-    b_mueffweight = m_muonSF.getScaleFactor(muons[ 0 ], 13, 0);
-    b_mueffweight_up = m_muonSF.getScaleFactor(muons[ 0 ], 13,  1);
-    b_mueffweight_dn = m_muonSF.getScaleFactor(muons[ 0 ], 13, -1);
-  } else {
-    elecs[ 0 ].Momentum(b_lep1);
-    b_lep1_pid = elecs[ 0 ].GetPdgCode();
-  }
-  
-  // Saving MET
-  
-  b_met     = MET_pt;
-  b_met_phi = MET_phi;
-  
-  // Gathering jets and b-jets
-  
-  vector<int> vecIdxJet;
-  auto jets  = jetSelection(vecIdxJet);
-  auto bjets = bjetSelection(vecIdxJet);
-  
-  //if ( bjets.size() <= 0 || jets.size() - bjets.size() <= 0 ) return 1;
-  
-  for ( i = 0 ; i < jets.size() ; i++ ) {
-    if ( vecIdxJet[ i ] >= 0 ) break;
-  }
-  
-  if ( jets.size() > 0 && i < jets.size() ) jets[ i ].Momentum(b_jet1);
-  
-  if ( bjets.size() > 0 ) bjets[ 0 ].Momentum(b_bjet1);
-  if ( bjets.size() > 1 ) bjets[ 1 ].Momentum(b_bjet2);
-  
-  b_njets  = jets.size();
-  b_nbjets = bjets.size();
-  
-  b_objstep = 4;
   
   return 0;
 }
@@ -1031,6 +965,12 @@ int singletopAnalyser::ObjectSelection() {
 
 int singletopAnalyser::CalcSphericity() {
   Int_t i, j;
+  
+  TVector3 arrvec3Jets[ 3 ];
+  
+  arrvec3Jets[ 0 ] = m_jets[ 0 ].Vect();
+  arrvec3Jets[ 1 ] = m_jets[ 1 ].Vect();
+  arrvec3Jets[ 2 ] = m_jets[ 2 ].Vect();
   
   Double_t arrSphericity[ 9 ];
   Double_t fNorm = 1.0 / 
@@ -1102,14 +1042,14 @@ TLorentzVector singletopAnalyser::RecoWFromTop(double *pdDiffMET, int nFlag) {
     double dPzN1, dPzN2, dPzN = 0;
     double dMET, dMETPhi;
     
-    dELep = b_lep1.E();
-    dPzLep = b_lep1.Pz();
+    dELep = b_lep.E();
+    dPzLep = b_lep.Pz();
     dMTSqr = dELep * dELep - dPzLep * dPzLep;
     
     dMET = b_met;
     dMETPhi = b_met_phi;
     
-    dPtMMul = 0.5 * dMW * dMW + dMET * b_lep1.Pt() * cos(b_lep1.Phi() - dMETPhi);
+    dPtMMul = 0.5 * dMW * dMW + dMET * b_lep.Pt() * cos(b_lep.Phi() - dMETPhi);
     dDetSqr = dPtMMul * dPtMMul - dMET * dMET * dMTSqr;
     
     if ( dDetSqr >= 0 ) {
@@ -1140,12 +1080,12 @@ TLorentzVector singletopAnalyser::RecoWFromTop(double *pdDiffMET, int nFlag) {
     
     // End of calculating of 4-momentum of neutrino
     
-    vec4W = b_lep1 + vec4Neu;
+    vec4W = b_lep + vec4Neu;
     
     break;
   }
   case MY_FLAG_RECOW_NEU_IN_GEN:
-    vec4W = b_lep1 + Get4VecGen(m_nIdxGenNeu);
+    vec4W = b_lep + Get4VecGen(m_nIdxGenNeu);
     break;
   case MY_FLAG_RECOW_W_IN_GEN:
     vec4W = Get4VecGen(m_nIdxGenW);
@@ -1157,8 +1097,7 @@ TLorentzVector singletopAnalyser::RecoWFromTop(double *pdDiffMET, int nFlag) {
 
 
 int singletopAnalyser::RecoTop() {
-  TLorentzVector vec4BJet = ( b_nbjets == 1 || 
-    b_bjet1.DeltaR(b_lep1) < b_bjet2.DeltaR(b_lep1) ? b_bjet1 : b_bjet2 );
+  TLorentzVector vec4BJet = b_bjet1;
   TLorentzVector vec4WLow, vec4WHigh;
   double dMETMod;
   
@@ -1168,14 +1107,14 @@ int singletopAnalyser::RecoTop() {
   b_top1_lower  = vec4BJet + vec4WLow;
   b_top1_higher = vec4BJet + vec4WHigh;
   
-  TLorentzVector vec4NeuLow  = vec4WLow  - b_lep1;
-  TLorentzVector vec4NeuHigh = vec4WHigh - b_lep1;
+  TLorentzVector vec4NeuLow  = vec4WLow  - b_lep;
+  TLorentzVector vec4NeuHigh = vec4WHigh - b_lep;
   
   // 1 : Low, 2 : High
-  b_DiffLepMom11 = b_lep1 + vec4NeuLow;
-  b_DiffLepMom12 = b_lep1 + vec4NeuLow;
-  b_DiffLepMom21 = b_lep1 + vec4NeuHigh;
-  b_DiffLepMom22 = b_lep1 + vec4NeuHigh;
+  b_DiffLepMom11 = b_lep + vec4NeuLow;
+  b_DiffLepMom12 = b_lep + vec4NeuLow;
+  b_DiffLepMom21 = b_lep + vec4NeuHigh;
+  b_DiffLepMom22 = b_lep + vec4NeuHigh;
   
   b_DiffLepMom11.Boost(-vec4WLow.BoostVector());
   b_DiffLepMom12.Boost(-vec4WHigh.BoostVector());
@@ -1205,7 +1144,7 @@ int singletopAnalyser::RecoTop() {
 
 
 int singletopAnalyser::CalcRecoCosStar() {
-  TLorentzVector vec4LepRest = b_lep1, vec4JetRest = b_jet1;
+  TLorentzVector vec4LepRest = b_lep, vec4JetRest = b_jet1;
   
   vec4LepRest.Boost(-b_top1.BoostVector());
   vec4JetRest.Boost(-b_top1.BoostVector());
@@ -1238,19 +1177,65 @@ int singletopAnalyser::RunEvt() {
     }
   }
   
-  if ( nRes != 0 ) return nRes;
+  //if ( nRes != 0 ) return nRes;
   
   // End of jobs IN GEN LEVEL
   
-  nRes = ObjectSelection();
-  if ( nRes == 1 ) return 0;
+  //nRes = ObjectSelection();
+  nRes = EventSelection();
+  if ( nRes < 4 ) return 0;
   
-  if ( b_njets >= 3 ) CalcSphericity();
+  b_met_sumEt = MET_sumEt;
+  b_filter_met = ( Flag_METFilters ? 1 : 0 );
+  
+  GetJets();
+  if ( b_njet >= 3 ) CalcSphericity();
+  
+  b_fatjet.SetPtEtaPhiM(FatJet_pt[ 0 ], FatJet_eta[ 0 ], FatJet_phi[ 0 ], FatJet_mass[ 0 ]);
+  b_nfatjet = nFatJet;
+  b_nsubjet = nSubJet;
+  
+  b_nhadcand = nhad;
+  
+  /*if ( m_isMC && !m_isSig && m_nBkgType == MY_FLAG_BKGTYPE_TTBAR ) {
+    if ( b_lep_pid != b_ttbar_lep1_pdgId || b_lep.DeltaR(b_ttbar_lep1) > b_lep.DeltaR(b_ttbar_lep2) ) {
+      TLorentzVector vec4Swap;
+      Int_t nIDSwap;
+      Float_t fRelIsoSwap;
+      
+      vec4Swap = b_ttbar_lep1; b_ttbar_lep1 = b_ttbar_lep2; b_ttbar_lep2 = vec4Swap;
+      nIDSwap = b_ttbar_lep1_pdgId; b_ttbar_lep1_pdgId = b_ttbar_lep2_pdgId; b_ttbar_lep2_pdgId = nIDSwap;
+      fRelIsoSwap = b_ttbar_lep1_reliso; b_ttbar_lep1_reliso = b_ttbar_lep2_reliso; b_ttbar_lep2_reliso = fRelIsoSwap;
+    }
+  }*/
+  if ( m_isMC && !m_isSig && m_nBkgType == MY_FLAG_BKGTYPE_TTBAR ) {
+    if ( b_ttbar_channel > 1 ) {
+      if ( abs(b_lep_pid) == 13 ) {
+        Int_t nIdx = -1;
+        for ( Int_t i = 0 ; i < (int)nMuon ; i++ ) {
+          TLorentzVector mom;
+          mom.SetPtEtaPhiM(Muon_pt[ i ], Muon_eta[ i ], Muon_phi[ i ], Muon_mass[ i ]);
+          if ( mom.DeltaR(b_lep) < 0.001 ) {
+            nIdx = i;
+            break;
+          }
+        }
+        
+        b_ttbar_lep1_deltaRGen = ( !( ( abs(b_ttbar_lep1_pdgId) == 13 && nIdx == m_nIdxGenLep ) || 
+          ( abs(b_ttbar_lep2_pdgId) == 13 && nIdx == m_nIdxGenLep2nd ) ) ? 1 : -1 );
+      } else {
+        
+      }
+      
+      if ( m_nIdxGenLep ) {
+      }
+    }
+  }
   
   // Reconstruction of top quark
   
   RecoTop();
-  if ( ( b_njets == 2 && b_nbjets == 1 ) || ( b_njets == 3 && b_nbjets == 2 ) )
+  if ( ( b_njet == 2 && b_nbjet == 1 ) || ( b_njet == 3 && b_nbjet == 2 ) )
     CalcRecoCosStar();
   
   return 0;
@@ -1276,6 +1261,7 @@ void singletopAnalyser::Loop() {
     nb = fChain->GetEntry(i);
     nbytes += nb;
     
+    m_nEventIdx = i;
     nRes = RunEvt();
     
     if ( nRes == 0 || nRes > 0 ) { // ==0 : passed on reco, >0 : failed on reco but passed on gen
@@ -1324,7 +1310,7 @@ int main(int argc, char **argv) {
       temp = argv[i];
       found = temp.find_last_of('/');
       string outPutName = dirName+temp.substr(found);
-      singletopAnalyser t(tree, isMC, 
+      singletopAnalyser t(tree, NULL, NULL, isMC, 
         std::string(argv[i]).find("ST_t-channel") != std::string::npos, nBkgType, true);
       t.setOutput(outPutName);
       t.Loop();
@@ -1342,7 +1328,7 @@ int main(int argc, char **argv) {
       " $ singletopAnalyser -q [LIST_FILE_OF_FILES] [MC or RD] "
       "[idx of the first root file] [(idx+1) of the last root file]\n"
       "(for grid job (condor; in KISTI) \n"
-      " $ python makejobs.py nanoAOD j`python batch_nanoAOD.py n [# OF FILES PER JOB]`\n");
+      " $ python makejobs.py [DEST DIR] j`python batch_nanoAOD.py n [# OF FILES PER JOB]`\n");
     
     return 1;
   }
@@ -1396,7 +1382,9 @@ int main(int argc, char **argv) {
     if ( strLine.find("WJets") != std::string::npos ) nBkgType = singletopAnalyser::MY_FLAG_BKGTYPE_WJETS;
     if ( strLine.find("ST_") != std::string::npos )   nBkgType = singletopAnalyser::MY_FLAG_BKGTYPE_ST_OTHERS;
     
-    singletopAnalyser t((TTree *)fRoot->Get("Events"), bIsMC, 
+    TTree *treeMain = (TTree *)fRoot->Get("Events");
+    
+    singletopAnalyser t(treeMain, treeMain, treeMain, bIsMC, 
       strLine.find("ST_t-channel") != std::string::npos, nBkgType, true);
     
     std::string strOutput = "out";
