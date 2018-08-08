@@ -1015,8 +1015,8 @@ void vtsAnalyser::ScoreTMVA(TTree* outtr) {
 
       b_cmult = jetID_cmult[j]; b_nmult = jetID_nmult[j];
       b_pt = Jet_pt[j]; b_eta = Jet_eta[j]; b_phi = Jet_phi[j]; b_mass = Jet_mass[j];
-      b_c_x1 = jetID_cpt1[j]/Jet_pt[j]; b_c_x2 = (jetID_cpt1[j]+jetID_cpt2[j])/Jet_pt[j]; b_c_x3 = (jetID_cpt1[j]+jetID_cpt2[j]+jetID_cpt3[j])/Jet_pt[j];
-      b_n_x1 = jetID_npt1[j]/Jet_pt[j]; b_n_x2 = (jetID_npt1[j]+jetID_npt2[j])/Jet_pt[j]; b_n_x3 = (jetID_npt1[j]+jetID_npt2[j]+jetID_npt3[j])/Jet_pt[j];
+      b_c_x1 = jetID_cpt1[j]/Jet_pt[j]; b_c_x2 = jetID_cpt2[j]/Jet_pt[j]; b_c_x3 = jetID_cpt3[j]/Jet_pt[j];
+      b_n_x1 = jetID_npt1[j]/Jet_pt[j]; b_n_x2 = jetID_npt2[j]/Jet_pt[j]; b_n_x3 = jetID_npt3[j]/Jet_pt[j];
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
       b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
       outtr->Fill();
