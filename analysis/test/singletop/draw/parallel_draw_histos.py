@@ -11,7 +11,7 @@ def valToName(strVar):
 def makeHisto(strName, strTitle, listBin):
   if listBin[ 0 ] >= 0: 
     if len(listBin) == 3: 
-      return ROOT.TH1F(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ])
+      return ROOT.TH1D(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ])
     elif len(listBin) == 6: 
       return ROOT.TH2F(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ], 
         listBin[ 3 ], listBin[ 4 ], listBin[ 5 ])
@@ -32,7 +32,7 @@ def makeHisto(strName, strTitle, listBin):
         listBinAct.append(fBin)
         fBin *= fBinRatio
       
-      return ROOT.TH1F(strName, strTitle, nBin, array.array("d", listBinAct)) 
+      return ROOT.TH1D(strName, strTitle, nBin, array.array("d", listBinAct)) 
 
 strPathDraw = "%s/src/nano/analysis/test/singletop/draw"%os.environ[ "CMSSW_BASE" ]
 strPathThis = os.path.join(strPathDraw, "parallel_draw_histos.py")
@@ -372,5 +372,6 @@ queue 1
     time.sleep(1)
   
   print strDirHist
+  os.system("date")
 
 

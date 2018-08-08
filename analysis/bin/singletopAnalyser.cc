@@ -33,9 +33,9 @@ class singletopAnalyser : public topEventSelectionSL {
 private: 
   Long64_t m_nEventIdx;
   
-  TH1F *m_h1CosS;
-  TH1F *m_h1CosSReco;
-  TH1F *m_h1IsHighPtMuon, *m_h1DRMuon;
+  TH1D *m_h1CosS;
+  TH1D *m_h1CosSReco;
+  TH1D *m_h1IsHighPtMuon, *m_h1DRMuon;
   
   Bool_t m_isSig;
   int m_nBkgType;
@@ -94,6 +94,7 @@ private:
   TLorentzVector b_DiffLepMom21;
   TLorentzVector b_DiffLepMom22;
   
+  TLorentzVector b_W1;
   TLorentzVector b_top1;
   TLorentzVector b_top1_lower;
   TLorentzVector b_top1_higher;
@@ -235,10 +236,10 @@ void singletopAnalyser::setOutput(std::string outputName) {
   h_cutFlowEl = new TH1D("cutFlowEl", "cutFlowEl", 7, 0, 7);
   h_cutFlowMu = new TH1D("cutFlowMu", "cutFlowMu", 7, 0, 7);
   
-  m_h1CosS = new TH1F("cos_star", "cos_star", 10, -1, 1);
-  m_h1CosSReco = new TH1F("cos_star_reco", "cos_star_reco", 10, -1, 1);
-  m_h1IsHighPtMuon = new TH1F("isClosest", "isClosest", 2, 0, 2);
-  m_h1DRMuon = new TH1F("deltaR_muon", "deltaR_muon", 50, 0, 5);
+  m_h1CosS = new TH1D("cos_star", "cos_star", 10, -1, 1);
+  m_h1CosSReco = new TH1D("cos_star_reco", "cos_star_reco", 10, -1, 1);
+  m_h1IsHighPtMuon = new TH1D("isClosest", "isClosest", 2, 0, 2);
+  m_h1DRMuon = new TH1D("deltaR_muon", "deltaR_muon", 50, 0, 5);
 }
 
 
@@ -305,6 +306,7 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   t->Branch("lep2NonIso_pid", &b_lep2NonIso_pid, "lep2NonIso_pid/I");
   t->Branch("lep2NonIso_reliso", &b_lep2NonIso_reliso, "lep2NonIso_reliso/F");
   
+  t->Branch("W1", "TLorentzVector", &b_W1);
   t->Branch("top1", "TLorentzVector", &b_top1);
   t->Branch("top1_lower", "TLorentzVector", &b_top1_lower);
   t->Branch("top1_higher", "TLorentzVector", &b_top1_higher);
@@ -417,6 +419,7 @@ void singletopAnalyser::resetBranch() {
   b_DiffLepMom21.SetPtEtaPhiM(0, 0, 0, 0);
   b_DiffLepMom22.SetPtEtaPhiM(0, 0, 0, 0);
   
+  b_W1.SetPtEtaPhiM(0, 0, 0, 0);
   b_top1.SetPtEtaPhiM(0, 0, 0, 0);
   b_top1_lower.SetPtEtaPhiM(0, 0, 0, 0);
   b_top1_higher.SetPtEtaPhiM(0, 0, 0, 0);
@@ -1132,7 +1135,8 @@ int singletopAnalyser::RecoTop() {
     b_truthtop1_lowhighNeuPT = log(b_gentop1.DeltaR(b_top1_lower) / b_gentop1.DeltaR(b_top1_higher));
   }
   
-  b_top1 = vec4BJet + ( vec4BJet.DeltaR(vec4WLow) < vec4BJet.DeltaR(vec4WHigh) ? vec4WLow : vec4WHigh );
+  b_W1 = ( vec4BJet.DeltaR(vec4WLow) < vec4BJet.DeltaR(vec4WHigh) ? vec4WLow : vec4WHigh );
+  b_top1 = vec4BJet + b_W1;
   
   b_recoW_lower  = vec4WLow;
   b_recoW_higher = vec4WHigh;
