@@ -72,8 +72,10 @@ private:
   float b_pt,     b_eta,    b_phi,       b_mass;
   float b_c_x1,   b_c_x2,   b_c_x3;
   float b_n_x1,   b_n_x2,   b_n_x3;
-  float b_axis1,  b_axis2,  b_ptD;
-  
+  float b_axis1,  b_axis2,  b_ptD,       b_area;
+  float b_CSVV2;
+ 
+  int b_jet_start, b_jet_end; 
 
   /* functions */
   void ResetBranch();

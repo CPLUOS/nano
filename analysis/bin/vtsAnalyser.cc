@@ -94,8 +94,8 @@ int main(int argc, char* argv[]) {
 
       cout << "dirName : " << dirName << " fileName : " << fileName << endl;
       vtsAnalyser ana(inTree,hadTruthTree,hadTruthTree,isMC,false,false,false); // you don't need to use hadTree
-//      string outFileName = outFileDir+"/nanotree_"+fileName;
-      string outFileName = "./"+jobName+"/"+sampleName+"/nanotree_"+fileName;
+      string outFileName = outFileDir+"/nanotree_"+fileName;
+//      string outFileName = "/"+jobName+"/"+sampleName+"/nanotree_"+fileName;
             
       ana.setOutput(outFileName);
       ana.Loop();
@@ -107,12 +107,38 @@ void vtsAnalyser::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
   auto outtrForTMVA = new TTree("MVA_score", "MVA_score");
+  outtrForTMVA->Branch("isSJet", &b_isSJet, "isSJet/I");
+  outtrForTMVA->Branch("isBJet", &b_isBJet, "isBJet/I");
+  outtrForTMVA->Branch("isHighest", &b_isHighest, "isHighest/I");
+  outtrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
+  outtrForTMVA->Branch("cmult", &b_cmult, "cmult/I");
+  outtrForTMVA->Branch("nmult", &b_nmult, "nmult/I");
+  outtrForTMVA->Branch("pt", &b_pt, "pt/F");
+  outtrForTMVA->Branch("eta", &b_eta, "eta/F");
+  outtrForTMVA->Branch("phi", &b_phi, "phi/F");
+  outtrForTMVA->Branch("mass", &b_mass, "mass/F");
+  outtrForTMVA->Branch("c_x1", &b_c_x1, "c_x1/F");
+  outtrForTMVA->Branch("c_x2", &b_c_x2, "c_x2/F");
+  outtrForTMVA->Branch("c_x3", &b_c_x3, "c_x3/F");
+  outtrForTMVA->Branch("n_x1", &b_n_x1, "n_x1/F");
+  outtrForTMVA->Branch("n_x2", &b_n_x2, "n_x2/F");
+  outtrForTMVA->Branch("n_x3", &b_n_x3, "n_x3/F");
+  outtrForTMVA->Branch("axis1", &b_axis1, "axis1/F");
+  outtrForTMVA->Branch("axis2", &b_axis2, "axis2/F");
+  outtrForTMVA->Branch("ptD", &b_ptD, "ptD/F");
+  outtrForTMVA->Branch("area", &b_area, "area/F");
+  outtrForTMVA->Branch("CSVV2", &b_CSVV2, "CSVV2/F");
+
+  auto outtrForIdx = new TTree("event2", "event2");
+  outtrForIdx->Branch("jet_start", &b_jet_start, "jet_start/I");
+  outtrForIdx->Branch("jet_end", &b_jet_end, "jet_end/I");
+
   /* Events loop */
   for (Long64_t iev=0; iev<nentries; iev++) {
     fChain->GetEntry(iev);
     if (h_fChain) h_fChain->GetEntry(iev);
     if (ht_fChain) ht_fChain->GetEntry(iev);
-//    cout << "event : " << iev << endl;
+    cout << "event : " << iev << endl;
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
     ResetBranch();
     b_nJet = nJet;
@@ -129,7 +155,7 @@ void vtsAnalyser::Loop() {
       CollectVar();
       ScoreTMVA(outtrForTMVA);
     } else b_passedEvent = false; 
-    m_tree->Fill();
+    m_tree->Fill(); outtrForIdx->Fill();
   }
 }
 
@@ -333,8 +359,9 @@ void vtsAnalyser::MatchingForMC() {
     }
   }
 */
+
   // Finding s quark using GenPart_statusFlag (the part of W boson isn't completed)  >>>>>>>> pythia
-/*  for (unsigned int i=0; i<nGenPart; ++i) {
+  for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_statusFlags[i]) != 22913 && std::abs(GenPart_statusFlags[i]) != 4481) continue;
     if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) {
       if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && GenPart_statusFlags[GenPart_genPartIdxMother[i]] == 10497 ) ) { 
@@ -345,8 +372,8 @@ void vtsAnalyser::MatchingForMC() {
       }
     }
   }
-*/
 
+/*
   // Finding s quark using GenPart_statusFlag (the part of W boson isn't completed)  >>>>>>>> herwig
   for (unsigned int i=0; i<nGenPart; ++i) {
     if (std::abs(GenPart_statusFlags[i]) != 4097) continue;
@@ -360,6 +387,7 @@ void vtsAnalyser::MatchingForMC() {
       }
     }
   }
+*/
   if (m_tqMC.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
   /* Select quarks originated from t->qW */
   int tq1 = -1; int tq2 = -1;
@@ -954,27 +982,8 @@ void vtsAnalyser::CollectVar() {
 }
 
 void vtsAnalyser::ScoreTMVA(TTree* outtr) {
-  outtr->Branch("isSJet", &b_isSJet, "isSJet/I");
-  outtr->Branch("isBJet", &b_isSJet, "isSJet/I");
-  outtr->Branch("isHighest", &b_isHighest, "isHighest/I");
-  outtr->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
-  outtr->Branch("cmult", &b_cmult, "cmult/I");
-  outtr->Branch("nmult", &b_nmult, "nmult/I");
-  outtr->Branch("pt", &b_pt, "pt/F");
-  outtr->Branch("eta", &b_eta, "eta/F");
-  outtr->Branch("phi", &b_phi, "phi/F");
-  outtr->Branch("mass", &b_mass, "mass/F");
-  outtr->Branch("c_x1", &b_c_x1, "c_x1/F");
-  outtr->Branch("c_x2", &b_c_x2, "c_x2/F");
-  outtr->Branch("c_x3", &b_c_x3, "c_x3/F");
-  outtr->Branch("n_x1", &b_n_x1, "n_x1/F");
-  outtr->Branch("n_x2", &b_n_x2, "n_x2/F");
-  outtr->Branch("n_x3", &b_n_x3, "n_x3/F");
-  outtr->Branch("axis1", &b_axis1, "axis1/F");
-  outtr->Branch("axis2", &b_axis2, "axis2/F");
-  outtr->Branch("ptD", &b_ptD, "ptD/F");
- 
   auto selectedJet = jetSelection();
+  b_jet_start =  outtr->GetEntries();
   if (selectedJet.size() != 0) {
     if (m_recJet.size() == 0) return;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (std::get<1>(a) > std::get<1>(b)); } ); // pT ordering
@@ -994,7 +1003,8 @@ void vtsAnalyser::ScoreTMVA(TTree* outtr) {
       b_pt = -1;    b_eta = -99;  b_phi = -99;     b_mass = -1;
       b_c_x1 = -1;  b_c_x2 = -1;  b_c_x3 = -1;
       b_n_x1 = -1;  b_n_x2 = -1;  b_n_x3 = -1;
-      b_axis1 = -1; b_axis2 = -1; b_ptD = -1;
+      b_axis1 = -1; b_axis2 = -1; b_ptD = -1;      b_area = -1; 
+      b_CSVV2 = -99; 
 
       auto j = selectedJet[ij].GetFirstMother();
 
@@ -1009,9 +1019,10 @@ void vtsAnalyser::ScoreTMVA(TTree* outtr) {
       b_c_x1 = jetID_cpt1[j]/Jet_pt[j]; b_c_x2 = (jetID_cpt1[j]+jetID_cpt2[j])/Jet_pt[j]; b_c_x3 = (jetID_cpt1[j]+jetID_cpt2[j]+jetID_cpt3[j])/Jet_pt[j];
       b_n_x1 = jetID_npt1[j]/Jet_pt[j]; b_n_x2 = (jetID_npt1[j]+jetID_npt2[j])/Jet_pt[j]; b_n_x3 = (jetID_npt1[j]+jetID_npt2[j]+jetID_npt3[j])/Jet_pt[j];
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
-
+      b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
       outtr->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
+  b_jet_end = outtr->GetEntries();
 }
 
