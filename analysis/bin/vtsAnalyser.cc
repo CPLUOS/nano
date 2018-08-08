@@ -129,14 +129,9 @@ void vtsAnalyser::Loop() {
   outtrForTMVA->Branch("area", &b_area, "area/F");
   outtrForTMVA->Branch("CSVV2", &b_CSVV2, "CSVV2/F");
 
-  auto outtrForIdx = new TTree("event2", "event2");
-  outtrForIdx->Branch("jet_start", &b_jet_start, "jet_start/I");
-  outtrForIdx->Branch("jet_end", &b_jet_end, "jet_end/I");
-
   /* Events loop */
   for (Long64_t iev=0; iev<nentries; iev++) {
     b_jet_start = -1; b_jet_end = -1;
-
     fChain->GetEntry(iev);
     if (h_fChain) h_fChain->GetEntry(iev);
     if (ht_fChain) ht_fChain->GetEntry(iev);
@@ -157,7 +152,7 @@ void vtsAnalyser::Loop() {
       CollectVar();
       ScoreTMVA(outtrForTMVA);
     } else b_passedEvent = false; 
-    m_tree->Fill(); outtrForIdx->Fill();
+    m_tree->Fill();
     cout << " chk : " << b_jet_start << " " << b_jet_end << endl;
   }
 }
@@ -190,6 +185,7 @@ void vtsAnalyser::MakeBranch(TTree* t) {
   #define BranchTLV(name) t->Branch(#name, "TLorentzVector", &(b_##name));
 
   BranchI(nvertex); BranchI(channel); BranchI(njet) BranchF(met); BranchI(step); BranchO(passedEvent); BranchI(nJet); BranchI(nSelJet); BranchI(nSelJetEv); // njet is not nJet
+  BranchI(jet_start); BranchI(jet_end);
   BranchI(hadTruth_nMatched); BranchI(hadTruth_nTrueDau); 
   BranchO(hadTruth_isHadFromTop); BranchI(hadTruth_isHadFromTsb); BranchO(hadTruth_isHadFromW); BranchO(hadTruth_isHadFromS); BranchO(hadTruth_isHadFromC); BranchO(hadTruth_isHadFromB);
 
