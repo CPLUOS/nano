@@ -8,6 +8,32 @@ def valToName(strVar):
   return strVar.replace(".", "").replace("(", "").replace(")", "").replace(" ", "").replace("*", "")
 
 
+def makeHisto(strName, strTitle, listBin):
+  if listBin[ 0 ] >= 0: 
+    if len(listBin) == 3: 
+      return ROOT.TH1F(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ])
+    elif len(listBin) == 6: 
+      return ROOT.TH2F(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ], 
+        listBin[ 3 ], listBin[ 4 ], listBin[ 5 ])
+    elif len(listBin) == 9: 
+      return ROOT.TH3F(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ], 
+        listBin[ 3 ], listBin[ 4 ], listBin[ 5 ], listBin[ 6 ], listBin[ 7 ], listBin[ 8 ])
+  else: 
+    if listBin[ 1 ] == "log1D": 
+      import array
+      
+      nBin = listBin[ 2 ]
+      fBinRatio = ( listBin[ 4 ] / listBin[ 3 ] ) ** ( 1.0 / nBin )
+      
+      listBinAct = []
+      fBin = listBin[ 3 ]
+      
+      for i in range(nBin + 1): 
+        listBinAct.append(fBin)
+        fBin *= fBinRatio
+      
+      return ROOT.TH1F(strName, strTitle, nBin, array.array("d", listBinAct)) 
+
 strPathDraw = "%s/src/nano/analysis/test/singletop/draw"%os.environ[ "CMSSW_BASE" ]
 strPathThis = os.path.join(strPathDraw, "parallel_draw_histos.py")
 strPathListSet = os.path.join(strPathDraw, "listSet.json")
@@ -66,9 +92,8 @@ if sys.argv[ 1 ] == strTypeArgOneRoot:
   for strVar in dicVar.keys(): 
     strNameVar = valToName(strVar)
     strNameHist = dicMain[ "histname" ].encode("ascii", "ignore") + "_" + strNameVar
-    listBin = dicVar[ strVar ][ "bin" ]
     
-    hTmp = ROOT.TH1F(strNameHist, strNameHist, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ])
+    hTmp = makeHisto(strNameHist, strNameHist, dicVar[ strVar ][ "bin" ])
     tree.Project(strNameHist, strVar, strWeight)
     
     dicHist[ strVar ] = copy.deepcopy(hTmp)
@@ -181,12 +206,12 @@ else:
   
   strNameTree = "event"
   channel = 2 # 0 : all, 1 : el, 2 : mu, 3 : el + mu, (-) : anti
+  allcharge = False
   
   #weight = "1"
   weight = "genweight * puweight * mueffweight * btagweight"
   #weight = "genweight * puweight * btagweight"
   #weight = "puweight"
-  #cut  = "step >= 4"
   cut  = "step >= 4"
   #cut += " && ( njet - nbjet ) >= 1 && nbjet >= 1"
   #cut += " && njet == 2 && nbjet == 1"
@@ -203,8 +228,8 @@ else:
   strHelpHowto = "Usage : ./[name of this py file] [dir name of roots] " + \
     "-a <channel> -c <cut> -w <weight> -n <local running> -l <listSet JSON file>"
   try:
-    opts, args = getopt.getopt(sys.argv[ 2: ], "hnd:a:c:w:l:", 
-      ["channel", "cut", "cutadd", "weight", "listset"])
+    opts, args = getopt.getopt(sys.argv[ 2: ], "hnea:c:d:w:l:", 
+      ["channel", "cut", "cutadd", "allcharge", "weight", "listset"])
   except getopt.GetoptError:          
     sys.stderr.write(strHelpHowto + "\n")
     sys.exit(2)
@@ -219,6 +244,8 @@ else:
       cut = arg
     elif opt in ("-d", "--cutadd"):
       strCutAdd = arg
+    elif opt in ("-e", "--allcharge"): 
+      allcharge = True
     elif opt in ("-w", "--weight"):
       weight = arg
     #elif opt in ("-m"):
@@ -233,9 +260,11 @@ else:
   if channel != 0: 
     strSign = "" if channel > 0 else "-"
     if abs(channel) == 1: 
-      cut += " && trig_e > 0 && lep_pid == %s11"%strSign
+      cut += " && trig_e > 0"
+      cut += " && lep_pid == %s11"%strSign if not allcharge else " && abs(lep_pid) == 11"
     if abs(channel) == 2: 
-      cut += " && trig_m > 0 && lep_pid == %s13"%strSign
+      cut += " && trig_m > 0"
+      cut += " && lep_pid == %s13"%strSign if not allcharge else " && abs(lep_pid) == 13"
     if abs(channel) == 3: 
       cut += " && ( lep_pid == %s11 || lep_pid == %s113)"%(strSign, strSign)
   
@@ -264,6 +293,7 @@ else:
   strDirHist = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
   if not os.path.exists(os.path.join(strPathDraw, strDirHist)): 
     os.makedirs(os.path.join(strPathDraw, strDirHist))
+    os.makedirs(os.path.join(strPathDraw, strDirHist, "logs"))
   
   nMaxProc = 20
   
@@ -277,8 +307,8 @@ log = %(path)s/condor.log
 getenv     = True
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-#output = %(path)s/job_%(name)s.log
-#error = %(path)s/job_%(name)s.err
+output = %(path)s/logs/job_%(name)s.log
+error = %(path)s/logs/job_%(name)s.err
 queue 1
   """
   
@@ -329,6 +359,8 @@ queue 1
         strDirHist, strDataset, dicNumFiles[ strDataset ]))
   
   if bMulticore: 
+    print "All jobs have been thrown"
+    
     for i, strDataset in enumerate(listSets): 
       os.system("python %s %s %s %s %i"%(strPathThis, strTypeArgMerger, 
         strDirHist, strDataset, dicNumFiles[ strDataset ]))
