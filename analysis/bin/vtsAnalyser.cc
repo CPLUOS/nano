@@ -135,6 +135,8 @@ void vtsAnalyser::Loop() {
 
   /* Events loop */
   for (Long64_t iev=0; iev<nentries; iev++) {
+    b_jet_start = -1; b_jet_end = -1;
+
     fChain->GetEntry(iev);
     if (h_fChain) h_fChain->GetEntry(iev);
     if (ht_fChain) ht_fChain->GetEntry(iev);
@@ -156,6 +158,7 @@ void vtsAnalyser::Loop() {
       ScoreTMVA(outtrForTMVA);
     } else b_passedEvent = false; 
     m_tree->Fill(); outtrForIdx->Fill();
+    cout << " chk : " << b_jet_start << " " << b_jet_end << endl;
   }
 }
 
