@@ -7,12 +7,15 @@ class vtsAnalyser : public hadAnalyser
 {
 private:
   bool b_passedEvent;
+  int b_nJet, b_nSelJet, b_nSelJetEv;
 
   /* for MatchingForMC() */
   std::map<unsigned int, int> m_qjMapForMC; std::map<unsigned int, int> m_qgjMapForMC;
   std::map<unsigned int, int> m_closestRecJetForLep1; std::map<unsigned int, int> m_closestRecJetForLep2; 
   std::map<unsigned int, int> m_closestGenJetForLep1; std::map<unsigned int, int> m_closestGenJetForLep2;
   std::vector<int> m_tqMC; std::vector<int> m_wqMC;
+  typedef std::tuple<unsigned int, float, float, float, float, float> jetInfo;
+  std::vector<jetInfo> m_genJet; std::vector<jetInfo> m_recJet;
 
   float b_Jet_dr_closest_s, b_Jet_dr_closest_b;
   float b_SelJet_dr_closest_s, b_SelJet_dr_closest_b;
@@ -57,11 +60,20 @@ private:
 
   /* for JetAnalysis() */
   float b_Jet_axis1, b_Jet_axis2, b_Jet_cpt1, b_Jet_cpt2, b_Jet_cpt3, b_Jet_npt1, b_Jet_npt2, b_Jet_npt3, b_Jet_ptD, b_Jet_delta;
-  int b_Jet_nmult, b_Jet_cmult;
+  int   b_Jet_nmult, b_Jet_cmult;
   std::vector<int> b_Jet_isCorrectMat;
 
   /* for CollectVar() */
   float b_MET_pt, b_MET_phi, b_MET_sumEt;
+
+  /* for ScoreTMVA() */
+  int   b_isSJet, b_isBJet, b_isHighest, b_isClosestToLep;
+  int   b_cmult,  b_nmult;
+  float b_pt,     b_eta,    b_phi,       b_mass;
+  float b_c_x1,   b_c_x2,   b_c_x3;
+  float b_n_x1,   b_n_x2,   b_n_x3;
+  float b_axis1,  b_axis2,  b_ptD;
+  
 
   /* functions */
   void ResetBranch();
@@ -76,13 +88,11 @@ private:
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
   void CollectVar();
 
-public:
-  /* temp */
-  bool isSJ = false; bool isMJ = false; bool isSSJ = false; bool isSBJ = false;
+  void ScoreTMVA(TTree *t);
 
+public:
   float m_jetConeSize = 0.4; float m_xCut = 0.2;
   void setOutput(std::string outputName);
-
   vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
   ~vtsAnalyser();
