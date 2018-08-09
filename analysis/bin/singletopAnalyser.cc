@@ -336,6 +336,9 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   
   t->Branch("nhadcand", &b_nhadcand, "nhadcand/I");
   
+  t->Branch("trig_m_trk", &b_trig_m_trk, "trig_m_trk/F");
+  t->Branch("trig_m_global", &b_trig_m_global, "trig_m_global/F");
+  
   t->Branch("trig_e", &b_trig_e, "trig_e/F");
   t->Branch("trig_m", &b_trig_m, "trig_m/F");
   

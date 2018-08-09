@@ -33,6 +33,9 @@ void topEventSelectionSL::Reset()
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
   b_tri = 0;
   
+  b_trig_m_trk = b_trig_m_global = 0;
+  b_trig_m = b_trig_e = 0;
+  
   m_jets.clear();
   m_jetsCMVA.clear();
 
@@ -74,6 +77,9 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlow) h_cutFlow->Fill(2);
 
   //Triggers
+  b_trig_m_trk    = HLT_IsoTkMu24 ? 1.0 : 0.0;
+  b_trig_m_global = HLT_IsoMu24 ? 1.0 : 0.0;
+  
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24 ? 1.0 : 0.0;
   //b_trig_e = HLT_Ele27_WPTight_Gsf;
   b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf ? 1.0 : 0.0;
