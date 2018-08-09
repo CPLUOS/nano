@@ -80,24 +80,24 @@ int topEventSelectionSL::EventSelection()
 
   // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
   
-  // if (b_channel == CH_MU) {
-  //   if (!b_trig_m) return b_step;
-  // }
+  //if (b_channel == CH_MU) {
+  //  if (!b_trig_m) return b_step;
+  //}
 
-  // if (b_channel == CH_EL) {
-  //   if (!b_trig_e) return b_step;
-  // }
+  //if (b_channel == CH_EL) {
+  //  if (!b_trig_e) return b_step;
+  //}
   
   Bool_t IsoMu24 = false;
   Bool_t IsoTkMu24 = false;
   
-  for ( UInt_t i = 0 ; i < nTrigObj ; i++ ) {
-    if ( TrigObj_id[ i ] != 13 ) continue;
-    if ( TrigObj_pt[ i ] < 24 ) continue;
-    Int_t bits = TrigObj_filterBits[ i ];
-    if ( bits & 0x2 ) IsoMu24 = true;
-    if ( bits & 0x1 ) IsoTkMu24 = true;  
-  }
+  //for ( UInt_t i = 0 ; i < nTrigObj ; i++ ) {
+  //  if ( TrigObj_id[ i ] != 13 ) continue;
+  //  if ( TrigObj_pt[ i ] < 24 ) continue;
+  //  Int_t bits = TrigObj_filterBits[ i ];
+  //  if ( bits & 0x2 ) IsoMu24 = true;
+  //  if ( bits & 0x1 ) IsoTkMu24 = true;  
+  //}
   
   //if ( !( IsoMu24 || IsoTkMu24 ) ) return b_step;
 
@@ -105,10 +105,6 @@ int topEventSelectionSL::EventSelection()
   b_mueffweight    = muonSF_.getScaleFactor(recolep, 13, 0);
   b_mueffweight_up = muonSF_.getScaleFactor(recolep, 13, 1);
   b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
-
-  if (b_channel == CH_EL) {
-    if (!b_trig_e) return b_step;
-  }
 
   b_tri = b_tri_up = b_tri_dn = 0;
   b_tri = ( IsoMu24 || IsoTkMu24 ? 1.0 : 0.0 ); //computeTrigSF(recolep1, recolep2);
@@ -186,7 +182,7 @@ int topEventSelectionSL::EventSelection()
     if (h_cutFlowLep) h_cutFlowLep->Fill(3);
   } else return b_step;
   
-  if (b_nbjet >= 0) {
+  if (b_nbjet >= 1) {
     b_step = 4;
     if (h_cutFlow) h_cutFlow->Fill(6);
     if (h_cutFlowLep) h_cutFlowLep->Fill(4);
