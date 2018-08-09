@@ -7,6 +7,33 @@ def valToName(strVar):
   return strVar.replace(".", "").replace("(", "").replace(")", "").replace(" ", "").replace("*", "")
 
 
+def makeHisto(strName, strTitle, listBin):
+  if listBin[ 0 ] >= 0: 
+    if len(listBin) == 3: 
+      return ROOT.TH1D(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ])
+    elif len(listBin) == 6: 
+      return ROOT.TH2F(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ], 
+        listBin[ 3 ], listBin[ 4 ], listBin[ 5 ])
+    elif len(listBin) == 9: 
+      return ROOT.TH3F(strName, strTitle, listBin[ 0 ], listBin[ 1 ], listBin[ 2 ], 
+        listBin[ 3 ], listBin[ 4 ], listBin[ 5 ], listBin[ 6 ], listBin[ 7 ], listBin[ 8 ])
+  else: 
+    if listBin[ 1 ] == "log1D": 
+      import array
+      
+      nBin = listBin[ 2 ]
+      fBinRatio = ( listBin[ 4 ] / listBin[ 3 ] ) ** ( 1.0 / nBin )
+      
+      listBinAct = []
+      fBin = listBin[ 3 ]
+      
+      for i in range(nBin + 1): 
+        listBinAct.append(fBin)
+        fBin *= fBinRatio
+      
+      return ROOT.TH1D(strName, strTitle, nBin, array.array("d", listBinAct))
+
+
 listRDRun = [
   "2016B", "2016C", "2016D", "2016E", "2016F", "2016G", "2016H", 
 ]
@@ -91,8 +118,7 @@ for strKey in dicSet.keys():
   strNameRoot = "hist_" + strKey.encode("ascii", "ignore")
   strNameHist = strNameRoot + "_" + strVarName
   
-  dicSet[ strKey ][ "hist" ] = ROOT.TH1F(strNameHist + "_new", strNameHist + "_new", 
-    binning[ 0 ], binning[ 1 ], binning[ 2 ])
+  dicSet[ strKey ][ "hist" ] = makeHisto(strNameHist + "_new", strNameHist + "_new", binning)
   
   dicSet[ strKey ][ "entries" ] = 0
   dicSet[ strKey ][ "step0" ] = 0
@@ -132,14 +158,14 @@ for strKey in dicSet.keys():
 datalumi *= fStep1Entries / fStep0Entries
 
 listMCSig = []
+histMCSig  = makeHisto("histSig",  "histSig",  binning)
 listMC = []
-histRD  = ROOT.TH1F("histRD",  "histRD",  binning[ 0 ], binning[ 1 ], binning[ 2 ])
+histRD  = makeHisto("histRD",  "histRD",  binning)
 dicRDRun = {}
 
 for strRDRun in listRDRun: 
   dicRDRun[ strRDRun ] = {}
-  dicRDRun[ strRDRun ][ "hist" ] = ROOT.TH1F("histRD_" + strRDRun, "histRD", 
-    binning[ 0 ], binning[ 1 ], binning[ 2 ])
+  dicRDRun[ strRDRun ][ "hist" ] = makeHisto("histRD_" + strRDRun, "histRD", binning)
 
 # Inserting MC plots into stacks, merging RD plots, colouring, etc.
 for strKey in dicSet.keys():
@@ -153,6 +179,7 @@ for strKey in dicSet.keys():
     
     # Appending
     listMCSig.append(dicSet[ strKey ][ "hist" ])
+    histMCSig.Add(dicSet[ strKey ][ "hist" ])
   elif dicSet[ strKey ][ "TYPE" ] == "BKG": 
     # Loading cosmetric custom if there is
     strTitle = dicSetInfo[ "title" ]
@@ -195,8 +222,9 @@ for strBack in listBack:
 
 if dolog: listMC.reverse()
 
-# Signal part must be on the top
-listMC += listMCSig
+# Signal part must be on the --top-- bottom
+#listMC += listMCSig
+listMC = listMCSig + listMC
 
 # For only printing out the number of entries
 if onlyPrintNum: 
@@ -234,7 +262,9 @@ if fMaxPlot is not None: histRD.SetMaximum(fMaxPlot)
 strOutFile = "hist_%s_%s.png"%(strDirHist, strVarName)
 print strOutFile, 
 
-canvMain = drawTH1("asdf", CMS_lumi, listMC, histRD, x_name, y_name, dolog)
+canvMain = drawTH1("asdf", CMS_lumi, listMC, histRD, x_name, y_name, # dolog, 
+  doLogX = binning[ 0 ] < 0 and binning[ 1 ] == "log1D", histSig = histMCSig)
+
 canvMain.SaveAs(strOutFile)
 
 

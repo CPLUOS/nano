@@ -98,7 +98,7 @@
   }, 
   
   "CosmetCustom": {
-    "t#bar{t}+Jets": {"colour": 6}, 
+    "t#bar{t}+Jets": {"colour": 3}, 
     "SingleTop": {"title": "Single top others"}
   }, 
   
@@ -112,7 +112,7 @@
     "njet - nbjet": {"bin": [10, -0.5, 9.5], "xaxis": "Number of non-b-tagged jets", "yaxis": "Events"}, 
     
     "lep.Pt()":       {"bin": [20, 10, 210], "xaxis": "lepton p_T (GeV)", "yaxis": "Events"}, 
-    "abs(lep.Eta())": {"bin": [21, 0, 2.4], "xaxis": "lepton |#eta|", "yaxis": "Events"}, 
+    "abs(lep.Eta())": {"bin": [30, 0, 2.5], "xaxis": "lepton |#eta|", "yaxis": "Events", "min": 0.0}, 
     "lep.Phi()":      {"bin": [20, -3.2, 3.2], "xaxis": "lepton #phi", "yaxis": "Events"}, 
     
     "jet1.Pt()":       {"bin": [20, 20, 220], "xaxis": "jet p_T (GeV)", "yaxis": "Events"}, 
@@ -135,6 +135,10 @@
     "top1.Pt()":       {"bin": [20, 0, 500], "xaxis": "p_T of reco. top quark (GeV)", "yaxis": "Events"}, 
     "abs(top1.Eta())": {"bin": [20, 0, 3.0], "xaxis": "|#eta| of reco. top quark (GeV)", "yaxis": "Events"}, 
     "top1.Phi()":      {"bin": [20, 0, 3.5], "xaxis": "Phi of reco. top quark (GeV)", "yaxis": "Events"}, 
+    
+    "W1.Mt()":        {"bin": [25, 0, 200], "xaxis": "Mass of reco. top quark (GeV)", "yaxis": "Events"}, 
+    
+    "isolep": {"bin": [-1, "log1D", 30, 0.001, 10], "xaxis": "lepton isolation", "yaxis": "Events"}, 
     
     "CSVv2_jet1":  {"bin": [40, 0, 1], "xaxis": "CSVv2 value of the 1st non-b-tagged jet", "yaxis": "Events"}, 
     "CSVv2_bjet1": {"bin": [40, 0, 1], "xaxis": "CSVv2 value of the 1st b-tagged jet", "yaxis": "Events"}, 

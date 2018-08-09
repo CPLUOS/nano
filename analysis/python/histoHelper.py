@@ -107,7 +107,7 @@ def setDefTH1Style(th1, x_name, y_name):
     ROOT.gStyle.cd()
     return th1
     
-def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, legx=0.68, legfontsize=0.030):
+def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doLogX=False, doRatio=True, ratioRange=0.45, legx=0.68, legfontsize=0.030, histSig=None):
     leg = ROOT.TLegend(legx,0.68,legx+0.2,0.91)
     leg.SetBorderSize(0)
     #leg.SetNColumns(2)
@@ -166,10 +166,22 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     setMargins(pads[0], doRatio)
     if doLog:
         pads[0].SetLogy()
+    
+    if doLogX: 
+        pads[ 0 ].SetLogx()
+        pads[ 1 ].SetLogx()
 
     data.Draw()
     hs.Draw("same")
     data.Draw("esamex0")
+    
+    if histSig is not None: 
+      histSig.Scale(data.Integral() / histSig.Integral())
+      histSig.SetLineColor(2)
+      
+      histSig.Draw("same HIST")
+      leg.AddEntry(histSig, "signal (scaled)", "l")
+    
     leg.Draw("same")
     
     pads[0].Update()
