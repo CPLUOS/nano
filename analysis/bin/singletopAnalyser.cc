@@ -336,8 +336,8 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   
   t->Branch("nhadcand", &b_nhadcand, "nhadcand/I");
   
-  t->Branch("trig_e", &b_trig_e, "trig_e/O");
-  t->Branch("trig_m", &b_trig_m, "trig_m/O");
+  t->Branch("trig_e", &b_trig_e, "trig_e/F");
+  t->Branch("trig_m", &b_trig_m, "trig_m/F");
   
   t->Branch("tri", &b_tri, "tri/F");
   t->Branch("tri_up", &b_tri_up, "tri_up/F");
@@ -1293,6 +1293,7 @@ int main(int argc, char **argv) {
   // Copied from h2muAnaylser.cc to make sure the compatibility
   if (argc > 1 && strcmp(argv[ 1 ], "-q") != 0 ) {
     string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/"+username+"/nanoAOD/"+std::string(argv[1])+"/"+std::string(argv[2]);
+    //string dirName = "./";
    // string dirName = env+("/src/nano/analysis/test/h2mu/Results/")+argv[1]+"/"+argv[2];
     string temp = argv[2];
     Bool_t isMC = false;

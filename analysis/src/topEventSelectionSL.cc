@@ -74,9 +74,9 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlow) h_cutFlow->Fill(2);
 
   //Triggers
-  b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
+  b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24 ? 1.0 : 0.0;
   //b_trig_e = HLT_Ele27_WPTight_Gsf;
-  b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf;
+  b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf ? 1.0 : 0.0;
 
   // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
   
@@ -91,13 +91,13 @@ int topEventSelectionSL::EventSelection()
   Bool_t IsoMu24 = false;
   Bool_t IsoTkMu24 = false;
   
-  for ( UInt_t i = 0 ; i < nTrigObj ; i++ ) {
+  /*for ( UInt_t i = 0 ; i < nTrigObj ; i++ ) {
     if ( TrigObj_id[ i ] != 13 ) continue;
     if ( TrigObj_pt[ i ] < 24 ) continue;
     Int_t bits = TrigObj_filterBits[ i ];
     if ( bits & 0x2 ) IsoMu24 = true;
     if ( bits & 0x1 ) IsoTkMu24 = true;  
-  }
+  }*/
   
   //if ( !( IsoMu24 || IsoTkMu24 ) ) return b_step;
 
