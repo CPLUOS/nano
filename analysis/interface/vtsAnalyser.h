@@ -103,7 +103,7 @@ private:
 
   /* functions */
   void ResetBranch();
-  void MakeBranch(TTree* t);
+  void MakeBranch();
   void MatchingForMC();
   void HadronAnalysis();
   void GenHadronAnalysis();

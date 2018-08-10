@@ -137,7 +137,7 @@ void vtsAnalyser::Loop() {
       RecAnalysis();
       JetAnalysis();
       CollectVar();
-      ScoreTMVA(outtrForTMVA);
+      ScoreTMVA();
     } else b_passedEvent = false; 
     m_tree->Fill();
     cout << " chk : " << b_jet_start << " " << b_jet_end << endl;
@@ -148,7 +148,7 @@ void vtsAnalyser::setOutput(std::string outFileName) {
   m_output = TFile::Open(outFileName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
   m_outtrForTMVA = new TTree("MVA_score", "MVA_score");
-  MakeBranch(m_tree);
+  MakeBranch();
 
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
@@ -156,39 +156,39 @@ void vtsAnalyser::setOutput(std::string outFileName) {
   h_cutFlow = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
 }
 
-void vtsAnalyser::MakeBranch(TTree* t) {
-  outtrForTMVA->Branch("isSJet", &b_isSJet, "isSJet/I");
-  outtrForTMVA->Branch("isBJet", &b_isBJet, "isBJet/I");
-  outtrForTMVA->Branch("isHighest", &b_isHighest, "isHighest/I");
-  outtrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
-  outtrForTMVA->Branch("cmult", &b_cmult, "cmult/I");
-  outtrForTMVA->Branch("nmult", &b_nmult, "nmult/I");
-  outtrForTMVA->Branch("pt", &b_pt, "pt/F");
-  outtrForTMVA->Branch("eta", &b_eta, "eta/F");
-  outtrForTMVA->Branch("phi", &b_phi, "phi/F");
-  outtrForTMVA->Branch("mass", &b_mass, "mass/F");
-  outtrForTMVA->Branch("c_x1", &b_c_x1, "c_x1/F");
-  outtrForTMVA->Branch("c_x2", &b_c_x2, "c_x2/F");
-  outtrForTMVA->Branch("c_x3", &b_c_x3, "c_x3/F");
-  outtrForTMVA->Branch("n_x1", &b_n_x1, "n_x1/F");
-  outtrForTMVA->Branch("n_x2", &b_n_x2, "n_x2/F");
-  outtrForTMVA->Branch("n_x3", &b_n_x3, "n_x3/F");
-  outtrForTMVA->Branch("axis1", &b_axis1, "axis1/F");
-  outtrForTMVA->Branch("axis2", &b_axis2, "axis2/F");
-  outtrForTMVA->Branch("ptD", &b_ptD, "ptD/F");
-  outtrForTMVA->Branch("area", &b_area, "area/F");
-  outtrForTMVA->Branch("CSVV2", &b_CSVV2, "CSVV2/F");
+void vtsAnalyser::MakeBranch() {
+  m_outtrForTMVA->Branch("isSJet", &b_isSJet, "isSJet/I");
+  m_outtrForTMVA->Branch("isBJet", &b_isBJet, "isBJet/I");
+  m_outtrForTMVA->Branch("isHighest", &b_isHighest, "isHighest/I");
+  m_outtrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
+  m_outtrForTMVA->Branch("cmult", &b_cmult, "cmult/I");
+  m_outtrForTMVA->Branch("nmult", &b_nmult, "nmult/I");
+  m_outtrForTMVA->Branch("pt", &b_pt, "pt/F");
+  m_outtrForTMVA->Branch("eta", &b_eta, "eta/F");
+  m_outtrForTMVA->Branch("phi", &b_phi, "phi/F");
+  m_outtrForTMVA->Branch("mass", &b_mass, "mass/F");
+  m_outtrForTMVA->Branch("c_x1", &b_c_x1, "c_x1/F");
+  m_outtrForTMVA->Branch("c_x2", &b_c_x2, "c_x2/F");
+  m_outtrForTMVA->Branch("c_x3", &b_c_x3, "c_x3/F");
+  m_outtrForTMVA->Branch("n_x1", &b_n_x1, "n_x1/F");
+  m_outtrForTMVA->Branch("n_x2", &b_n_x2, "n_x2/F");
+  m_outtrForTMVA->Branch("n_x3", &b_n_x3, "n_x3/F");
+  m_outtrForTMVA->Branch("axis1", &b_axis1, "axis1/F");
+  m_outtrForTMVA->Branch("axis2", &b_axis2, "axis2/F");
+  m_outtrForTMVA->Branch("ptD", &b_ptD, "ptD/F");
+  m_outtrForTMVA->Branch("area", &b_area, "area/F");
+  m_outtrForTMVA->Branch("CSVV2", &b_CSVV2, "CSVV2/F");
 
   
-  #define Branch_(type, name, suffix) t->Branch(#name, &(b_##name), #name "/" #suffix);
+  #define Branch_(type, name, suffix) m_tree->Branch(#name, &(b_##name), #name "/" #suffix);
   #define BranchI(name) Branch_(Int_t, name, I)
   #define BranchF(name) Branch_(Float_t, name, F)
   #define BranchO(name) Branch_(Bool_t, name, O)
-  #define BranchV_(type, name) t->Branch(#name, "vector<"#type">", &(b_##name));
+  #define BranchV_(type, name) m_tree->Branch(#name, "vector<"#type">", &(b_##name));
   #define BranchVI(name) BranchV_(Int_t, name); 
   #define BranchVF(name) BranchV_(Float_t, name);
   #define BranchVO(name) BranchV_(Bool_t, name);
-  #define BranchTLV(name) t->Branch(#name, "TLorentzVector", &(b_##name));
+  #define BranchTLV(name) m_tree->Branch(#name, "TLorentzVector", &(b_##name));
 
   BranchI(nvertex); BranchI(channel); BranchI(njet) BranchF(met); BranchI(step); BranchO(passedEvent); BranchI(nJet); BranchI(nSelJet); BranchI(nSelJetEv); // njet is not nJet
   BranchI(jet_start); BranchI(jet_end);
@@ -990,7 +990,7 @@ void vtsAnalyser::CollectVar() {
 
 void vtsAnalyser::ScoreTMVA() {
   auto selectedJet = jetSelection();
-  b_jet_start =  m_outtr->GetEntries();
+  b_jet_start =  m_outtrForTMVA->GetEntries();
   if (selectedJet.size() != 0) {
     if (m_recJet.size() == 0) return;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
@@ -1022,9 +1022,8 @@ void vtsAnalyser::ScoreTMVA() {
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
       b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
 
-      m_outtr->Fill();
+      m_outtrForTMVA->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
-  b_jet_end = m_outtr->GetEntries();
+  b_jet_end = m_outtrForTMVA->GetEntries();
 }
-
