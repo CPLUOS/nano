@@ -949,13 +949,13 @@ void vtsAnalyser::RecAnalysis() {
     /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
     
     auto xorder = [] (jetks  a, jetks b) { return (a.x > b.x); };
-    int hRecIdx1 = std::max(recPair1.begin(), recPair1.end(), xorder).idx;
-    int hGenIdx1 = std::max(genPair1.begin(), genPair1.end(), xorder).idx;
+    int hRecIdx1 = std::max_element(recPair1.begin(), recPair1.end(), xorder)->idx;
+    int hGenIdx1 = std::max_element(genPair1.begin(), genPair1.end(), xorder)->idx;
     std::replace_if(b_hadTruth_isClosestPair_xOrder_j_vec.begin(),  b_hadTruth_isClosestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx1); }, -1);
     std::replace_if(b_hadTruth_isClosestPair_xOrder_gj_vec.begin(), b_hadTruth_isClosestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx1); }, -1);
 
-    int hRecIdx2 = std::sort(recPair2.begin(), recPair2.end(), xorder).idx;
-    int hGenIdx2 = std::sort(genPair2.begin(), genPair2.end(), xorder).idx;
+    int hRecIdx2 = std::max_element(recPair2.begin(), recPair2.end(), xorder)->idx;
+    int hGenIdx2 = std::max_element(genPair2.begin(), genPair2.end(), xorder)->idx;
     std::replace_if(b_hadTruth_isHighestPair_xOrder_j_vec.begin(),  b_hadTruth_isHighestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx2); }, -1);
     std::replace_if(b_hadTruth_isHighestPair_xOrder_gj_vec.begin(), b_hadTruth_isHighestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx2); }, -1);
   }
