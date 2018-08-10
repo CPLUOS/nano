@@ -3,9 +3,21 @@
 
 #include "hadAnalyser.h"
 
-class vtsAnalyser : public hadAnalyser 
-{
+class vtsAnalyser : public hadAnalyser {
+public:
+  float m_jetConeSize = 0.4; float m_xCut = 0.2;
+
+  vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
+  vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
+
+  ~vtsAnalyser() {}
+
+  void setOutput(std::string outputName);
+  virtual void Loop();
+
 private:
+  TTree *m_outtrForTMVA;
+  
   bool b_passedEvent;
   int b_nJet, b_nSelJet, b_nSelJetEv;
 
@@ -14,8 +26,20 @@ private:
   std::map<unsigned int, int> m_closestRecJetForLep1; std::map<unsigned int, int> m_closestRecJetForLep2; 
   std::map<unsigned int, int> m_closestGenJetForLep1; std::map<unsigned int, int> m_closestGenJetForLep2;
   std::vector<int> m_tqMC; std::vector<int> m_wqMC;
-  typedef std::tuple<unsigned int, float, float, float, float, float> jetInfo;
-  std::vector<jetInfo> m_genJet; std::vector<jetInfo> m_recJet;
+
+  /// Additional information about global properties of the jet,
+  /// relevant to our Vts analysis
+  struct jetInfo {
+    int idx; /// jet idx
+    double pt; /// jet pt
+    double drsj; /// DeltaR(s,jet)
+    double drbj; /// DeltaR(b,jet)
+    double drl1j; /// DeltaR(lep1,jet)
+    double drl2j; /// DeltaR(lep2,jet)
+  };
+
+  std::vector<jetInfo> m_genJet;
+  std::vector<jetInfo> m_recJet;
 
   float b_Jet_dr_closest_s, b_Jet_dr_closest_b;
   float b_SelJet_dr_closest_s, b_SelJet_dr_closest_b;
@@ -79,7 +103,7 @@ private:
 
   /* functions */
   void ResetBranch();
-  void MakeBranch(TTree* t);
+  void MakeBranch();
   void MatchingForMC();
   void HadronAnalysis();
   void GenHadronAnalysis();
@@ -90,21 +114,12 @@ private:
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
   void CollectVar();
 
-  void ScoreTMVA(TTree *t);
-
-public:
-  float m_jetConeSize = 0.4; float m_xCut = 0.2;
-  void setOutput(std::string outputName);
-  vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
-  vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
-  ~vtsAnalyser();
-  virtual void     Loop();
+  void ScoreTMVA();
 };
 
-vtsAnalyser::vtsAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : hadAnalyser(tree, had, hadTruth, isMC, dl, sle, slm)
-{ }
-
-vtsAnalyser::~vtsAnalyser()
-{ }
+vtsAnalyser::vtsAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :
+  hadAnalyser(tree, had, hadTruth, isMC, dl, sle, slm)
+{
+}
 
 #endif
