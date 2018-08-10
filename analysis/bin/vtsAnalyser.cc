@@ -903,7 +903,7 @@ void vtsAnalyser::RecAnalysis() {
     for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
       TLorentzVector jet_tlv;
       jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-      auto dr = jet_tlv.DeltaR(had_tlv);      auto x = had_pt[i]/Jet_pt[j];
+      auto dr = jet_tlv.DeltaR(had_tlv); auto x = had_pt[i]/Jet_pt[j];
       auto drMin1 = recPair1[j].dr; auto xMax1 = recPair1[j].x;
       auto drMin2 = recPair2[j].dr; auto xMax2 = recPair2[j].x;
       if (hadTruth_isHadFromTsb[i] != m_qjMapForMC[j]) continue;
@@ -1004,12 +1004,6 @@ void vtsAnalyser::ScoreTMVA(TTree* outtr) {
 
     for (unsigned int ij=0; ij<selectedJet.size();++ij) {
       b_isSJet = 0; b_isBJet = 0; b_isHighest = 0; b_isClosestToLep = 0;
-      b_cmult = -1; b_nmult = -1;
-      b_pt = -1;    b_eta = -99;  b_phi = -99;     b_mass = -1;
-      b_c_x1 = -1;  b_c_x2 = -1;  b_c_x3 = -1;
-      b_n_x1 = -1;  b_n_x2 = -1;  b_n_x3 = -1;
-      b_axis1 = -1; b_axis2 = -1; b_ptD = -1;      b_area = -1; 
-      b_CSVV2 = -99; 
 
       auto j = selectedJet[ij].GetFirstMother();
 
@@ -1025,6 +1019,7 @@ void vtsAnalyser::ScoreTMVA(TTree* outtr) {
       b_n_x1 = jetID_npt1[j]/Jet_pt[j]; b_n_x2 = jetID_npt2[j]/Jet_pt[j]; b_n_x3 = jetID_npt3[j]/Jet_pt[j];
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
       b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
+
       outtr->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
