@@ -115,28 +115,6 @@ int main(int argc, char* argv[])
 void vtsAnalyser::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
-  auto outtrForTMVA = new TTree("MVA_score", "MVA_score");
-  outtrForTMVA->Branch("isSJet", &b_isSJet, "isSJet/I");
-  outtrForTMVA->Branch("isBJet", &b_isBJet, "isBJet/I");
-  outtrForTMVA->Branch("isHighest", &b_isHighest, "isHighest/I");
-  outtrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
-  outtrForTMVA->Branch("cmult", &b_cmult, "cmult/I");
-  outtrForTMVA->Branch("nmult", &b_nmult, "nmult/I");
-  outtrForTMVA->Branch("pt", &b_pt, "pt/F");
-  outtrForTMVA->Branch("eta", &b_eta, "eta/F");
-  outtrForTMVA->Branch("phi", &b_phi, "phi/F");
-  outtrForTMVA->Branch("mass", &b_mass, "mass/F");
-  outtrForTMVA->Branch("c_x1", &b_c_x1, "c_x1/F");
-  outtrForTMVA->Branch("c_x2", &b_c_x2, "c_x2/F");
-  outtrForTMVA->Branch("c_x3", &b_c_x3, "c_x3/F");
-  outtrForTMVA->Branch("n_x1", &b_n_x1, "n_x1/F");
-  outtrForTMVA->Branch("n_x2", &b_n_x2, "n_x2/F");
-  outtrForTMVA->Branch("n_x3", &b_n_x3, "n_x3/F");
-  outtrForTMVA->Branch("axis1", &b_axis1, "axis1/F");
-  outtrForTMVA->Branch("axis2", &b_axis2, "axis2/F");
-  outtrForTMVA->Branch("ptD", &b_ptD, "ptD/F");
-  outtrForTMVA->Branch("area", &b_area, "area/F");
-  outtrForTMVA->Branch("CSVV2", &b_CSVV2, "CSVV2/F");
 
   /* Events loop */
   for (Long64_t iev=0; iev<nentries; iev++) {
@@ -169,6 +147,7 @@ void vtsAnalyser::Loop() {
 void vtsAnalyser::setOutput(std::string outFileName) {
   m_output = TFile::Open(outFileName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
+  m_outtrForTMVA = new TTree("MVA_score", "MVA_score");
   MakeBranch(m_tree);
 
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
@@ -178,6 +157,29 @@ void vtsAnalyser::setOutput(std::string outFileName) {
 }
 
 void vtsAnalyser::MakeBranch(TTree* t) {
+  outtrForTMVA->Branch("isSJet", &b_isSJet, "isSJet/I");
+  outtrForTMVA->Branch("isBJet", &b_isBJet, "isBJet/I");
+  outtrForTMVA->Branch("isHighest", &b_isHighest, "isHighest/I");
+  outtrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
+  outtrForTMVA->Branch("cmult", &b_cmult, "cmult/I");
+  outtrForTMVA->Branch("nmult", &b_nmult, "nmult/I");
+  outtrForTMVA->Branch("pt", &b_pt, "pt/F");
+  outtrForTMVA->Branch("eta", &b_eta, "eta/F");
+  outtrForTMVA->Branch("phi", &b_phi, "phi/F");
+  outtrForTMVA->Branch("mass", &b_mass, "mass/F");
+  outtrForTMVA->Branch("c_x1", &b_c_x1, "c_x1/F");
+  outtrForTMVA->Branch("c_x2", &b_c_x2, "c_x2/F");
+  outtrForTMVA->Branch("c_x3", &b_c_x3, "c_x3/F");
+  outtrForTMVA->Branch("n_x1", &b_n_x1, "n_x1/F");
+  outtrForTMVA->Branch("n_x2", &b_n_x2, "n_x2/F");
+  outtrForTMVA->Branch("n_x3", &b_n_x3, "n_x3/F");
+  outtrForTMVA->Branch("axis1", &b_axis1, "axis1/F");
+  outtrForTMVA->Branch("axis2", &b_axis2, "axis2/F");
+  outtrForTMVA->Branch("ptD", &b_ptD, "ptD/F");
+  outtrForTMVA->Branch("area", &b_area, "area/F");
+  outtrForTMVA->Branch("CSVV2", &b_CSVV2, "CSVV2/F");
+
+  
   #define Branch_(type, name, suffix) t->Branch(#name, &(b_##name), #name "/" #suffix);
   #define BranchI(name) Branch_(Int_t, name, I)
   #define BranchF(name) Branch_(Float_t, name, F)
@@ -986,9 +988,9 @@ void vtsAnalyser::CollectVar() {
   b_MET_sumEt = MET_sumEt;
 }
 
-void vtsAnalyser::ScoreTMVA(TTree* outtr) {
+void vtsAnalyser::ScoreTMVA() {
   auto selectedJet = jetSelection();
-  b_jet_start =  outtr->GetEntries();
+  b_jet_start =  m_outtr->GetEntries();
   if (selectedJet.size() != 0) {
     if (m_recJet.size() == 0) return;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
@@ -1007,11 +1009,11 @@ void vtsAnalyser::ScoreTMVA(TTree* outtr) {
 
       auto j = selectedJet[ij].GetFirstMother();
 
-      if ((j == (int)closest_s_idx) && (closest_s_dr <= m_jetConeSize)) b_isSJet = 1;
-      if ((j == (int)closest_b_idx) && (closest_b_dr <= m_jetConeSize)) b_isBJet = 1;
-      if ((j == (int)highest_first_idx) || (j == (int)highest_second_idx)) b_isHighest = 1;
-      if (j == (int)closest_lep1_idx) b_isClosestToLep = 1;
-      if (j == (int)closest_lep2_idx) b_isClosestToLep = 1;
+      if ((j == (int) closest_s_idx) && (closest_s_dr <= m_jetConeSize)) b_isSJet = 1;
+      if ((j == (int) closest_b_idx) && (closest_b_dr <= m_jetConeSize)) b_isBJet = 1;
+      if ((j == (int) highest_first_idx) || (j == (int) highest_second_idx)) b_isHighest = 1;
+      if (j == (int) closest_lep1_idx) b_isClosestToLep = 1;
+      if (j == (int) closest_lep2_idx) b_isClosestToLep = 1;
 
       b_cmult = jetID_cmult[j]; b_nmult = jetID_nmult[j];
       b_pt = Jet_pt[j]; b_eta = Jet_eta[j]; b_phi = Jet_phi[j]; b_mass = Jet_mass[j];
@@ -1020,9 +1022,9 @@ void vtsAnalyser::ScoreTMVA(TTree* outtr) {
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
       b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
 
-      outtr->Fill();
+      m_outtr->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
-  b_jet_end = outtr->GetEntries();
+  b_jet_end = m_outtr->GetEntries();
 }
 

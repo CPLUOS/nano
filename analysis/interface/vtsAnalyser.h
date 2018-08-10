@@ -16,6 +16,8 @@ public:
   virtual void Loop();
 
 private:
+  TTree *m_outtrForTMVA;
+  
   bool b_passedEvent;
   int b_nJet, b_nSelJet, b_nSelJetEv;
 
@@ -112,7 +114,7 @@ private:
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
   void CollectVar();
 
-  void ScoreTMVA(TTree *t);
+  void ScoreTMVA();
 };
 
 vtsAnalyser::vtsAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :
