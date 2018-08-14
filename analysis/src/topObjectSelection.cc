@@ -102,41 +102,39 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
   return muons;
 }
 
-vector<TParticle> topObjectSelection::jetSelection(std::vector<Float_t> *csvVal) {
-  vector<TParticle> jets;
-  float Jet_SF_CSV[19] = {1.0,};
-  for (UInt_t i = 0; i < nJet; ++i){
-    // For AN-2017/083
-    if ( std::abs(Jet_eta[i]) > 4.7 ) continue;
-    if ( !( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) ) {
-      if (Jet_pt[i] < 40) continue;
-    } else {
-      if (Jet_pt[i] < 50) continue;
-    }
-    //if (Jet_pt[i] < 40) continue;
-    //if (std::abs(Jet_eta[i]) > 4.7) continue;
-    if (Jet_jetId[i] < 1) continue;
-    TLorentzVector mom;
-    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
-    bool hasOverLap = false;
-    for (auto lep : recoleps){
-        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
-    }
-    if (hasOverLap) continue;
-    auto jet = TParticle();
-    jet.SetMomentum(mom);
-    jets.push_back(jet);
-    //if ( csvVal != NULL ) csvVal->push_back(Jet_btagCSVV2[ i ]);
-    if ( csvVal != NULL ) csvVal->push_back(Jet_btagCMVA[ i ]);
-    for (UInt_t iu = 0; iu < 19; iu++) {
-     // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
-    }
-  }
-  for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
-  b_btagweight = Jet_SF_CSV[0];
-  
-  return jets;
+
+
+vector<TParticle> topObjectSelection::jetSelection() {
+   BTagEntry::JetFlavor JF;
+   vector<TParticle> jets;
+   //float Jet_SF_CSV[19] = {1.0,};
+   b_btagweight = 1.0;
+   for (UInt_t i = 0; i < nJet; ++i){
+      if (Jet_pt[i] < 30) continue; 
+      if (std::abs(Jet_eta[i]) > 2.4) continue;
+      if (Jet_jetId[i] < 1) continue; 
+      TLorentzVector mom; 
+      mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
+      bool hasOverLap = false;
+      for (auto lep : recoleps){
+       if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true; 
+      } 
+      if (hasOverLap) continue;
+      auto jet = TParticle();
+      jet.SetMomentum(mom);
+      jet.SetFirstMother(i);
+      jets.push_back(jet);
+      b_btagCSVV2 = Jet_btagCSVV2[i];
+      //BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+      //BTagEntry::JetFlavor JF;
+      if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B; 
+      //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
+      auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);  
+      b_btagweight *= bjetSF;
+   }
+   return jets; 
 }
+
 
 vector<TParticle> topObjectSelection::bjetSelection() {
   vector<TParticle> bjets;

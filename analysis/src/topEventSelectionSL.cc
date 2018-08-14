@@ -88,8 +88,8 @@ int topEventSelectionSL::EventSelection()
   //  if (!b_trig_e) return b_step;
   //}
   
-  Bool_t IsoMu24 = false;
-  Bool_t IsoTkMu24 = false;
+  //Bool_t IsoMu24 = false;
+  //Bool_t IsoTkMu24 = false;
   
   //for ( UInt_t i = 0 ; i < nTrigObj ; i++ ) {
   //  if ( TrigObj_id[ i ] != 13 ) continue;
@@ -107,7 +107,7 @@ int topEventSelectionSL::EventSelection()
   b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
 
   b_tri = b_tri_up = b_tri_dn = 0;
-  b_tri = ( IsoMu24 || IsoTkMu24 ? 1.0 : 0.0 ); //computeTrigSF(recolep1, recolep2);
+  b_tri = 1;//( IsoMu24 || IsoTkMu24 ? 1.0 : 0.0 ); //computeTrigSF(recolep1, recolep2);
   b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
   b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
 
@@ -163,7 +163,7 @@ int topEventSelectionSL::EventSelection()
   auto bjets = bjetSelection();
   b_nbjet = bjets.size();
 
-  auto jets = jetSelection(&m_jetsCMVA);
+  auto jets = jetSelection();
   b_njet = jets.size();
   
   for ( Int_t i = 0 ; i < b_njet ; i++ ) {
@@ -176,7 +176,7 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlow) h_cutFlow->Fill(4);
   if (h_cutFlowLep) h_cutFlowLep->Fill(2);
 
-  if (b_njet > 2) {
+  if (b_njet > 0) {
     b_step = 3;
     if (h_cutFlow) h_cutFlow->Fill(5);
     if (h_cutFlowLep) h_cutFlowLep->Fill(3);
