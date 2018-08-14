@@ -118,6 +118,7 @@ void vtsAnalyser::Loop() {
 
   /* Events loop */
   for (Long64_t iev=0; iev<nentries; iev++) {
+    b_had_start = -1; b_had_end = -1;
     b_jet_start = -1; b_jet_end = -1;
     fChain->GetEntry(iev);
     if (h_fChain) h_fChain->GetEntry(iev);
@@ -147,7 +148,8 @@ void vtsAnalyser::Loop() {
 void vtsAnalyser::setOutput(std::string outFileName) {
   m_output = TFile::Open(outFileName.c_str(), "recreate");
   m_tree = new TTree("event", "event");
-  m_outtrForTMVA = new TTree("MVA_score", "MVA_score");
+  m_hadtrForTMVA = new TTree("MVA_had", "MVA_had");
+  m_jettrForTMVA = new TTree("MVA_jet", "MVA_jet");
   MakeBranch();
 
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
@@ -157,28 +159,58 @@ void vtsAnalyser::setOutput(std::string outFileName) {
 }
 
 void vtsAnalyser::MakeBranch() {
-  m_outtrForTMVA->Branch("isSJet", &b_isSJet, "isSJet/I");
-  m_outtrForTMVA->Branch("isBJet", &b_isBJet, "isBJet/I");
-  m_outtrForTMVA->Branch("isHighest", &b_isHighest, "isHighest/I");
-  m_outtrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
-  m_outtrForTMVA->Branch("cmult", &b_cmult, "cmult/I");
-  m_outtrForTMVA->Branch("nmult", &b_nmult, "nmult/I");
-  m_outtrForTMVA->Branch("pt", &b_pt, "pt/F");
-  m_outtrForTMVA->Branch("eta", &b_eta, "eta/F");
-  m_outtrForTMVA->Branch("phi", &b_phi, "phi/F");
-  m_outtrForTMVA->Branch("mass", &b_mass, "mass/F");
-  m_outtrForTMVA->Branch("c_x1", &b_c_x1, "c_x1/F");
-  m_outtrForTMVA->Branch("c_x2", &b_c_x2, "c_x2/F");
-  m_outtrForTMVA->Branch("c_x3", &b_c_x3, "c_x3/F");
-  m_outtrForTMVA->Branch("n_x1", &b_n_x1, "n_x1/F");
-  m_outtrForTMVA->Branch("n_x2", &b_n_x2, "n_x2/F");
-  m_outtrForTMVA->Branch("n_x3", &b_n_x3, "n_x3/F");
-  m_outtrForTMVA->Branch("axis1", &b_axis1, "axis1/F");
-  m_outtrForTMVA->Branch("axis2", &b_axis2, "axis2/F");
-  m_outtrForTMVA->Branch("ptD", &b_ptD, "ptD/F");
-  m_outtrForTMVA->Branch("area", &b_area, "area/F");
-  m_outtrForTMVA->Branch("CSVV2", &b_CSVV2, "CSVV2/F");
+  m_hadtrForTMVA->Branch("pdgId",        &b_Rec_pdgId,        "pdgId/I");
+  m_hadtrForTMVA->Branch("nMatched",     &b_Rec_nMatched,     "nMatched/I");
+  m_hadtrForTMVA->Branch("isFrom",       &b_Rec_isFrom,       "isFrom/I");
+  m_hadtrForTMVA->Branch("isHadFromTop", &b_Rec_isHadFromTop, "isHadFromTop/O");
+  m_hadtrForTMVA->Branch("isHadFromW",   &b_Rec_isHadFromW,   "isHadFromW/O");
+  m_hadtrForTMVA->Branch("isHadFromS",   &b_Rec_isHadFromS,   "isHadFromS/O");
+  m_hadtrForTMVA->Branch("isHadFromC",   &b_Rec_isHadFromC,   "isHadFromC/O");
+  m_hadtrForTMVA->Branch("isHadFromB",   &b_Rec_isHadFromB,   "isHadFromB/O");
+  m_hadtrForTMVA->Branch("d",            &b_Rec_d,            "d/F");
+  m_hadtrForTMVA->Branch("pt",           &b_Rec_pt,           "pt/F");
+  m_hadtrForTMVA->Branch("eta",          &b_Rec_eta,          "eta/F");
+  m_hadtrForTMVA->Branch("phi",          &b_Rec_phi,          "phi/F");
+  m_hadtrForTMVA->Branch("mass",         &b_Rec_mass,         "mass/F");
+  m_hadtrForTMVA->Branch("lxy",          &b_Rec_lxy,          "lxy/F");
+  m_hadtrForTMVA->Branch("lxySig",       &b_Rec_lxySig,       "lxySig/F");
+  m_hadtrForTMVA->Branch("l3D",          &b_Rec_l3D,          "l3D/F");
+  m_hadtrForTMVA->Branch("l3DSig",       &b_Rec_l3DSig,       "l3DSig/F");
+  m_hadtrForTMVA->Branch("legDR",        &b_Rec_legDR,        "legDR/F");
+  m_hadtrForTMVA->Branch("angleXY",      &b_Rec_angleXY,      "angleXY/F");
+  m_hadtrForTMVA->Branch("angleXYZ",     &b_Rec_angleXYZ,     "angleXYZ/F");
+  m_hadtrForTMVA->Branch("chi2",         &b_Rec_chi2,         "chi2/F");
+  m_hadtrForTMVA->Branch("dca",          &b_Rec_dca,          "dca/F");
+  m_hadtrForTMVA->Branch("dau1_chi2",    &b_Rec_dau1_chi2,    "dau1_chi2/F");
+  m_hadtrForTMVA->Branch("dau1_ipsigXY", &b_Rec_dau1_ipsigXY, "dau1_ipsigXY/F");
+  m_hadtrForTMVA->Branch("dau1_ipsigZ",  &b_Rec_dau1_ipsigZ,  "dau1_ipsigZ/F");
+  m_hadtrForTMVA->Branch("dau1_pt",      &b_Rec_dau2_pt,      "dau2_pt/F");
+  m_hadtrForTMVA->Branch("dau2_chi2",    &b_Rec_dau2_chi2,    "dau2_chi2/F");
+  m_hadtrForTMVA->Branch("dau2_ipsigXY", &b_Rec_dau2_ipsigXY, "dau2_ipsigXY/F");
+  m_hadtrForTMVA->Branch("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ,  "dau2_ipsigZ/F");
+  m_hadtrForTMVA->Branch("dau2_pt",      &b_Rec_dau2_pt,      "dau2_pt/F");
 
+  m_jettrForTMVA->Branch("isSJet",         &b_isSJet,         "isSJet/I");
+  m_jettrForTMVA->Branch("isBJet",         &b_isBJet,         "isBJet/I");
+  m_jettrForTMVA->Branch("isHighest",      &b_isHighest,      "isHighest/I");
+  m_jettrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
+  m_jettrForTMVA->Branch("cmult",          &b_cmult,          "cmult/I");
+  m_jettrForTMVA->Branch("nmult",          &b_nmult,          "nmult/I");
+  m_jettrForTMVA->Branch("pt",             &b_pt,             "pt/F");
+  m_jettrForTMVA->Branch("eta",            &b_eta,            "eta/F");
+  m_jettrForTMVA->Branch("phi",            &b_phi,            "phi/F");
+  m_jettrForTMVA->Branch("mass",           &b_mass,           "mass/F");
+  m_jettrForTMVA->Branch("c_x1",           &b_c_x1,           "c_x1/F");
+  m_jettrForTMVA->Branch("c_x2",           &b_c_x2,           "c_x2/F");
+  m_jettrForTMVA->Branch("c_x3",           &b_c_x3,           "c_x3/F");
+  m_jettrForTMVA->Branch("n_x1",           &b_n_x1,           "n_x1/F");
+  m_jettrForTMVA->Branch("n_x2",           &b_n_x2,           "n_x2/F");
+  m_jettrForTMVA->Branch("n_x3",           &b_n_x3,           "n_x3/F");
+  m_jettrForTMVA->Branch("axis1",          &b_axis1,          "axis1/F");
+  m_jettrForTMVA->Branch("axis2",          &b_axis2,          "axis2/F");
+  m_jettrForTMVA->Branch("ptD",            &b_ptD,            "ptD/F");
+  m_jettrForTMVA->Branch("area",           &b_area,           "area/F");
+  m_jettrForTMVA->Branch("CSVV2",          &b_CSVV2,          "CSVV2/F");
   
   #define Branch_(type, name, suffix) m_tree->Branch(#name, &(b_##name), #name "/" #suffix);
   #define BranchI(name) Branch_(Int_t, name, I)
@@ -191,7 +223,7 @@ void vtsAnalyser::MakeBranch() {
   #define BranchTLV(name) m_tree->Branch(#name, "TLorentzVector", &(b_##name));
 
   BranchI(nvertex); BranchI(channel); BranchI(njet) BranchF(met); BranchI(step); BranchO(passedEvent); BranchI(nJet); BranchI(nSelJet); BranchI(nSelJetEv); // njet is not nJet
-  BranchI(jet_start); BranchI(jet_end);
+  BranchI(jet_start); BranchI(jet_end); BranchI(had_start); BranchI(had_end);
   BranchI(hadTruth_nMatched); BranchI(hadTruth_nTrueDau); 
   BranchO(hadTruth_isHadFromTop); BranchI(hadTruth_isHadFromTsb); BranchO(hadTruth_isHadFromW); BranchO(hadTruth_isHadFromS); BranchO(hadTruth_isHadFromC); BranchO(hadTruth_isHadFromB);
 
@@ -702,7 +734,6 @@ void vtsAnalyser::GenHadronAnalysis() {
         else if (abs(m_qjMapForMC[j]) == 5) b_nBJet_vec.push_back(j);
       }
       if (genHadron_isGenHadFromTsb[i] != m_qjMapForMC[j]) continue;
-      //if (x > 1.) continue;
       if (dr < drMin1) recPair1[j] = {i,dr,x};
       else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
       if (x > xMax2) recPair2[j] = {i,dr,x};
@@ -720,7 +751,6 @@ void vtsAnalyser::GenHadronAnalysis() {
         else if (abs(m_qgjMapForMC[j]) == 5) b_nGenBJet_vec.push_back(j);
       }
       if (genHadron_isGenHadFromTsb[i] != m_qgjMapForMC[j]) continue;
-      //if (x > 1.) continue;
       if (dr < drMin1) genPair1[j] = {i,dr,x};
       else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
       if (x > xMax2) genPair2[j] = {i,dr,x};
@@ -799,7 +829,6 @@ void vtsAnalyser::GenAnalysis() {
       auto drMin1 = recPair1[j].dr; auto xMax1 = recPair1[j].x;
       auto drMin2 = recPair2[j].dr; auto xMax2 = recPair2[j].x;
       if (isFrom != m_qjMapForMC[j]) continue;
-      if (x > 1.) continue;
       if (dr < drMin1) recPair1[j] = {i,dr,x};
       else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
       if (x > xMax2) recPair2[j] = {i,dr,x};
@@ -813,7 +842,6 @@ void vtsAnalyser::GenAnalysis() {
       auto drMin1 = genPair1[j].dr; auto xMax1 = genPair1[j].x;
       auto drMin2 = genPair2[j].dr; auto xMax2 = genPair2[j].x;
       if (isFrom != m_qgjMapForMC[j]) continue;
-      if (x > 1.) continue;
       if (dr < drMin1) genPair1[j] = {i,dr,x};
       else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
       if (x > xMax2) genPair2[j] = {i,dr,x};
@@ -854,6 +882,8 @@ void vtsAnalyser::GenAnalysis() {
 }
 
 void vtsAnalyser::RecAnalysis() {
+  b_had_start = m_hadtrForTMVA->GetEntries();
+
   std::vector<jetks> recPair1; std::vector<jetks> genPair1;
   std::vector<jetks> recPair2; std::vector<jetks> genPair2;
   int nRecKS = 0;
@@ -898,6 +928,8 @@ void vtsAnalyser::RecAnalysis() {
     b_hadTruth_dau2_ipsigXY_vec.push_back(had_dau1_ipsigXY[i]);
     b_hadTruth_dau2_ipsigZ_vec.push_back(had_dau1_ipsigZ[i]);
     b_hadTruth_dau2_pt_vec.push_back(had_dau1_pt[i]);
+
+    FillHadTreeForTMVA();
 
     TLorentzVector had_tlv;
     had_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
@@ -947,9 +979,7 @@ void vtsAnalyser::RecAnalysis() {
       b_hadTruth_dr_highest_gj_vec[hGenIdx] = genPair2[j].dr;
       b_hadTruth_x_highest_gj_vec[hGenIdx] = genPair2[j].x;
     }
-
     /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
-    
     auto xorder = [] (jetks  a, jetks b) { return (a.x > b.x); };
     int hRecIdx1 = std::max_element(recPair1.begin(), recPair1.end(), xorder)->idx;
     int hGenIdx1 = std::max_element(genPair1.begin(), genPair1.end(), xorder)->idx;
@@ -961,6 +991,7 @@ void vtsAnalyser::RecAnalysis() {
     std::replace_if(b_hadTruth_isHighestPair_xOrder_j_vec.begin(),  b_hadTruth_isHighestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx2); }, -1);
     std::replace_if(b_hadTruth_isHighestPair_xOrder_gj_vec.begin(), b_hadTruth_isHighestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx2); }, -1);
   }
+  b_had_end = m_hadtrForTMVA->GetEntries();
 }
 
 void vtsAnalyser::JetAnalysis() {
@@ -990,7 +1021,7 @@ void vtsAnalyser::CollectVar() {
 
 void vtsAnalyser::ScoreTMVA() {
   auto selectedJet = jetSelection();
-  b_jet_start =  m_outtrForTMVA->GetEntries();
+  b_jet_start =  m_jettrForTMVA->GetEntries();
   if (selectedJet.size() != 0) {
     if (m_recJet.size() == 0) return;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
@@ -1022,8 +1053,43 @@ void vtsAnalyser::ScoreTMVA() {
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
       b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
 
-      m_outtrForTMVA->Fill();
+      m_jettrForTMVA->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
-  b_jet_end = m_outtrForTMVA->GetEntries();
+  b_jet_end = m_jettrForTMVA->GetEntries();
+}
+
+void vtsAnalyser::FillHadTreeForTMVA() {
+  b_Rec_pdgId = b_hadTruth_pdgId_vec.back();
+  b_Rec_nMatched = b_hadTruth_nMatched_vec.back();
+  b_Rec_isFrom = b_hadTruth_isFrom_vec.back();
+  b_Rec_isHadFromTop = b_hadTruth_isHadFromTop_vec.back();
+  b_Rec_isHadFromW = b_hadTruth_isHadFromW_vec.back();
+  b_Rec_isHadFromS = b_hadTruth_isHadFromS_vec.back();
+  b_Rec_isHadFromC = b_hadTruth_isHadFromC_vec.back();
+  b_Rec_isHadFromB = b_hadTruth_isHadFromB_vec.back();
+  b_Rec_d = b_hadTruth_d_vec.back();
+  b_Rec_pt = b_hadTruth_pt_vec.back();
+  b_Rec_eta = b_hadTruth_eta_vec.back();
+  b_Rec_phi = b_hadTruth_phi_vec.back();
+  b_Rec_mass = b_hadTruth_mass_vec.back();
+  b_Rec_lxy = b_hadTruth_lxy_vec.back();
+  b_Rec_lxySig = b_hadTruth_lxySig_vec.back();
+  b_Rec_l3D = b_hadTruth_l3D_vec.back();
+  b_Rec_l3DSig = b_hadTruth_l3DSig_vec.back();
+  b_Rec_legDR = b_hadTruth_legDR_vec.back();
+  b_Rec_angleXY = b_hadTruth_angleXY_vec.back();
+  b_Rec_angleXYZ = b_hadTruth_angleXYZ_vec.back();
+  b_Rec_chi2 = b_hadTruth_chi2_vec.back();
+  b_Rec_dca = b_hadTruth_dca_vec.back();
+  b_Rec_dau1_chi2 = b_hadTruth_dau1_chi2_vec.back();
+  b_Rec_dau1_ipsigXY = b_hadTruth_dau1_ipsigXY_vec.back();
+  b_Rec_dau1_ipsigZ = b_hadTruth_dau1_ipsigZ_vec.back();
+  b_Rec_dau1_pt = b_hadTruth_dau1_pt_vec.back();
+  b_Rec_dau2_chi2 = b_hadTruth_dau2_chi2_vec.back();
+  b_Rec_dau2_ipsigXY = b_hadTruth_dau2_ipsigXY_vec.back();
+  b_Rec_dau2_ipsigZ = b_hadTruth_dau2_ipsigZ_vec.back();
+  b_Rec_dau2_pt = b_hadTruth_dau2_pt_vec.back();
+
+  m_hadtrForTMVA->Fill();
 }

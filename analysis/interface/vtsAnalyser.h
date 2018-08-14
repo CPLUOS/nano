@@ -16,7 +16,8 @@ public:
   virtual void Loop();
 
 private:
-  TTree *m_outtrForTMVA;
+  TTree *m_hadtrForTMVA;
+  TTree *m_jettrForTMVA;
   
   bool b_passedEvent;
   int b_nJet, b_nSelJet, b_nSelJetEv;
@@ -91,6 +92,15 @@ private:
   float b_MET_pt, b_MET_phi, b_MET_sumEt;
 
   /* for ScoreTMVA() */
+    /* for had */
+  int   b_Rec_pdgId,        b_Rec_nMatched,     b_Rec_isFrom;
+  bool  b_Rec_isHadFromTop, b_Rec_isHadFromW,   b_Rec_isHadFromS,  b_Rec_isHadFromC, b_Rec_isHadFromB;
+  float b_Rec_d,            b_Rec_pt,           b_Rec_eta,         b_Rec_phi,        b_Rec_mass;
+  float b_Rec_lxy,          b_Rec_lxySig,       b_Rec_l3D,         b_Rec_l3DSig,     b_Rec_legDR;
+  float b_Rec_angleXY,      b_Rec_angleXYZ,     b_Rec_chi2,        b_Rec_dca;
+  float b_Rec_dau1_chi2,    b_Rec_dau1_ipsigXY, b_Rec_dau1_ipsigZ, b_Rec_dau1_pt;
+  float b_Rec_dau2_chi2,    b_Rec_dau2_ipsigXY, b_Rec_dau2_ipsigZ, b_Rec_dau2_pt;
+    /* for jet */
   int   b_isSJet, b_isBJet, b_isHighest, b_isClosestToLep;
   int   b_cmult,  b_nmult;
   float b_pt,     b_eta,    b_phi,       b_mass;
@@ -100,6 +110,7 @@ private:
   float b_CSVV2;
  
   int b_jet_start, b_jet_end; 
+  int b_had_start, b_had_end;
 
   /* functions */
   void ResetBranch();
@@ -115,6 +126,7 @@ private:
   void CollectVar();
 
   void ScoreTMVA();
+  void FillHadTreeForTMVA();
 };
 
 vtsAnalyser::vtsAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :
