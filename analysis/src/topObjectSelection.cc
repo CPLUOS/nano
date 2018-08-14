@@ -104,7 +104,7 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
 
 vector<TParticle> topObjectSelection::jetSelection(std::vector<Float_t> *csvVal) {
   vector<TParticle> jets;
-  float Jet_SF_CSV[19] = {1.0,};
+  //float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
     // For AN-2017/083
     if ( std::abs(Jet_eta[i]) > 4.7 ) continue;
@@ -127,9 +127,9 @@ vector<TParticle> topObjectSelection::jetSelection(std::vector<Float_t> *csvVal)
     jet.SetMomentum(mom);
     jet.SetFirstMother(i);
     jets.push_back(jet);
-    b_btagCSVV2 = Jet_btagCSVV2[i];
+    //b_btagCSVV2 = Jet_btagCSVV2[i];
     //BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
-    //BTagEntry::JetFlavor JF;
+    BTagEntry::JetFlavor JF;
     if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
     //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
     auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
