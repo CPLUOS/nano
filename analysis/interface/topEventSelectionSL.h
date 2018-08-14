@@ -31,7 +31,8 @@ protected:
   float b_tri, b_tri_up, b_tri_dn;
   float b_nhad;
   //Triggers
-  Float_t b_trig_m, b_trig_e;
+  Int_t b_trig_m, b_trig_e;
+  Int_t b_trig_m_global, b_trig_m_trk;
 
   //Tools
     // TH1D* hist_mc;

@@ -102,8 +102,6 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
   return muons;
 }
 
-
-
 vector<TParticle> topObjectSelection::jetSelection() {
    BTagEntry::JetFlavor JF;
    vector<TParticle> jets;
@@ -132,8 +130,45 @@ vector<TParticle> topObjectSelection::jetSelection() {
       auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);  
       b_btagweight *= bjetSF;
    }
-   return jets; 
+   return jets;
 }
+//vector<TParticle> topObjectSelection::jetSelection(std::vector<Float_t> *csvVal) {
+//  vector<TParticle> jets;
+//  float Jet_SF_CSV[19] = {1.0,};
+//  for (UInt_t i = 0; i < nJet; ++i){
+//    // For AN-2017/083
+//    if ( std::abs(Jet_eta[i]) > 4.7 ) continue;
+//    if ( !( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) ) {
+//      if (Jet_pt[i] < 40) continue;
+//    } else {
+//      if (Jet_pt[i] < 50) continue;
+//    }
+//    //if (Jet_pt[i] < 40) continue;
+//    //if (std::abs(Jet_eta[i]) > 4.7) continue;
+//    if (Jet_jetId[i] < 1) continue;
+//    TLorentzVector mom;
+//    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
+//    bool hasOverLap = false;
+//    for (auto lep : recoleps){
+//        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
+//    }
+//    if (hasOverLap) continue;
+//    auto jet = TParticle();
+//    jet.SetMomentum(mom);
+//    jet.SetFirstMother(i);
+//    jets.push_back(jet);
+//    b_btagCSVV2 = Jet_btagCSVV2[i];
+//    //BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+//    //BTagEntry::JetFlavor JF;
+//    if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
+//    //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
+//    auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+//    b_btagweight *= bjetSF;
+//    if ( csvVal != NULL ) csvVal->push_back(Jet_btagCSVV2[ i ]);
+//  }
+//  
+//  return jets;
+//}
 
 
 vector<TParticle> topObjectSelection::bjetSelection() {
@@ -154,7 +189,7 @@ vector<TParticle> topObjectSelection::bjetSelection() {
     // For AN-2017/083
     // See p. 6, AN-2017/056, or 
     // https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Boosted_event_topologies
-    if (Jet_btagCMVA[i] < 0.9432) continue;
+    if (Jet_btagCSVV2[i] < 0.9535) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
     bool hasOverLap = false;
