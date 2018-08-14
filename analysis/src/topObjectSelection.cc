@@ -158,7 +158,7 @@ vector<TParticle> topObjectSelection::bjetSelection() {
     // For AN-2017/083
     // See p. 6, AN-2017/056, or 
     // https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Boosted_event_topologies
-    if (Jet_btagCMVA[i] < 0.9432) continue;
+    if (Jet_btagCSVV2[i] < 0.9535) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
     bool hasOverLap = false;
