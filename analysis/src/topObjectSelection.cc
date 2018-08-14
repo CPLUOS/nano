@@ -127,14 +127,15 @@ vector<TParticle> topObjectSelection::jetSelection(std::vector<Float_t> *csvVal)
     jet.SetMomentum(mom);
     jet.SetFirstMother(i);
     jets.push_back(jet);
-    //if ( csvVal != NULL ) csvVal->push_back(Jet_btagCSVV2[ i ]);
-    if ( csvVal != NULL ) csvVal->push_back(Jet_btagCMVA[ i ]);
-    for (UInt_t iu = 0; iu < 19; iu++) {
-     // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
-    }
+    b_btagCSVV2 = Jet_btagCSVV2[i];
+    //BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+    //BTagEntry::JetFlavor JF;
+    if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
+    //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
+    auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+    b_btagweight *= bjetSF;
+    if ( csvVal != NULL ) csvVal->push_back(Jet_btagCSVV2[ i ]);
   }
-  for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
-  b_btagweight = Jet_SF_CSV[0];
   
   return jets;
 }
