@@ -77,12 +77,12 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlow) h_cutFlow->Fill(2);
 
   //Triggers
-  b_trig_m_trk    = HLT_IsoTkMu24 ? 1.0 : 0.0;
-  b_trig_m_global = HLT_IsoMu24 ? 1.0 : 0.0;
+  b_trig_m_trk    = HLT_IsoTkMu24 ? 1 : 0;
+  b_trig_m_global = HLT_IsoMu24 ? 1 : 0;
   
-  b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24 ? 1.0 : 0.0;
+  b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24 ? 1 : 0;
   //b_trig_e = HLT_Ele27_WPTight_Gsf;
-  b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf ? 1.0 : 0.0;
+  b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf ? 1 : 0;
 
   // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
   
@@ -151,6 +151,10 @@ int topEventSelectionSL::EventSelection()
     return b_step;
   if ((elecs.size() == 0 && vetoEl.size() > 0) || (elecs.size() == 1 && vetoEl.size() > 1))
     return b_step;
+  
+  b_step = 2;
+  if (h_cutFlow) h_cutFlow->Fill(4);
+  if (h_cutFlowLep) h_cutFlowLep->Fill(2);
 
   recolep.Momentum(b_lep);
   b_lep_pid = recolep.GetPdgCode();
@@ -181,10 +185,6 @@ int topEventSelectionSL::EventSelection()
     jets[ i ].Momentum(mom);
     m_jets.push_back(mom);
   }
-  
-  b_step = 2;
-  if (h_cutFlow) h_cutFlow->Fill(4);
-  if (h_cutFlowLep) h_cutFlowLep->Fill(2);
 
   if (b_njet > 0) {
     b_step = 3;
