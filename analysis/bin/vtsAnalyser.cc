@@ -115,7 +115,6 @@ int main(int argc, char* argv[])
 void vtsAnalyser::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
-
   /* Events loop */
   for (Long64_t iev=0; iev<nentries; iev++) {
     b_had_start = -1; b_had_end = -1;
@@ -138,10 +137,11 @@ void vtsAnalyser::Loop() {
       RecAnalysis();
       JetAnalysis();
       CollectVar();
-      ScoreTMVA();
+      FillJetTreeForTMVA();
     } else b_passedEvent = false; 
     m_tree->Fill();
-    cout << " chk : " << b_jet_start << " " << b_jet_end << endl;
+    cout << " jet entry chk : " << b_jet_start << " " << b_jet_end << endl;
+    cout << " had entry chk : " << b_had_start << " " << b_had_end << endl;
   }
 }
 
@@ -150,7 +150,9 @@ void vtsAnalyser::setOutput(std::string outFileName) {
   m_tree = new TTree("event", "event");
   m_hadtrForTMVA = new TTree("MVA_had", "MVA_had");
   m_jettrForTMVA = new TTree("MVA_jet", "MVA_jet");
+
   MakeBranch();
+  SetMVAReader();
 
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
@@ -189,6 +191,7 @@ void vtsAnalyser::MakeBranch() {
   m_hadtrForTMVA->Branch("dau2_ipsigXY", &b_Rec_dau2_ipsigXY, "dau2_ipsigXY/F");
   m_hadtrForTMVA->Branch("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ,  "dau2_ipsigZ/F");
   m_hadtrForTMVA->Branch("dau2_pt",      &b_Rec_dau2_pt,      "dau2_pt/F");
+  m_hadtrForTMVA->Branch("bdt_score",    &b_Rec_bdt_score,    "bdt_score/F");
 
   m_jettrForTMVA->Branch("isSJet",         &b_isSJet,         "isSJet/I");
   m_jettrForTMVA->Branch("isBJet",         &b_isBJet,         "isBJet/I");
@@ -1019,7 +1022,7 @@ void vtsAnalyser::CollectVar() {
   b_MET_sumEt = MET_sumEt;
 }
 
-void vtsAnalyser::ScoreTMVA() {
+void vtsAnalyser::FillJetTreeForTMVA() {
   auto selectedJet = jetSelection();
   b_jet_start =  m_jettrForTMVA->GetEntries();
   if (selectedJet.size() != 0) {
@@ -1090,6 +1093,37 @@ void vtsAnalyser::FillHadTreeForTMVA() {
   b_Rec_dau2_ipsigXY = b_hadTruth_dau2_ipsigXY_vec.back();
   b_Rec_dau2_ipsigZ = b_hadTruth_dau2_ipsigZ_vec.back();
   b_Rec_dau2_pt = b_hadTruth_dau2_pt_vec.back();
+  b_Rec_bdt_score = m_hadReader->EvaluateMVA("BDT");
 
   m_hadtrForTMVA->Fill();
+}
+
+void vtsAnalyser::SetMVAReader() {
+
+  m_hadReader = new TMVA::Reader();            
+
+  m_hadReader->AddVariable("d",            &b_Rec_d);
+  m_hadReader->AddVariable("pt",           &b_Rec_pt);
+  m_hadReader->AddVariable("eta",          &b_Rec_eta);
+  m_hadReader->AddVariable("phi",          &b_Rec_phi);
+  m_hadReader->AddVariable("mass",         &b_Rec_mass);
+  m_hadReader->AddVariable("lxy",          &b_Rec_lxy);
+  m_hadReader->AddVariable("lxySig",       &b_Rec_lxySig);
+  m_hadReader->AddVariable("l3D",          &b_Rec_l3D);
+  m_hadReader->AddVariable("l3DSig",       &b_Rec_l3DSig);
+  m_hadReader->AddVariable("legDR",        &b_Rec_legDR);
+  m_hadReader->AddVariable("angleXY",      &b_Rec_angleXY);
+  m_hadReader->AddVariable("angleXYZ",     &b_Rec_angleXYZ);
+  m_hadReader->AddVariable("chi2",         &b_Rec_chi2);
+  m_hadReader->AddVariable("dca",          &b_Rec_dca);
+  m_hadReader->AddVariable("dau1_chi2",    &b_Rec_dau1_chi2);
+  m_hadReader->AddVariable("dau1_ipsigXY", &b_Rec_dau1_ipsigXY);
+  m_hadReader->AddVariable("dau1_ipsigZ",  &b_Rec_dau1_ipsigZ);
+  m_hadReader->AddVariable("dau1_pt",      &b_Rec_dau1_pt);
+  m_hadReader->AddVariable("dau2_chi2",    &b_Rec_dau2_chi2);
+  m_hadReader->AddVariable("dau2_ipsigXY", &b_Rec_dau2_ipsigXY);
+  m_hadReader->AddVariable("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ);
+  m_hadReader->AddVariable("dau2_pt",      &b_Rec_dau2_pt);
+
+  m_hadReader->BookMVA("BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
 }

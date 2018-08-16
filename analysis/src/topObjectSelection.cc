@@ -97,6 +97,26 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
   return muons;
 }
 
+vector<TParticle> topObjectSelection::gjetSelection() {
+  vector<TParticle> jets;
+  for (UInt_t i = 0; i < nJet; ++i){
+    if (GenJet_pt[i] < 30) continue;
+    if (std::abs(GenJet_eta[i]) > 2.4) continue;
+    TLorentzVector mom;
+    mom.SetPtEtaPhiM(GenJet_pt[i], GenJet_eta[i], GenJet_phi[i], GenJet_mass[i]);
+    bool hasOverLap = false;
+    for (auto lep : recoleps){
+        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
+    }
+    if (hasOverLap) continue;
+    auto jet = TParticle();
+    jet.SetMomentum(mom);
+    jet.SetFirstMother(i);
+    jets.push_back(jet);
+  }
+  return jets;
+}
+
 vector<TParticle> topObjectSelection::jetSelection() {
   vector<TParticle> jets;
   float Jet_SF_CSV[19] = {1.0,};

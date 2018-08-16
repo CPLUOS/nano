@@ -18,7 +18,9 @@ public:
 private:
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
-  
+
+  TMVA::Reader *m_hadReader;
+
   bool b_passedEvent;
   int b_nJet, b_nSelJet, b_nSelJetEv;
 
@@ -91,7 +93,7 @@ private:
   /* for CollectVar() */
   float b_MET_pt, b_MET_phi, b_MET_sumEt;
 
-  /* for ScoreTMVA() */
+  /* for FillJetTreeForTMVA() */
     /* for had */
   int   b_Rec_pdgId,        b_Rec_nMatched,     b_Rec_isFrom;
   bool  b_Rec_isHadFromTop, b_Rec_isHadFromW,   b_Rec_isHadFromS,  b_Rec_isHadFromC, b_Rec_isHadFromB;
@@ -100,6 +102,7 @@ private:
   float b_Rec_angleXY,      b_Rec_angleXYZ,     b_Rec_chi2,        b_Rec_dca;
   float b_Rec_dau1_chi2,    b_Rec_dau1_ipsigXY, b_Rec_dau1_ipsigZ, b_Rec_dau1_pt;
   float b_Rec_dau2_chi2,    b_Rec_dau2_ipsigXY, b_Rec_dau2_ipsigZ, b_Rec_dau2_pt;
+  float b_Rec_bdt_score;
     /* for jet */
   int   b_isSJet, b_isBJet, b_isHighest, b_isClosestToLep;
   int   b_cmult,  b_nmult;
@@ -111,6 +114,7 @@ private:
  
   int b_jet_start, b_jet_end; 
   int b_had_start, b_had_end;
+
 
   /* functions */
   void ResetBranch();
@@ -125,8 +129,9 @@ private:
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
   void CollectVar();
 
-  void ScoreTMVA();
+  void FillJetTreeForTMVA();
   void FillHadTreeForTMVA();
+  void SetMVAReader();
 };
 
 vtsAnalyser::vtsAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :

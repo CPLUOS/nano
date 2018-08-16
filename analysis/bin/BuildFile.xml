@@ -30,6 +30,7 @@
   <lib name="Eve"/>
   <lib name="EG"/>
   <use name="nano/analysis"/>
+  <flags CXXFLAGS="-lTMVA"/>
 </bin>
 
 <bin name="slCalibAnalyser" file="slCalibAnalyser.cc">
