@@ -18,7 +18,6 @@ public:
 private:
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
-
   TMVA::Reader *m_hadReader;
 
   bool b_passedEvent;

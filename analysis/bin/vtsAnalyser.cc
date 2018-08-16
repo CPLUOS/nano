@@ -89,7 +89,6 @@ int main(int argc, char* argv[])
       auto fileName = getFileName(argv[i]);
       auto dirName = getDir(getDir(argv[i]));
       /* auto sampleType = getType(dirName); */
-
       TFile *inFile = TFile::Open(inFileName, "READ");
       TTree *inTree = (TTree*) inFile->Get("Events");
       TString hadFileName = dirName + "/HADAOD/" + fileName;
@@ -103,9 +102,11 @@ int main(int argc, char* argv[])
 
       cout << "dirName : " << dirName << " fileName : " << fileName << endl;
       vtsAnalyser ana(inTree,hadTruthTree,hadTruthTree,isMC,false,false,false); // you don't need to use hadTree
-      string outFileName = outFileDir+"/nanotree_"+fileName;
+      string outFileName;
+      if (string(inFileName).find("herwig") == std::string::npos) outFileName = outFileDir+"/pythia_nanotree_"+fileName;
+      else if (string(inFileName).find("herwig") != std::string::npos) outFileName = outFileDir+"/herwig_nanotree_"+fileName;
+      else outFileName = outFileDir+"/nanotree_"+fileName;
 //      string outFileName = "/"+jobName+"/"+sampleName+"/nanotree_"+fileName;
-            
       ana.setOutput(outFileName);
       ana.Loop();
     }
@@ -1125,5 +1126,7 @@ void vtsAnalyser::SetMVAReader() {
   m_hadReader->AddVariable("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ);
   m_hadReader->AddVariable("dau2_pt",      &b_Rec_dau2_pt);
 
-  m_hadReader->BookMVA("BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  if (string(m_output->GetName()).find("herwig") == std::string::npos) m_hadReader->BookMVA("BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  if (string(m_output->GetName()).find("herwig") != std::string::npos) m_hadReader->BookMVA("BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/hh_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  else cout << " >>>>>>>>>>> Neither pythia and herwig !!! <<<<<<<<<<< " << endl;
 }
