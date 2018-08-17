@@ -92,17 +92,17 @@ private:
   /* for CollectVar() */
   float b_MET_pt, b_MET_phi, b_MET_sumEt;
 
+  /* for FillHadTreeForTMVA() */
+  int   b_Rec_pdgId,            b_Rec_nMatched,         b_Rec_isFrom;
+  bool  b_Rec_isHadFromTop,     b_Rec_isHadFromW,       b_Rec_isHadFromS,  b_Rec_isHadFromC, b_Rec_isHadFromB;
+  float b_Rec_d,                b_Rec_pt,               b_Rec_eta,         b_Rec_phi,        b_Rec_mass;
+  float b_Rec_lxy,              b_Rec_lxySig,           b_Rec_l3D,         b_Rec_l3DSig,     b_Rec_legDR;
+  float b_Rec_angleXY,          b_Rec_angleXYZ,         b_Rec_chi2,        b_Rec_dca;
+  float b_Rec_dau1_chi2,        b_Rec_dau1_ipsigXY,     b_Rec_dau1_ipsigZ, b_Rec_dau1_pt;
+  float b_Rec_dau2_chi2,        b_Rec_dau2_ipsigXY,     b_Rec_dau2_ipsigZ, b_Rec_dau2_pt;
+  float b_Rec_bdt_score_pythia, b_Rec_bdt_score_herwig;
+
   /* for FillJetTreeForTMVA() */
-    /* for had */
-  int   b_Rec_pdgId,        b_Rec_nMatched,     b_Rec_isFrom;
-  bool  b_Rec_isHadFromTop, b_Rec_isHadFromW,   b_Rec_isHadFromS,  b_Rec_isHadFromC, b_Rec_isHadFromB;
-  float b_Rec_d,            b_Rec_pt,           b_Rec_eta,         b_Rec_phi,        b_Rec_mass;
-  float b_Rec_lxy,          b_Rec_lxySig,       b_Rec_l3D,         b_Rec_l3DSig,     b_Rec_legDR;
-  float b_Rec_angleXY,      b_Rec_angleXYZ,     b_Rec_chi2,        b_Rec_dca;
-  float b_Rec_dau1_chi2,    b_Rec_dau1_ipsigXY, b_Rec_dau1_ipsigZ, b_Rec_dau1_pt;
-  float b_Rec_dau2_chi2,    b_Rec_dau2_ipsigXY, b_Rec_dau2_ipsigZ, b_Rec_dau2_pt;
-  float b_Rec_bdt_score;
-    /* for jet */
   int   b_isSJet, b_isBJet, b_isHighest, b_isClosestToLep;
   int   b_cmult,  b_nmult;
   float b_pt,     b_eta,    b_phi,       b_mass;
@@ -110,6 +110,26 @@ private:
   float b_n_x1,   b_n_x2,   b_n_x3;
   float b_axis1,  b_axis2,  b_ptD,       b_area;
   float b_CSVV2;
+
+    /* for TMVA with KS info. */
+  int   b_KS_nMatched_pythia,         b_KS_isFrom_pythia;
+  bool  b_KS_isHadFromTop_pythia,     b_KS_isHadFromW_pythia,       b_KS_isHadFromS_pythia,  b_KS_isHadFromC_pythia, b_KS_isHadFromB_pythia;
+  float b_KS_d_pythia,                b_KS_pt_pythia,               b_KS_eta_pythia,         b_KS_phi_pythia,        b_KS_mass_pythia;
+  float b_KS_lxy_pythia,              b_KS_lxySig_pythia,           b_KS_l3D_pythia,         b_KS_l3DSig_pythia,     b_KS_legDR_pythia;
+  float b_KS_angleXY_pythia,          b_KS_angleXYZ_pythia,         b_KS_chi2_pythia,        b_KS_dca_pythia;
+  float b_KS_dau1_chi2_pythia,        b_KS_dau1_ipsigXY_pythia,     b_KS_dau1_ipsigZ_pythia, b_KS_dau1_pt_pythia;
+  float b_KS_dau2_chi2_pythia,        b_KS_dau2_ipsigXY_pythia,     b_KS_dau2_ipsigZ_pythia, b_KS_dau2_pt_pythia;
+  float b_KS_best_bdt_pythia;
+ 
+  int   b_KS_nMatched_herwig,         b_KS_isFrom_herwig;
+  bool  b_KS_isHadFromTop_herwig,     b_KS_isHadFromW_herwig,       b_KS_isHadFromS_herwig,  b_KS_isHadFromC_herwig, b_KS_isHadFromB_herwig;
+  float b_KS_d_herwig,                b_KS_pt_herwig,               b_KS_eta_herwig,         b_KS_phi_herwig,        b_KS_mass_herwig;
+  float b_KS_lxy_herwig,              b_KS_lxySig_herwig,           b_KS_l3D_herwig,         b_KS_l3DSig_herwig,     b_KS_legDR_herwig;
+  float b_KS_angleXY_herwig,          b_KS_angleXYZ_herwig,         b_KS_chi2_herwig,        b_KS_dca_herwig;
+  float b_KS_dau1_chi2_herwig,        b_KS_dau1_ipsigXY_herwig,     b_KS_dau1_ipsigZ_herwig, b_KS_dau1_pt_herwig;
+  float b_KS_dau2_chi2_herwig,        b_KS_dau2_ipsigXY_herwig,     b_KS_dau2_ipsigZ_herwig, b_KS_dau2_pt_herwig;
+  float b_KS_best_bdt_herwig;
+ 
  
   int b_jet_start, b_jet_end; 
   int b_had_start, b_had_end;
@@ -128,6 +148,7 @@ private:
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
   void CollectVar();
 
+  void ResetForTMVA();
   void FillJetTreeForTMVA();
   void FillHadTreeForTMVA();
   void SetMVAReader();

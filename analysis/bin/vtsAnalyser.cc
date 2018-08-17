@@ -162,37 +162,38 @@ void vtsAnalyser::setOutput(std::string outFileName) {
 }
 
 void vtsAnalyser::MakeBranch() {
-  m_hadtrForTMVA->Branch("pdgId",        &b_Rec_pdgId,        "pdgId/I");
-  m_hadtrForTMVA->Branch("nMatched",     &b_Rec_nMatched,     "nMatched/I");
-  m_hadtrForTMVA->Branch("isFrom",       &b_Rec_isFrom,       "isFrom/I");
-  m_hadtrForTMVA->Branch("isHadFromTop", &b_Rec_isHadFromTop, "isHadFromTop/O");
-  m_hadtrForTMVA->Branch("isHadFromW",   &b_Rec_isHadFromW,   "isHadFromW/O");
-  m_hadtrForTMVA->Branch("isHadFromS",   &b_Rec_isHadFromS,   "isHadFromS/O");
-  m_hadtrForTMVA->Branch("isHadFromC",   &b_Rec_isHadFromC,   "isHadFromC/O");
-  m_hadtrForTMVA->Branch("isHadFromB",   &b_Rec_isHadFromB,   "isHadFromB/O");
-  m_hadtrForTMVA->Branch("d",            &b_Rec_d,            "d/F");
-  m_hadtrForTMVA->Branch("pt",           &b_Rec_pt,           "pt/F");
-  m_hadtrForTMVA->Branch("eta",          &b_Rec_eta,          "eta/F");
-  m_hadtrForTMVA->Branch("phi",          &b_Rec_phi,          "phi/F");
-  m_hadtrForTMVA->Branch("mass",         &b_Rec_mass,         "mass/F");
-  m_hadtrForTMVA->Branch("lxy",          &b_Rec_lxy,          "lxy/F");
-  m_hadtrForTMVA->Branch("lxySig",       &b_Rec_lxySig,       "lxySig/F");
-  m_hadtrForTMVA->Branch("l3D",          &b_Rec_l3D,          "l3D/F");
-  m_hadtrForTMVA->Branch("l3DSig",       &b_Rec_l3DSig,       "l3DSig/F");
-  m_hadtrForTMVA->Branch("legDR",        &b_Rec_legDR,        "legDR/F");
-  m_hadtrForTMVA->Branch("angleXY",      &b_Rec_angleXY,      "angleXY/F");
-  m_hadtrForTMVA->Branch("angleXYZ",     &b_Rec_angleXYZ,     "angleXYZ/F");
-  m_hadtrForTMVA->Branch("chi2",         &b_Rec_chi2,         "chi2/F");
-  m_hadtrForTMVA->Branch("dca",          &b_Rec_dca,          "dca/F");
-  m_hadtrForTMVA->Branch("dau1_chi2",    &b_Rec_dau1_chi2,    "dau1_chi2/F");
-  m_hadtrForTMVA->Branch("dau1_ipsigXY", &b_Rec_dau1_ipsigXY, "dau1_ipsigXY/F");
-  m_hadtrForTMVA->Branch("dau1_ipsigZ",  &b_Rec_dau1_ipsigZ,  "dau1_ipsigZ/F");
-  m_hadtrForTMVA->Branch("dau1_pt",      &b_Rec_dau2_pt,      "dau2_pt/F");
-  m_hadtrForTMVA->Branch("dau2_chi2",    &b_Rec_dau2_chi2,    "dau2_chi2/F");
-  m_hadtrForTMVA->Branch("dau2_ipsigXY", &b_Rec_dau2_ipsigXY, "dau2_ipsigXY/F");
-  m_hadtrForTMVA->Branch("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ,  "dau2_ipsigZ/F");
-  m_hadtrForTMVA->Branch("dau2_pt",      &b_Rec_dau2_pt,      "dau2_pt/F");
-  m_hadtrForTMVA->Branch("bdt_score",    &b_Rec_bdt_score,    "bdt_score/F");
+  m_hadtrForTMVA->Branch("pdgId",            &b_Rec_pdgId,            "pdgId/I");
+  m_hadtrForTMVA->Branch("nMatched",         &b_Rec_nMatched,         "nMatched/I");
+  m_hadtrForTMVA->Branch("isFrom",           &b_Rec_isFrom,           "isFrom/I");
+  m_hadtrForTMVA->Branch("isHadFromTop",     &b_Rec_isHadFromTop,     "isHadFromTop/O");
+  m_hadtrForTMVA->Branch("isHadFromW",       &b_Rec_isHadFromW,       "isHadFromW/O");
+  m_hadtrForTMVA->Branch("isHadFromS",       &b_Rec_isHadFromS,       "isHadFromS/O");
+  m_hadtrForTMVA->Branch("isHadFromC",       &b_Rec_isHadFromC,       "isHadFromC/O");
+  m_hadtrForTMVA->Branch("isHadFromB",       &b_Rec_isHadFromB,       "isHadFromB/O");
+  m_hadtrForTMVA->Branch("d",                &b_Rec_d,                "d/F");
+  m_hadtrForTMVA->Branch("pt",               &b_Rec_pt,               "pt/F");
+  m_hadtrForTMVA->Branch("eta",              &b_Rec_eta,              "eta/F");
+  m_hadtrForTMVA->Branch("phi",              &b_Rec_phi,              "phi/F");
+  m_hadtrForTMVA->Branch("mass",             &b_Rec_mass,             "mass/F");
+  m_hadtrForTMVA->Branch("lxy",              &b_Rec_lxy,              "lxy/F");
+  m_hadtrForTMVA->Branch("lxySig",           &b_Rec_lxySig,           "lxySig/F");
+  m_hadtrForTMVA->Branch("l3D",              &b_Rec_l3D,              "l3D/F");
+  m_hadtrForTMVA->Branch("l3DSig",           &b_Rec_l3DSig,           "l3DSig/F");
+  m_hadtrForTMVA->Branch("legDR",            &b_Rec_legDR,            "legDR/F");
+  m_hadtrForTMVA->Branch("angleXY",          &b_Rec_angleXY,          "angleXY/F");
+  m_hadtrForTMVA->Branch("angleXYZ",         &b_Rec_angleXYZ,         "angleXYZ/F");
+  m_hadtrForTMVA->Branch("chi2",             &b_Rec_chi2,             "chi2/F");
+  m_hadtrForTMVA->Branch("dca",              &b_Rec_dca,              "dca/F");
+  m_hadtrForTMVA->Branch("dau1_chi2",        &b_Rec_dau1_chi2,        "dau1_chi2/F");
+  m_hadtrForTMVA->Branch("dau1_ipsigXY",     &b_Rec_dau1_ipsigXY,     "dau1_ipsigXY/F");
+  m_hadtrForTMVA->Branch("dau1_ipsigZ",      &b_Rec_dau1_ipsigZ,      "dau1_ipsigZ/F");
+  m_hadtrForTMVA->Branch("dau1_pt",          &b_Rec_dau2_pt,          "dau2_pt/F");
+  m_hadtrForTMVA->Branch("dau2_chi2",        &b_Rec_dau2_chi2,        "dau2_chi2/F");
+  m_hadtrForTMVA->Branch("dau2_ipsigXY",     &b_Rec_dau2_ipsigXY,     "dau2_ipsigXY/F");
+  m_hadtrForTMVA->Branch("dau2_ipsigZ",      &b_Rec_dau2_ipsigZ,      "dau2_ipsigZ/F");
+  m_hadtrForTMVA->Branch("dau2_pt",          &b_Rec_dau2_pt,          "dau2_pt/F");
+  m_hadtrForTMVA->Branch("bdt_score_pythia", &b_Rec_bdt_score_pythia, "bdt_score_pythia/F");
+  m_hadtrForTMVA->Branch("bdt_score_herwig", &b_Rec_bdt_score_herwig, "bdt_score_herwig/F");
 
   m_jettrForTMVA->Branch("isSJet",         &b_isSJet,         "isSJet/I");
   m_jettrForTMVA->Branch("isBJet",         &b_isBJet,         "isBJet/I");
@@ -215,7 +216,69 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("ptD",            &b_ptD,            "ptD/F");
   m_jettrForTMVA->Branch("area",           &b_area,           "area/F");
   m_jettrForTMVA->Branch("CSVV2",          &b_CSVV2,          "CSVV2/F");
-  
+
+  m_jettrForTMVA->Branch("KS_nMatched_pythia",     &b_KS_nMatched_pythia,     "KS_nMatched_pythia/I");
+  m_jettrForTMVA->Branch("KS_isFrom_pythia",       &b_KS_isFrom_pythia,       "KS_isFrom_pythia/I");
+  m_jettrForTMVA->Branch("KS_isHadFromTop_pythia", &b_KS_isHadFromTop_pythia, "KS_isHadFromTop_pythia/O");
+  m_jettrForTMVA->Branch("KS_isHadFromW_pythia",   &b_KS_isHadFromW_pythia,   "KS_isHadFromW_pythia/O");
+  m_jettrForTMVA->Branch("KS_isHadFromS_pythia",   &b_KS_isHadFromS_pythia,   "KS_isHadFromS_pythia/O");
+  m_jettrForTMVA->Branch("KS_isHadFromC_pythia",   &b_KS_isHadFromC_pythia,   "KS_isHadFromC_pythia/O");
+  m_jettrForTMVA->Branch("KS_isHadFromB_pythia",   &b_KS_isHadFromB_pythia,   "KS_isHadFromB_pythia/O");
+  m_jettrForTMVA->Branch("KS_d_pythia",            &b_KS_d_pythia,            "KS_d_pythia/F");
+  m_jettrForTMVA->Branch("KS_pt_pythia",           &b_KS_pt_pythia,           "KS_pt_pythia/F");
+  m_jettrForTMVA->Branch("KS_eta_pythia",          &b_KS_eta_pythia,          "KS_eta_pythia/F");
+  m_jettrForTMVA->Branch("KS_phi_pythia",          &b_KS_phi_pythia,          "KS_phi_pythia/F");
+  m_jettrForTMVA->Branch("KS_mass_pythia",         &b_KS_mass_pythia,         "KS_mass_pythia/F");
+  m_jettrForTMVA->Branch("KS_lxy_pythia",          &b_KS_lxy_pythia,          "KS_lxy_pythia/F");
+  m_jettrForTMVA->Branch("KS_lxySig_pythia",       &b_KS_lxySig_pythia,       "KS_lxySig_pythia/F");
+  m_jettrForTMVA->Branch("KS_l3D_pythia",          &b_KS_l3D_pythia,          "KS_l3D_pythia/F");
+  m_jettrForTMVA->Branch("KS_l3DSig_pythia",       &b_KS_l3DSig_pythia,       "KS_l3DSig_pythia/F");
+  m_jettrForTMVA->Branch("KS_legDR_pythia",        &b_KS_legDR_pythia,        "KS_legDR_pythia/F");
+  m_jettrForTMVA->Branch("KS_angleXY_pythia",      &b_KS_angleXY_pythia,      "KS_angleXY_pythia/F");
+  m_jettrForTMVA->Branch("KS_angleXYZ_pythia",     &b_KS_angleXYZ_pythia,     "KS_angleXYZ_pythia/F");
+  m_jettrForTMVA->Branch("KS_chi2_pythia",         &b_KS_chi2_pythia,         "KS_chi2_pythia/F");
+  m_jettrForTMVA->Branch("KS_dca_pythia",          &b_KS_dca_pythia,          "KS_dca_pythia/F");
+  m_jettrForTMVA->Branch("KS_dau1_chi2_pythia",    &b_KS_dau1_chi2_pythia,    "KS_dau1_chi2_pythia/F");
+  m_jettrForTMVA->Branch("KS_dau1_ipsigXY_pythia", &b_KS_dau1_ipsigXY_pythia, "KS_dau1_ipsigXY_pythia/F");
+  m_jettrForTMVA->Branch("KS_dau1_ipsigZ_pythia",  &b_KS_dau1_ipsigZ_pythia,  "KS_dau1_ipsigZ_pythia/F");
+  m_jettrForTMVA->Branch("KS_dau1_pt_pythia",      &b_KS_dau2_pt_pythia,      "KS_dau2_pt_pythia/F");
+  m_jettrForTMVA->Branch("KS_dau2_chi2_pythia",    &b_KS_dau2_chi2_pythia,    "KS_dau2_chi2_pythia/F");
+  m_jettrForTMVA->Branch("KS_dau2_ipsigXY_pythia", &b_KS_dau2_ipsigXY_pythia, "KS_dau2_ipsigXY_pythia/F");
+  m_jettrForTMVA->Branch("KS_dau2_ipsigZ_pythia",  &b_KS_dau2_ipsigZ_pythia,  "KS_dau2_ipsigZ_pythia/F");
+  m_jettrForTMVA->Branch("KS_dau2_pt_pythia",      &b_KS_dau2_pt_pythia,      "KS_dau2_pt_pythia/F");
+  m_jettrForTMVA->Branch("KS_best_bdt_pythia",     &b_KS_best_bdt_pythia,     "KS_best_bdt_pythia/F");
+ 
+  m_jettrForTMVA->Branch("KS_nMatched_herwig",     &b_KS_nMatched_herwig,     "KS_nMatched_herwig/I");
+  m_jettrForTMVA->Branch("KS_isFrom_herwig",       &b_KS_isFrom_herwig,       "KS_isFrom_herwig/I");
+  m_jettrForTMVA->Branch("KS_isHadFromTop_herwig", &b_KS_isHadFromTop_herwig, "KS_isHadFromTop_herwig/O");
+  m_jettrForTMVA->Branch("KS_isHadFromW_herwig",   &b_KS_isHadFromW_herwig,   "KS_isHadFromW_herwig/O");
+  m_jettrForTMVA->Branch("KS_isHadFromS_herwig",   &b_KS_isHadFromS_herwig,   "KS_isHadFromS_herwig/O");
+  m_jettrForTMVA->Branch("KS_isHadFromC_herwig",   &b_KS_isHadFromC_herwig,   "KS_isHadFromC_herwig/O");
+  m_jettrForTMVA->Branch("KS_isHadFromB_herwig",   &b_KS_isHadFromB_herwig,   "KS_isHadFromB_herwig/O");
+  m_jettrForTMVA->Branch("KS_d_herwig",            &b_KS_d_herwig,            "KS_d_herwig/F");
+  m_jettrForTMVA->Branch("KS_pt_herwig",           &b_KS_pt_herwig,           "KS_pt_herwig/F");
+  m_jettrForTMVA->Branch("KS_eta_herwig",          &b_KS_eta_herwig,          "KS_eta_herwig/F");
+  m_jettrForTMVA->Branch("KS_phi_herwig",          &b_KS_phi_herwig,          "KS_phi_herwig/F");
+  m_jettrForTMVA->Branch("KS_mass_herwig",         &b_KS_mass_herwig,         "KS_mass_herwig/F");
+  m_jettrForTMVA->Branch("KS_lxy_herwig",          &b_KS_lxy_herwig,          "KS_lxy_herwig/F");
+  m_jettrForTMVA->Branch("KS_lxySig_herwig",       &b_KS_lxySig_herwig,       "KS_lxySig_herwig/F");
+  m_jettrForTMVA->Branch("KS_l3D_herwig",          &b_KS_l3D_herwig,          "KS_l3D_herwig/F");
+  m_jettrForTMVA->Branch("KS_l3DSig_herwig",       &b_KS_l3DSig_herwig,       "KS_l3DSig_herwig/F");
+  m_jettrForTMVA->Branch("KS_legDR_herwig",        &b_KS_legDR_herwig,        "KS_legDR_herwig/F");
+  m_jettrForTMVA->Branch("KS_angleXY_herwig",      &b_KS_angleXY_herwig,      "KS_angleXY_herwig/F");
+  m_jettrForTMVA->Branch("KS_angleXYZ_herwig",     &b_KS_angleXYZ_herwig,     "KS_angleXYZ_herwig/F");
+  m_jettrForTMVA->Branch("KS_chi2_herwig",         &b_KS_chi2_herwig,         "KS_chi2_herwig/F");
+  m_jettrForTMVA->Branch("KS_dca_herwig",          &b_KS_dca_herwig,          "KS_dca_herwig/F");
+  m_jettrForTMVA->Branch("KS_dau1_chi2_herwig",    &b_KS_dau1_chi2_herwig,    "KS_dau1_chi2_herwig/F");
+  m_jettrForTMVA->Branch("KS_dau1_ipsigXY_herwig", &b_KS_dau1_ipsigXY_herwig, "KS_dau1_ipsigXY_herwig/F");
+  m_jettrForTMVA->Branch("KS_dau1_ipsigZ_herwig",  &b_KS_dau1_ipsigZ_herwig,  "KS_dau1_ipsigZ_herwig/F");
+  m_jettrForTMVA->Branch("KS_dau1_pt_herwig",      &b_KS_dau2_pt_herwig,      "KS_dau2_pt_herwig/F");
+  m_jettrForTMVA->Branch("KS_dau2_chi2_herwig",    &b_KS_dau2_chi2_herwig,    "KS_dau2_chi2_herwig/F");
+  m_jettrForTMVA->Branch("KS_dau2_ipsigXY_herwig", &b_KS_dau2_ipsigXY_herwig, "KS_dau2_ipsigXY_herwig/F");
+  m_jettrForTMVA->Branch("KS_dau2_ipsigZ_herwig",  &b_KS_dau2_ipsigZ_herwig,  "KS_dau2_ipsigZ_herwig/F");
+  m_jettrForTMVA->Branch("KS_dau2_pt_herwig",      &b_KS_dau2_pt_herwig,      "KS_dau2_pt_herwig/F");
+  m_jettrForTMVA->Branch("KS_best_bdt_herwig",     &b_KS_best_bdt_herwig,     "KS_best_bdt_herwig/F");
+ 
   #define Branch_(type, name, suffix) m_tree->Branch(#name, &(b_##name), #name "/" #suffix);
   #define BranchI(name) Branch_(Int_t, name, I)
   #define BranchF(name) Branch_(Float_t, name, F)
@@ -899,6 +962,7 @@ void vtsAnalyser::RecAnalysis() {
   b_hadTruth_x_highest_j_vec.resize(nhad,-1);
   b_hadTruth_dr_highest_gj_vec.resize(nhad,-1);
   b_hadTruth_x_highest_gj_vec.resize(nhad,-1);
+
   for (unsigned int i=0; i<nhad; ++i) {
     if (had_pdgId[i] != 310) continue;
     ++nRecKS;
@@ -1023,6 +1087,71 @@ void vtsAnalyser::CollectVar() {
   b_MET_sumEt = MET_sumEt;
 }
 
+void vtsAnalyser::ResetForTMVA() {
+  b_KS_nMatched_pythia     = -99; 
+  b_KS_isFrom_pythia       = -99; 
+  b_KS_isHadFromTop_pythia = false; 
+  b_KS_isHadFromW_pythia   = false; 
+  b_KS_isHadFromS_pythia   = false; 
+  b_KS_isHadFromC_pythia   = false; 
+  b_KS_isHadFromB_pythia   = false; 
+  b_KS_d_pythia            = -99; 
+  b_KS_pt_pythia           = -99; 
+  b_KS_eta_pythia          = -99; 
+  b_KS_phi_pythia          = -99; 
+  b_KS_mass_pythia         = -99; 
+  b_KS_lxy_pythia          = -99; 
+  b_KS_lxySig_pythia       = -99; 
+  b_KS_l3D_pythia          = -99; 
+  b_KS_l3DSig_pythia       = -99; 
+  b_KS_legDR_pythia        = -99; 
+  b_KS_angleXY_pythia      = -99; 
+  b_KS_angleXYZ_pythia     = -99; 
+  b_KS_chi2_pythia         = -99; 
+  b_KS_dca_pythia          = -99; 
+  b_KS_dau1_chi2_pythia    = -99; 
+  b_KS_dau1_ipsigXY_pythia = -99; 
+  b_KS_dau1_ipsigZ_pythia  = -99; 
+  b_KS_dau1_pt_pythia      = -99; 
+  b_KS_dau2_chi2_pythia    = -99; 
+  b_KS_dau2_ipsigXY_pythia = -99; 
+  b_KS_dau2_ipsigZ_pythia  = -99; 
+  b_KS_dau2_pt_pythia      = -99; 
+  b_KS_best_bdt_pythia     = -99; 
+
+  b_KS_nMatched_herwig     = -99; 
+  b_KS_isFrom_herwig       = -99; 
+  b_KS_isHadFromTop_herwig = false; 
+  b_KS_isHadFromW_herwig   = false; 
+  b_KS_isHadFromS_herwig   = false; 
+  b_KS_isHadFromC_herwig   = false; 
+  b_KS_isHadFromB_herwig   = false; 
+  b_KS_d_herwig            = -99; 
+  b_KS_pt_herwig           = -99; 
+  b_KS_eta_herwig          = -99; 
+  b_KS_phi_herwig          = -99; 
+  b_KS_mass_herwig         = -99; 
+  b_KS_lxy_herwig          = -99; 
+  b_KS_lxySig_herwig       = -99; 
+  b_KS_l3D_herwig          = -99; 
+  b_KS_l3DSig_herwig       = -99; 
+  b_KS_legDR_herwig        = -99; 
+  b_KS_angleXY_herwig      = -99; 
+  b_KS_angleXYZ_herwig     = -99; 
+  b_KS_chi2_herwig         = -99; 
+  b_KS_dca_herwig          = -99; 
+  b_KS_dau1_chi2_herwig    = -99; 
+  b_KS_dau1_ipsigXY_herwig = -99; 
+  b_KS_dau1_ipsigZ_herwig  = -99; 
+  b_KS_dau1_pt_herwig      = -99; 
+  b_KS_dau2_chi2_herwig    = -99; 
+  b_KS_dau2_ipsigXY_herwig = -99; 
+  b_KS_dau2_ipsigZ_herwig  = -99; 
+  b_KS_dau2_pt_herwig      = -99; 
+  b_KS_best_bdt_herwig     = -99; 
+
+}
+
 void vtsAnalyser::FillJetTreeForTMVA() {
   auto selectedJet = jetSelection();
   b_jet_start =  m_jettrForTMVA->GetEntries();
@@ -1057,6 +1186,80 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
       b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
 
+      ResetForTMVA();
+      std::pair<int, float> best_BDT_pythia = {-1, -99};
+      std::pair<int, float> best_BDT_herwig = {-1, -99};
+      if (b_had_start != -1 && b_had_end != -1) {
+        for (auto ih=b_had_start; ih<b_had_end; ++ih) {
+          m_hadtrForTMVA->GetEntry(ih);
+          if (best_BDT_pythia.second < b_Rec_bdt_score_pythia) best_BDT_pythia = {ih, b_Rec_bdt_score_pythia};
+          if (best_BDT_herwig.second < b_Rec_bdt_score_herwig) best_BDT_herwig = {ih, b_Rec_bdt_score_herwig};
+        }
+        int idx_pythia = best_BDT_pythia.first; int idx_herwig = best_BDT_herwig.first;
+        m_hadtrForTMVA->GetEntry(idx_pythia);
+        b_KS_nMatched_pythia     = b_Rec_nMatched;
+        b_KS_isFrom_pythia       = b_Rec_isFrom;
+        b_KS_isHadFromTop_pythia = b_Rec_isHadFromTop;  
+        b_KS_isHadFromW_pythia   = b_Rec_isHadFromW; 
+        b_KS_isHadFromS_pythia   = b_Rec_isHadFromS;   
+        b_KS_isHadFromC_pythia   = b_Rec_isHadFromC;   
+        b_KS_isHadFromB_pythia   = b_Rec_isHadFromB;   
+        b_KS_d_pythia            = b_Rec_d;      
+        b_KS_pt_pythia           = b_Rec_pt;        
+        b_KS_eta_pythia          = b_Rec_eta;         
+        b_KS_phi_pythia          = b_Rec_phi;         
+        b_KS_mass_pythia         = b_Rec_mass;        
+        b_KS_lxy_pythia          = b_Rec_lxy;       
+        b_KS_lxySig_pythia       = b_Rec_lxySig;      
+        b_KS_l3D_pythia          = b_Rec_l3D;        
+        b_KS_l3DSig_pythia       = b_Rec_l3DSig;       
+        b_KS_legDR_pythia        = b_Rec_legDR;      
+        b_KS_angleXY_pythia      = b_Rec_angleXY;            
+        b_KS_angleXYZ_pythia     = b_Rec_angleXYZ;              
+        b_KS_chi2_pythia         = b_Rec_chi2;        
+        b_KS_dca_pythia          = b_Rec_dca;              
+        b_KS_dau1_chi2_pythia    = b_Rec_dau1_chi2;            
+        b_KS_dau1_ipsigXY_pythia = b_Rec_dau1_ipsigXY;              
+        b_KS_dau1_ipsigZ_pythia  = b_Rec_dau1_ipsigZ;           
+        b_KS_dau1_pt_pythia      = b_Rec_dau1_pt;            
+        b_KS_dau2_chi2_pythia    = b_Rec_dau2_chi2;               
+        b_KS_dau2_ipsigXY_pythia = b_Rec_dau2_ipsigXY;                
+        b_KS_dau2_ipsigZ_pythia  = b_Rec_dau2_ipsigZ;                 
+        b_KS_dau2_pt_pythia      = b_Rec_dau2_pt;                
+        b_KS_best_bdt_pythia     = b_Rec_bdt_score_pythia;          
+
+        m_hadtrForTMVA->GetEntry(idx_herwig);
+        b_KS_nMatched_herwig     = b_Rec_nMatched;
+        b_KS_isFrom_herwig       = b_Rec_isFrom;
+        b_KS_isHadFromTop_herwig = b_Rec_isHadFromTop;
+        b_KS_isHadFromW_herwig   = b_Rec_isHadFromW;  
+        b_KS_isHadFromS_herwig   = b_Rec_isHadFromS;  
+        b_KS_isHadFromC_herwig   = b_Rec_isHadFromC;  
+        b_KS_isHadFromB_herwig   = b_Rec_isHadFromB;  
+        b_KS_d_herwig            = b_Rec_d;           
+        b_KS_pt_herwig           = b_Rec_pt;          
+        b_KS_eta_herwig          = b_Rec_eta;         
+        b_KS_phi_herwig          = b_Rec_phi;         
+        b_KS_mass_herwig         = b_Rec_mass;        
+        b_KS_lxy_herwig          = b_Rec_lxy;         
+        b_KS_lxySig_herwig       = b_Rec_lxySig;      
+        b_KS_l3D_herwig          = b_Rec_l3D;         
+        b_KS_l3DSig_herwig       = b_Rec_l3DSig;      
+        b_KS_legDR_herwig        = b_Rec_legDR;       
+        b_KS_angleXY_herwig      = b_Rec_angleXY;     
+        b_KS_angleXYZ_herwig     = b_Rec_angleXYZ;    
+        b_KS_chi2_herwig         = b_Rec_chi2;        
+        b_KS_dca_herwig          = b_Rec_dca;         
+        b_KS_dau1_chi2_herwig    = b_Rec_dau1_chi2;   
+        b_KS_dau1_ipsigXY_herwig = b_Rec_dau1_ipsigXY;
+        b_KS_dau1_ipsigZ_herwig  = b_Rec_dau1_ipsigZ; 
+        b_KS_dau1_pt_herwig      = b_Rec_dau1_pt;     
+        b_KS_dau2_chi2_herwig    = b_Rec_dau2_chi2;   
+        b_KS_dau2_ipsigXY_herwig = b_Rec_dau2_ipsigXY;
+        b_KS_dau2_ipsigZ_herwig  = b_Rec_dau2_ipsigZ; 
+        b_KS_dau2_pt_herwig      = b_Rec_dau2_pt;       
+        b_KS_best_bdt_herwig     = b_Rec_bdt_score_herwig;  
+      }
       m_jettrForTMVA->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
@@ -1094,7 +1297,8 @@ void vtsAnalyser::FillHadTreeForTMVA() {
   b_Rec_dau2_ipsigXY = b_hadTruth_dau2_ipsigXY_vec.back();
   b_Rec_dau2_ipsigZ = b_hadTruth_dau2_ipsigZ_vec.back();
   b_Rec_dau2_pt = b_hadTruth_dau2_pt_vec.back();
-  b_Rec_bdt_score = m_hadReader->EvaluateMVA("BDT");
+  b_Rec_bdt_score_pythia = m_hadReader->EvaluateMVA("pythia_BDT");
+  b_Rec_bdt_score_herwig = m_hadReader->EvaluateMVA("herwig_BDT");
 
   m_hadtrForTMVA->Fill();
 }
@@ -1126,7 +1330,6 @@ void vtsAnalyser::SetMVAReader() {
   m_hadReader->AddVariable("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ);
   m_hadReader->AddVariable("dau2_pt",      &b_Rec_dau2_pt);
 
-  if (string(m_output->GetName()).find("herwig") == std::string::npos) m_hadReader->BookMVA("BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
-  if (string(m_output->GetName()).find("herwig") != std::string::npos) m_hadReader->BookMVA("BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/hh_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
-  else cout << " >>>>>>>>>>> Neither pythia and herwig !!! <<<<<<<<<<< " << endl;
+  m_hadReader->BookMVA("pythia_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  m_hadReader->BookMVA("herwig_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/hh_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
 }
