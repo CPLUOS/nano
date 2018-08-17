@@ -359,7 +359,8 @@ void vtsAnalyser::MakeBranch() {
 
 void vtsAnalyser::ResetBranch() {
   Reset();
-  
+  ResetForTMVA();  
+
   b_nJet = -1; b_nSelJet = -1; b_nSelJetEv = -1; 
   b_passedEvent = false;
 
@@ -1186,7 +1187,6 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
       b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
 
-      ResetForTMVA();
       std::pair<int, float> best_BDT_pythia = {-1, -99};
       std::pair<int, float> best_BDT_herwig = {-1, -99};
       if (b_had_start != -1 && b_had_end != -1) {
