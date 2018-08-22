@@ -137,7 +137,6 @@ vector<TParticle> topObjectSelection::jetSelection() {
 //  float Jet_SF_CSV[19] = {1.0,};
 //  for (UInt_t i = 0; i < nJet; ++i){
 //    // For AN-2017/083
-//    if ( std::abs(Jet_eta[i]) > 4.7 ) continue;
 //    if ( !( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) ) {
 //      if (Jet_pt[i] < 40) continue;
 //    } else {

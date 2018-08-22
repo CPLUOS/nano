@@ -38,6 +38,7 @@ private:
   TH1D *m_h1IsHighPtMuon, *m_h1DRMuon;
   
   Bool_t m_isSig;
+  Int_t b_goodGen;
   int m_nBkgType;
   Bool_t m_isFullGen;
   
@@ -255,6 +256,7 @@ void singletopAnalyser::MakeBranch(TTree *t) {
   
   t->Branch("filter_met", &b_filter_met, "filter_met/I");
   
+  t->Branch("goodGen", &b_goodGen, "goodGen/I");
   t->Branch("gentop1", "TLorentzVector", &b_gentop1);
   t->Branch("genW", "TLorentzVector", &b_genW);
   
@@ -374,6 +376,7 @@ void singletopAnalyser::resetBranch() {
   topEventSelectionSL::Reset();
   
   b_onlyGen = 0;
+  b_goodGen = 0;
   
   b_met_sumEt = -9;
   
@@ -1127,7 +1130,7 @@ int singletopAnalyser::RecoTop() {
   b_DiffLepMom21.Boost(-vec4WLow.BoostVector());
   b_DiffLepMom22.Boost(-vec4WHigh.BoostVector());
   
-  if ( m_isMC && m_isSig ) {
+  if ( m_isMC && m_isSig && b_goodGen != 0 ) {
     b_top1_imaginary = vec4BJet + RecoWFromTop(NULL, MY_FLAG_RECOW_WRESTR_IMG);
     b_top1_genWMass  = vec4BJet + RecoWFromTop(NULL, MY_FLAG_RECOW_WMASS_IN_GEN);
     b_top1_genneu = vec4BJet + RecoWFromTop(NULL, MY_FLAG_RECOW_NEU_IN_GEN);
@@ -1175,6 +1178,7 @@ int singletopAnalyser::RunEvt() {
   
   if ( m_isMC && m_isSig ) {
     nRes = GetGenInfoSignal();
+    b_goodGen = ( nRes == 0 ? 1 : 0 );
   } else {
     switch ( m_nBkgType ) {
       case MY_FLAG_BKGTYPE_TTBAR:     nRes = GetGenInfoTTbar(); break;
@@ -1190,7 +1194,8 @@ int singletopAnalyser::RunEvt() {
   
   //nRes = ObjectSelection();
   nRes = EventSelection();
-  if ( nRes < 4 ) return 0;
+  if ( nRes < 2 ) return 1;
+  //if ( !( b_trig_m != 0 || b_trig_e != 0 ) ) return 1; // Already in EventSelection()
   
   b_met_sumEt = MET_sumEt;
   b_filter_met = ( Flag_METFilters ? 1 : 0 );
@@ -1271,7 +1276,8 @@ void singletopAnalyser::Loop() {
     m_nEventIdx = i;
     nRes = RunEvt();
     
-    if ( nRes == 0 || nRes > 0 ) { // ==0 : passed on reco, >0 : failed on reco but passed on gen
+    //if ( nRes == 0 || nRes > 0 ) 
+    if ( nRes == 0 ) { // ==0 : passed on reco, >0 : failed on reco but passed on gen
       if ( nRes != 0 ) b_onlyGen = 1;
       m_tree->Fill();
     }
