@@ -3,7 +3,7 @@ from  PhysicsTools.NanoAOD.common_cff import *
 
 ##################### Tables for final output and docs ##########################
 jetMLIDTable = cms.EDProducer("JetMLIDProducer",
-  jetLabel = cms.InputTag("slimmedJets"),
+  jetLabel = cms.InputTag("linkedObjects","jets"),
   vertexLabel = cms.InputTag("offlineSlimmedPrimaryVertices"),
   useQualityCuts = cms.bool(False),
 )
