@@ -7,6 +7,8 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenStatusFlags.h"
+
 using namespace std;
 
 string getFileName(const string& s)
@@ -514,50 +516,19 @@ void vtsAnalyser::MatchingForMC() {
      top quark statusFlag(status) : 8193(11)
      s/b quark from top           : 4097(11)
   */
-/*
- // Finding s quark using GenPart_status
-  for (unsigned int i=0; i<nGenPart; ++i) {
-    if (std::abs(GenPart_status[i]) != 23 ) continue;
-    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) {
-      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && GenPart_status[GenPart_genPartIdxMother[i]] == 62 ) ) { 
-        m_tqMC.push_back(i); cout << " [ " << i << " / " << nGenPart << " ]  >>>>>>>>>>>> got it <<<<<<<<<<< " << endl;
-      }
-      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 24 && (GenPart_status[GenPart_genPartIdxMother[i]] == 22 || GenPart_status[GenPart_genPartIdxMother[i]] == 52)) ) {
-        m_wqMC.push_back(i);
-      }
-    }
-  }
-*/
 
-  // Finding s quark using GenPart_statusFlag (the part of W boson isn't completed)  >>>>>>>> pythia
+  // Finding s quark using GenStatusFlags + pdgId
   for (unsigned int i=0; i<nGenPart; ++i) {
-    if (std::abs(GenPart_statusFlags[i]) != 22913 && std::abs(GenPart_statusFlags[i]) != 4481) continue;
-    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) {
-      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && GenPart_statusFlags[GenPart_genPartIdxMother[i]] == 10497 ) ) { 
+    if ((abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) && ( (GenPart_statusFlags[i] & ( 1 << reco::GenStatusFlags::kIsFirstCopy)) != 0  ) ) {
+      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && ( (GenPart_statusFlags[GenPart_genPartIdxMother[i]] & ( 1 << reco::GenStatusFlags::kIsLastCopy)) != 0 ) ) ) { 
         m_tqMC.push_back(i);// cout << " [ " << i << " / " << nGenPart << " ]  >>>>>>>>>>>> got it <<<<<<<<<<< " << endl;
       }
-      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 24 && (GenPart_status[GenPart_genPartIdxMother[i]] == 22 || GenPart_status[GenPart_genPartIdxMother[i]] == 52)) ) {
+      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 24 && (GenPart_status[GenPart_genPartIdxMother[i]] == 22 || GenPart_status[GenPart_genPartIdxMother[i]] == 52)) ) { // not completed yet since not used for now
         m_wqMC.push_back(i);
       }
     }
   }
 
-/*
-  // Finding s quark using GenPart_statusFlag (the part of W boson isn't completed)  >>>>>>>> herwig
-  for (unsigned int i=0; i<nGenPart; ++i) {
-    if (std::abs(GenPart_statusFlags[i]) != 4097) continue;
-    if (abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) {
-//      cout << " [ " << i << " / " << nGenPart << " ] chk : " << GenPart_pdgId[i] << " " << GenPart_status[i] << " " << GenPart_statusFlags[i] << " || mom chk : idx : " << GenPart_genPartIdxMother[i] << " " <<  GenPart_pdgId[GenPart_genPartIdxMother[i]] << " " << GenPart_status[GenPart_genPartIdxMother[i]] << " " << GenPart_statusFlags[GenPart_genPartIdxMother[i]] << endl;
-      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && GenPart_statusFlags[GenPart_genPartIdxMother[i]] == 8193 ) ) { 
-        m_tqMC.push_back(i);// cout << " [ " << i << " / " << nGenPart << " ]  >>>>>>>>>>>> got it <<<<<<<<<<< " << endl;
-      }
-      if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 24 && (GenPart_status[GenPart_genPartIdxMother[i]] == 22 || GenPart_status[GenPart_genPartIdxMother[i]] == 52)) ) {
-        m_wqMC.push_back(i);
-      }
-    }
-  }
-*/
-  
   if (m_tqMC.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
   /* Select quarks originated from t->qW */
   int tq1 = -1; int tq2 = -1;
@@ -1157,134 +1128,41 @@ void vtsAnalyser::CollectVar() {
 }
 
 void vtsAnalyser::ResetForTMVA() {
-  b_KS_idx_pp          = -99;
-  b_KS_nMatched_pp     = -99; 
-  b_KS_isFrom_pp       = -99; 
-  b_KS_isHadFromTop_pp = false; 
-  b_KS_isHadFromW_pp   = false; 
-  b_KS_isHadFromS_pp   = false; 
-  b_KS_isHadFromC_pp   = false; 
-  b_KS_isHadFromB_pp   = false; 
-  b_KS_d_pp            = -99; 
-  b_KS_pt_pp           = -99; 
-  b_KS_eta_pp          = -99; 
-  b_KS_phi_pp          = -99; 
-  b_KS_mass_pp         = -99; 
-  b_KS_lxy_pp          = -99; 
-  b_KS_lxySig_pp       = -99; 
-  b_KS_l3D_pp          = -99; 
-  b_KS_l3DSig_pp       = -99; 
-  b_KS_legDR_pp        = -99; 
-  b_KS_angleXY_pp      = -99; 
-  b_KS_angleXYZ_pp     = -99; 
-  b_KS_chi2_pp         = -99; 
-  b_KS_dca_pp          = -99; 
-  b_KS_dau1_chi2_pp    = -99; 
-  b_KS_dau1_ipsigXY_pp = -99; 
-  b_KS_dau1_ipsigZ_pp  = -99; 
-  b_KS_dau1_pt_pp      = -99; 
-  b_KS_dau2_chi2_pp    = -99; 
-  b_KS_dau2_ipsigXY_pp = -99; 
-  b_KS_dau2_ipsigZ_pp  = -99; 
-  b_KS_dau2_pt_pp      = -99; 
+  b_KS_idx_pp          = -99;   b_KS_nMatched_pp     = -99;   b_KS_isFrom_pp       = -99; 
+  b_KS_isHadFromTop_pp = false; b_KS_isHadFromW_pp   = false; b_KS_isHadFromS_pp   = false; b_KS_isHadFromC_pp   = false; b_KS_isHadFromB_pp   = false; 
+  b_KS_d_pp            = -99;   b_KS_pt_pp           = -99;   b_KS_eta_pp          = -99;   b_KS_phi_pp          = -99;   b_KS_mass_pp         = -99; 
+  b_KS_lxy_pp          = -99;   b_KS_lxySig_pp       = -99;   b_KS_l3D_pp          = -99;   b_KS_l3DSig_pp       = -99;   b_KS_legDR_pp        = -99; 
+  b_KS_angleXY_pp      = -99;   b_KS_angleXYZ_pp     = -99;   b_KS_chi2_pp         = -99;   b_KS_dca_pp          = -99; 
+  b_KS_dau1_chi2_pp    = -99;   b_KS_dau1_ipsigXY_pp = -99;   b_KS_dau1_ipsigZ_pp  = -99;   b_KS_dau1_pt_pp      = -99;   b_KS_dau2_chi2_pp    = -99; 
+  b_KS_dau2_ipsigXY_pp = -99;   b_KS_dau2_ipsigZ_pp  = -99;   b_KS_dau2_pt_pp      = -99; 
   b_KS_best_bdt_pp     = -99; 
 
-  b_KS_idx_ph          = -99;
-  b_KS_nMatched_ph     = -99;
-  b_KS_isFrom_ph       = -99;
-  b_KS_isHadFromTop_ph = false;
-  b_KS_isHadFromW_ph   = false;
-  b_KS_isHadFromS_ph   = false;
-  b_KS_isHadFromC_ph   = false;
-  b_KS_isHadFromB_ph   = false;
-  b_KS_d_ph            = -99;
-  b_KS_pt_ph           = -99;
-  b_KS_eta_ph          = -99;
-  b_KS_phi_ph          = -99;
-  b_KS_mass_ph         = -99;
-  b_KS_lxy_ph          = -99;
-  b_KS_lxySig_ph       = -99;
-  b_KS_l3D_ph          = -99;
-  b_KS_l3DSig_ph       = -99;
-  b_KS_legDR_ph        = -99;
-  b_KS_angleXY_ph      = -99;
-  b_KS_angleXYZ_ph     = -99;
-  b_KS_chi2_ph         = -99;
-  b_KS_dca_ph          = -99;
-  b_KS_dau1_chi2_ph    = -99;
-  b_KS_dau1_ipsigXY_ph = -99;
-  b_KS_dau1_ipsigZ_ph  = -99;
-  b_KS_dau1_pt_ph      = -99;
-  b_KS_dau2_chi2_ph    = -99;
-  b_KS_dau2_ipsigXY_ph = -99;
-  b_KS_dau2_ipsigZ_ph  = -99;
-  b_KS_dau2_pt_ph      = -99;
+  b_KS_idx_ph          = -99;   b_KS_nMatched_ph     = -99;   b_KS_isFrom_ph       = -99;
+  b_KS_isHadFromTop_ph = false; b_KS_isHadFromW_ph   = false; b_KS_isHadFromS_ph   = false; b_KS_isHadFromC_ph   = false; b_KS_isHadFromB_ph   = false;
+  b_KS_d_ph            = -99;   b_KS_pt_ph           = -99;   b_KS_eta_ph          = -99;   b_KS_phi_ph          = -99;   b_KS_mass_ph         = -99;
+  b_KS_lxy_ph          = -99;   b_KS_lxySig_ph       = -99;   b_KS_l3D_ph          = -99;   b_KS_l3DSig_ph       = -99;   b_KS_legDR_ph        = -99;
+  b_KS_angleXY_ph      = -99;   b_KS_angleXYZ_ph     = -99;   b_KS_chi2_ph         = -99;   b_KS_dca_ph          = -99;
+  b_KS_dau1_chi2_ph    = -99;   b_KS_dau1_ipsigXY_ph = -99;   b_KS_dau1_ipsigZ_ph  = -99;   b_KS_dau1_pt_ph      = -99;   b_KS_dau2_chi2_ph    = -99;
+  b_KS_dau2_ipsigXY_ph = -99;   b_KS_dau2_ipsigZ_ph  = -99;   b_KS_dau2_pt_ph      = -99;
   b_KS_best_bdt_ph     = -99;
 
-  b_KS_idx_hp          = -99;
-  b_KS_nMatched_hp     = -99; 
-  b_KS_isFrom_hp       = -99; 
-  b_KS_isHadFromTop_hp = false; 
-  b_KS_isHadFromW_hp   = false; 
-  b_KS_isHadFromS_hp   = false; 
-  b_KS_isHadFromC_hp   = false; 
-  b_KS_isHadFromB_hp   = false; 
-  b_KS_d_hp            = -99; 
-  b_KS_pt_hp           = -99; 
-  b_KS_eta_hp          = -99; 
-  b_KS_phi_hp          = -99; 
-  b_KS_mass_hp         = -99; 
-  b_KS_lxy_hp          = -99; 
-  b_KS_lxySig_hp       = -99; 
-  b_KS_l3D_hp          = -99; 
-  b_KS_l3DSig_hp       = -99; 
-  b_KS_legDR_hp        = -99; 
-  b_KS_angleXY_hp      = -99; 
-  b_KS_angleXYZ_hp     = -99; 
-  b_KS_chi2_hp         = -99; 
-  b_KS_dca_hp          = -99; 
-  b_KS_dau1_chi2_hp    = -99; 
-  b_KS_dau1_ipsigXY_hp = -99; 
-  b_KS_dau1_ipsigZ_hp  = -99; 
-  b_KS_dau1_pt_hp      = -99; 
-  b_KS_dau2_chi2_hp    = -99; 
-  b_KS_dau2_ipsigXY_hp = -99; 
-  b_KS_dau2_ipsigZ_hp  = -99; 
-  b_KS_dau2_pt_hp      = -99; 
+  b_KS_idx_hp          = -99;   b_KS_nMatched_hp     = -99;   b_KS_isFrom_hp       = -99; 
+  b_KS_isHadFromTop_hp = false; b_KS_isHadFromW_hp   = false; b_KS_isHadFromS_hp   = false; b_KS_isHadFromC_hp   = false; b_KS_isHadFromB_hp   = false; 
+  b_KS_d_hp            = -99;   b_KS_pt_hp           = -99;   b_KS_eta_hp          = -99;   b_KS_phi_hp          = -99;   b_KS_mass_hp         = -99; 
+  b_KS_lxy_hp          = -99;   b_KS_lxySig_hp       = -99;   b_KS_l3D_hp          = -99;   b_KS_l3DSig_hp       = -99;   b_KS_legDR_hp        = -99; 
+  b_KS_angleXY_hp      = -99;   b_KS_angleXYZ_hp     = -99;   b_KS_chi2_hp         = -99;   b_KS_dca_hp          = -99; 
+  b_KS_dau1_chi2_hp    = -99;   b_KS_dau1_ipsigXY_hp = -99;   b_KS_dau1_ipsigZ_hp  = -99;   b_KS_dau1_pt_hp      = -99; 
+  b_KS_dau2_chi2_hp    = -99;   b_KS_dau2_ipsigXY_hp = -99;   b_KS_dau2_ipsigZ_hp  = -99;   b_KS_dau2_pt_hp      = -99; 
   b_KS_best_bdt_hp     = -99; 
 
-  b_KS_idx_hh          = -99;
-  b_KS_nMatched_hh     = -99;
-  b_KS_isFrom_hh       = -99;
-  b_KS_isHadFromTop_hh = false;
-  b_KS_isHadFromW_hh   = false;
-  b_KS_isHadFromS_hh   = false;
-  b_KS_isHadFromC_hh   = false;
-  b_KS_isHadFromB_hh   = false;
-  b_KS_d_hh            = -99;
-  b_KS_pt_hh           = -99;
-  b_KS_eta_hh          = -99;
-  b_KS_phi_hh          = -99;
-  b_KS_mass_hh         = -99;
-  b_KS_lxy_hh          = -99;
-  b_KS_lxySig_hh       = -99;
-  b_KS_l3D_hh          = -99;
-  b_KS_l3DSig_hh       = -99;
-  b_KS_legDR_hh        = -99;
-  b_KS_angleXY_hh      = -99;
-  b_KS_angleXYZ_hh     = -99;
-  b_KS_chi2_hh         = -99;
-  b_KS_dca_hh          = -99;
-  b_KS_dau1_chi2_hh    = -99;
-  b_KS_dau1_ipsigXY_hh = -99;
-  b_KS_dau1_ipsigZ_hh  = -99;
-  b_KS_dau1_pt_hh      = -99;
-  b_KS_dau2_chi2_hh    = -99;
-  b_KS_dau2_ipsigXY_hh = -99;
-  b_KS_dau2_ipsigZ_hh  = -99;
-  b_KS_dau2_pt_hh      = -99;
+  b_KS_idx_hh          = -99;   b_KS_nMatched_hh     = -99;   b_KS_isFrom_hh       = -99;
+  b_KS_isHadFromTop_hh = false; b_KS_isHadFromW_hh   = false; b_KS_isHadFromS_hh   = false; b_KS_isHadFromC_hh   = false; b_KS_isHadFromB_hh   = false;
+  b_KS_d_hh            = -99;   b_KS_pt_hh           = -99;   b_KS_eta_hh          = -99;   b_KS_phi_hh          = -99;   b_KS_mass_hh         = -99;
+  b_KS_lxy_hh          = -99;   b_KS_lxySig_hh       = -99;   b_KS_l3D_hh          = -99;   b_KS_l3DSig_hh       = -99;   b_KS_legDR_hh        = -99;
+  b_KS_angleXY_hh      = -99;   b_KS_angleXYZ_hh     = -99;   b_KS_chi2_hh         = -99;   b_KS_dca_hh          = -99;
+  b_KS_dau1_chi2_hh    = -99;   b_KS_dau1_ipsigXY_hh = -99;   b_KS_dau1_ipsigZ_hh  = -99;   b_KS_dau1_pt_hh      = -99;
+  b_KS_dau2_chi2_hh    = -99;   b_KS_dau2_ipsigXY_hh = -99;   b_KS_dau2_ipsigZ_hh  = -99;   b_KS_dau2_pt_hh      = -99;
   b_KS_best_bdt_hh     = -99;
-
 }
 
 void vtsAnalyser::FillJetTreeForTMVA() {
