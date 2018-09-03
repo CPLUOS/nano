@@ -115,14 +115,14 @@ int vts_dR_04_Had( TString myMethodList = "" )
 //  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_pythia.root";
 //  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_herwig.root";
 
-  TString sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180816/tt012j_bbars_2l_FxFx_sum_146.root";
-  TString sample_bbars_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180816/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180823/tt012j_bbars_2l_FxFx_sum_146.root";
+  TString sample_bbars_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180823/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
 
-  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180816/tt012j_bsbar_2l_FxFx_sum_146.root";
-  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180816/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180823/tt012j_bsbar_2l_FxFx_sum_146.root";
+  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180823/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
 
-  TString sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180816/tt012j_bbars_bsbar_sum_146.root";
-  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180816/tt012j_bbars_bsbar_herwigpp_sum_49.root";
+  TString sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180823/tt012j_bbars_bsbar_sum_146.root";
+  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180823/tt012j_bbars_bsbar_herwigpp_sum_49.root";
 
   bbars_pythia = TFile::Open( sample_bbars_pythia );             bbars_herwig = TFile::Open( sample_bbars_herwig );
   bsbar_pythia = TFile::Open( sample_bsbar_pythia );             bsbar_herwig = TFile::Open( sample_bsbar_herwig );
@@ -173,20 +173,23 @@ int vts_dR_04_Had( TString myMethodList = "" )
   Double_t signalWeight     = 1.0; Double_t backgroundWeight = 1.0;
 
   // You can add an arbitrary number of signal or background trees
-  addTree(pp_real_vs_fake,   bsbar_pythia_tree, bsbar_pythia_tree, signalWeight, backgroundWeight);
-  addTree(ph_real_vs_fake,   bsbar_pythia_tree, bsbar_herwig_tree, bsbar_pythia_tree, bsbar_herwig_tree, signalWeight, backgroundWeight);
-  addTree(hp_real_vs_fake,   bsbar_herwig_tree, bsbar_pythia_tree, bsbar_herwig_tree, bsbar_pythia_tree, signalWeight, backgroundWeight);
-  addTree(hh_real_vs_fake,   bsbar_herwig_tree, bsbar_herwig_tree, signalWeight, backgroundWeight);
+  addTree(pp_real_vs_fake,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
+  addTree(ph_real_vs_fake,   bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
+  addTree(hp_real_vs_fake,   bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
+  addTree(hh_real_vs_fake,   bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
 
   //dataloader->SetBackgroundWeightExpression( "weight" );
 
   TCut cut_real = "nMatched == 2";
   TCut cut_fake = "nMatched != 2";
 
-  pp_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, "nTrain_Signal=2000:nTrain_Background=140000:SplitMode=Random:NormMode=NumEvents:!V" ); 
-  ph_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, "nTrain_Signal=2000:nTrain_Background=140000:SplitMode=Random:NormMode=NumEvents:!V" );
-  hp_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, "nTrain_Signal=2000:nTrain_Background=140000:SplitMode=Random:NormMode=NumEvents:!V" ); 
-  hh_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, "nTrain_Signal=2000:nTrain_Background=140000:SplitMode=Random:NormMode=NumEvents:!V" ); 
+  TString opt_1 = "nTrain_Signal=2000:nTrain_Background=140000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_2 = "nTrain_Signal=4000:nTrain_Background=280000:SplitMode=Random:NormMode=NumEvents:!V";
+
+  pp_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_2 ); 
+  ph_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_2 );
+  hp_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_2 ); 
+  hh_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_2 ); 
 
   addMethod(Use, factory, pp_real_vs_fake);
   addMethod(Use, factory, ph_real_vs_fake);

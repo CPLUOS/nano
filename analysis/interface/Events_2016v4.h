@@ -2148,6 +2148,7 @@ Events::Events(TTree *tree, TTree *had, TTree *hadTruth) : fChain(0), h_fChain(0
 
 Events::~Events()
 {
+
   if (!fChain) return;
   delete fChain->GetCurrentFile();
   if (!h_fChain) {
@@ -2156,6 +2157,12 @@ Events::~Events()
   } else h_fChain->GetCurrentFile();
   if (!ht_fChain) return;
   else delete ht_fChain->GetCurrentFile();
+/*
+   if (!fChain) return;
+   delete fChain->GetCurrentFile();
+   if (h_fChain) delete h_fChain->GetCurrentFile();
+   if (ht_fChain) delete ht_fChain->GetCurrentFile();
+*/
 }
 
 #include<iostream>

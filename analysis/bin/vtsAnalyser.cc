@@ -251,6 +251,8 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("KS_dau2_ipsigXY_pp", &b_KS_dau2_ipsigXY_pp, "KS_dau2_ipsigXY_pp/F");
   m_jettrForTMVA->Branch("KS_dau2_ipsigZ_pp",  &b_KS_dau2_ipsigZ_pp,  "KS_dau2_ipsigZ_pp/F");
   m_jettrForTMVA->Branch("KS_dau2_pt_pp",      &b_KS_dau2_pt_pp,      "KS_dau2_pt_pp/F");
+  m_jettrForTMVA->Branch("KS_dr_pp",           &b_KS_dr_pp,           "KS_dr_pp/F");
+  m_jettrForTMVA->Branch("KS_x_pp",            &b_KS_x_pp,            "KS_x_pp/F");
   m_jettrForTMVA->Branch("KS_best_bdt_pp",     &b_KS_best_bdt_pp,     "KS_best_bdt_pp/F");
 
   m_jettrForTMVA->Branch("KS_idx_ph"     ,     &b_KS_idx_ph,          "KS_idx_ph/I");
@@ -283,6 +285,8 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("KS_dau2_ipsigXY_ph", &b_KS_dau2_ipsigXY_ph, "KS_dau2_ipsigXY_ph/F");
   m_jettrForTMVA->Branch("KS_dau2_ipsigZ_ph",  &b_KS_dau2_ipsigZ_ph,  "KS_dau2_ipsigZ_ph/F");
   m_jettrForTMVA->Branch("KS_dau2_pt_ph",      &b_KS_dau2_pt_ph,      "KS_dau2_pt_ph/F");
+  m_jettrForTMVA->Branch("KS_dr_ph",           &b_KS_dr_ph,           "KS_dr_ph/F");
+  m_jettrForTMVA->Branch("KS_x_ph",            &b_KS_x_ph,            "KS_x_ph/F");
   m_jettrForTMVA->Branch("KS_best_bdt_ph",     &b_KS_best_bdt_ph,     "KS_best_bdt_ph/F");
  
   m_jettrForTMVA->Branch("KS_idx_hp"     ,     &b_KS_idx_hp,          "KS_idx_hp/I");
@@ -315,6 +319,8 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("KS_dau2_ipsigXY_hp", &b_KS_dau2_ipsigXY_hp, "KS_dau2_ipsigXY_hp/F");
   m_jettrForTMVA->Branch("KS_dau2_ipsigZ_hp",  &b_KS_dau2_ipsigZ_hp,  "KS_dau2_ipsigZ_hp/F");
   m_jettrForTMVA->Branch("KS_dau2_pt_hp",      &b_KS_dau2_pt_hp,      "KS_dau2_pt_hp/F");
+  m_jettrForTMVA->Branch("KS_dr_hp",           &b_KS_dr_hp,           "KS_dr_hp/F");
+  m_jettrForTMVA->Branch("KS_x_hp",            &b_KS_x_hp,            "KS_x_hp/F");
   m_jettrForTMVA->Branch("KS_best_bdt_hp",     &b_KS_best_bdt_hp,     "KS_best_bdt_hp/F");
 
   m_jettrForTMVA->Branch("KS_idx_hh"     ,     &b_KS_idx_hh,          "KS_idx_hh/I");
@@ -347,6 +353,8 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("KS_dau2_ipsigXY_hh", &b_KS_dau2_ipsigXY_hh, "KS_dau2_ipsigXY_hh/F");
   m_jettrForTMVA->Branch("KS_dau2_ipsigZ_hh",  &b_KS_dau2_ipsigZ_hh,  "KS_dau2_ipsigZ_hh/F");
   m_jettrForTMVA->Branch("KS_dau2_pt_hh",      &b_KS_dau2_pt_hh,      "KS_dau2_pt_hh/F");
+  m_jettrForTMVA->Branch("KS_dr_hh",           &b_KS_dr_hh,           "KS_dr_hh/F");
+  m_jettrForTMVA->Branch("KS_x_hh",            &b_KS_x_hh,            "KS_x_hh/F");
   m_jettrForTMVA->Branch("KS_best_bdt_hh",     &b_KS_best_bdt_hh,     "KS_best_bdt_hh/F");
  
   #define Branch_(type, name, suffix) m_tree->Branch(#name, &(b_##name), #name "/" #suffix);
@@ -1135,7 +1143,7 @@ void vtsAnalyser::ResetForTMVA() {
   b_KS_angleXY_pp      = -99;   b_KS_angleXYZ_pp     = -99;   b_KS_chi2_pp         = -99;   b_KS_dca_pp          = -99; 
   b_KS_dau1_chi2_pp    = -99;   b_KS_dau1_ipsigXY_pp = -99;   b_KS_dau1_ipsigZ_pp  = -99;   b_KS_dau1_pt_pp      = -99;   b_KS_dau2_chi2_pp    = -99; 
   b_KS_dau2_ipsigXY_pp = -99;   b_KS_dau2_ipsigZ_pp  = -99;   b_KS_dau2_pt_pp      = -99; 
-  b_KS_best_bdt_pp     = -99; 
+  b_KS_dr_pp           = -99;   b_KS_x_pp            = -99;   b_KS_best_bdt_pp     = -99; 
 
   b_KS_idx_ph          = -99;   b_KS_nMatched_ph     = -99;   b_KS_isFrom_ph       = -99;
   b_KS_isHadFromTop_ph = false; b_KS_isHadFromW_ph   = false; b_KS_isHadFromS_ph   = false; b_KS_isHadFromC_ph   = false; b_KS_isHadFromB_ph   = false;
@@ -1144,7 +1152,7 @@ void vtsAnalyser::ResetForTMVA() {
   b_KS_angleXY_ph      = -99;   b_KS_angleXYZ_ph     = -99;   b_KS_chi2_ph         = -99;   b_KS_dca_ph          = -99;
   b_KS_dau1_chi2_ph    = -99;   b_KS_dau1_ipsigXY_ph = -99;   b_KS_dau1_ipsigZ_ph  = -99;   b_KS_dau1_pt_ph      = -99;   b_KS_dau2_chi2_ph    = -99;
   b_KS_dau2_ipsigXY_ph = -99;   b_KS_dau2_ipsigZ_ph  = -99;   b_KS_dau2_pt_ph      = -99;
-  b_KS_best_bdt_ph     = -99;
+  b_KS_dr_ph           = -99;   b_KS_x_ph            = -99;   b_KS_best_bdt_ph     = -99;
 
   b_KS_idx_hp          = -99;   b_KS_nMatched_hp     = -99;   b_KS_isFrom_hp       = -99; 
   b_KS_isHadFromTop_hp = false; b_KS_isHadFromW_hp   = false; b_KS_isHadFromS_hp   = false; b_KS_isHadFromC_hp   = false; b_KS_isHadFromB_hp   = false; 
@@ -1153,7 +1161,7 @@ void vtsAnalyser::ResetForTMVA() {
   b_KS_angleXY_hp      = -99;   b_KS_angleXYZ_hp     = -99;   b_KS_chi2_hp         = -99;   b_KS_dca_hp          = -99; 
   b_KS_dau1_chi2_hp    = -99;   b_KS_dau1_ipsigXY_hp = -99;   b_KS_dau1_ipsigZ_hp  = -99;   b_KS_dau1_pt_hp      = -99; 
   b_KS_dau2_chi2_hp    = -99;   b_KS_dau2_ipsigXY_hp = -99;   b_KS_dau2_ipsigZ_hp  = -99;   b_KS_dau2_pt_hp      = -99; 
-  b_KS_best_bdt_hp     = -99; 
+  b_KS_dr_hp           = -99;   b_KS_x_hp            = -99;   b_KS_best_bdt_hp     = -99; 
 
   b_KS_idx_hh          = -99;   b_KS_nMatched_hh     = -99;   b_KS_isFrom_hh       = -99;
   b_KS_isHadFromTop_hh = false; b_KS_isHadFromW_hh   = false; b_KS_isHadFromS_hh   = false; b_KS_isHadFromC_hh   = false; b_KS_isHadFromB_hh   = false;
@@ -1162,7 +1170,7 @@ void vtsAnalyser::ResetForTMVA() {
   b_KS_angleXY_hh      = -99;   b_KS_angleXYZ_hh     = -99;   b_KS_chi2_hh         = -99;   b_KS_dca_hh          = -99;
   b_KS_dau1_chi2_hh    = -99;   b_KS_dau1_ipsigXY_hh = -99;   b_KS_dau1_ipsigZ_hh  = -99;   b_KS_dau1_pt_hh      = -99;
   b_KS_dau2_chi2_hh    = -99;   b_KS_dau2_ipsigXY_hh = -99;   b_KS_dau2_ipsigZ_hh  = -99;   b_KS_dau2_pt_hh      = -99;
-  b_KS_best_bdt_hh     = -99;
+  b_KS_dr_hh           = -99;   b_KS_x_hh            = -99;   b_KS_best_bdt_hh     = -99;
 }
 
 void vtsAnalyser::FillJetTreeForTMVA() {
@@ -1182,6 +1190,7 @@ void vtsAnalyser::FillJetTreeForTMVA() {
     auto closest_lep2_idx = m_recJet[0].idx;
 
     for (unsigned int ij=0; ij<selectedJet.size();++ij) {
+      ResetForTMVA();
       b_isSJet = 0; b_isBJet = 0; b_isHighest = 0; b_isClosestToLep = 0;
 
       auto j = selectedJet[ij].GetFirstMother();
@@ -1204,154 +1213,163 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       std::pair<int, float> best_BDT_ph = {-1, -99};
       std::pair<int, float> best_BDT_hp = {-1, -99};
       std::pair<int, float> best_BDT_hh = {-1, -99};
-      float dr_pp = -1; 
       
       cout << j << " th jet ==> " << m_qjMapForMC[j] << endl;
       if (b_had_start != -1 && b_had_end != -1) {
         for (auto ih=b_had_start; ih<b_had_end; ++ih) {
           m_hadtrForTMVA->GetEntry(ih);
           TLorentzVector had_tlv; had_tlv.SetPtEtaPhiM(b_Rec_pt, b_Rec_eta, b_Rec_phi, b_Rec_mass);
-          cout << ih << " / " << j << " th had / jet ===> dR : " << jet_tlv.DeltaR(had_tlv) << " | pt : " << b_Rec_pt << " | x : " << b_Rec_pt/b_pt << " | bdt : " << b_Rec_bdt_score_pp << endl;
           if (jet_tlv.DeltaR(had_tlv) <= m_jetConeSize) {
-            if (best_BDT_pp.second < b_Rec_bdt_score_pp) {best_BDT_pp = {ih, b_Rec_bdt_score_pp}; dr_pp = jet_tlv.DeltaR(had_tlv);} 
-            if (best_BDT_ph.second < b_Rec_bdt_score_ph) best_BDT_ph = {ih, b_Rec_bdt_score_ph};
-            if (best_BDT_hp.second < b_Rec_bdt_score_hp) best_BDT_hp = {ih, b_Rec_bdt_score_hp};
-            if (best_BDT_hh.second < b_Rec_bdt_score_hh) best_BDT_hh = {ih, b_Rec_bdt_score_hh};
+            if (best_BDT_pp.second < b_Rec_bdt_score_pp) {best_BDT_pp = {ih, b_Rec_bdt_score_pp}; b_KS_dr_pp = jet_tlv.DeltaR(had_tlv);} 
+            if (best_BDT_ph.second < b_Rec_bdt_score_ph) {best_BDT_ph = {ih, b_Rec_bdt_score_ph}; b_KS_dr_ph = jet_tlv.DeltaR(had_tlv);} 
+            if (best_BDT_hp.second < b_Rec_bdt_score_hp) {best_BDT_hp = {ih, b_Rec_bdt_score_hp}; b_KS_dr_hp = jet_tlv.DeltaR(had_tlv);}
+            if (best_BDT_hh.second < b_Rec_bdt_score_hh) {best_BDT_hh = {ih, b_Rec_bdt_score_hh}; b_KS_dr_hh = jet_tlv.DeltaR(had_tlv);}
           }
         }
         int idx_pp = best_BDT_pp.first; int idx_ph = best_BDT_ph.first; int idx_hp = best_BDT_hp.first; int idx_hh = best_BDT_hh.first;
-        m_hadtrForTMVA->GetEntry(idx_pp);
-        b_KS_idx_pp          = idx_pp;
-        b_KS_nMatched_pp     = b_Rec_nMatched;
-        b_KS_isFrom_pp       = b_Rec_isFrom;
-        b_KS_isHadFromTop_pp = b_Rec_isHadFromTop;  
-        b_KS_isHadFromW_pp   = b_Rec_isHadFromW; 
-        b_KS_isHadFromS_pp   = b_Rec_isHadFromS;   
-        b_KS_isHadFromC_pp   = b_Rec_isHadFromC;   
-        b_KS_isHadFromB_pp   = b_Rec_isHadFromB;   
-        b_KS_d_pp            = b_Rec_d;      
-        b_KS_pt_pp           = b_Rec_pt;        
-        b_KS_eta_pp          = b_Rec_eta;         
-        b_KS_phi_pp          = b_Rec_phi;         
-        b_KS_mass_pp         = b_Rec_mass;        
-        b_KS_lxy_pp          = b_Rec_lxy;       
-        b_KS_lxySig_pp       = b_Rec_lxySig;      
-        b_KS_l3D_pp          = b_Rec_l3D;        
-        b_KS_l3DSig_pp       = b_Rec_l3DSig;       
-        b_KS_legDR_pp        = b_Rec_legDR;      
-        b_KS_angleXY_pp      = b_Rec_angleXY;            
-        b_KS_angleXYZ_pp     = b_Rec_angleXYZ;              
-        b_KS_chi2_pp         = b_Rec_chi2;        
-        b_KS_dca_pp          = b_Rec_dca;              
-        b_KS_dau1_chi2_pp    = b_Rec_dau1_chi2;            
-        b_KS_dau1_ipsigXY_pp = b_Rec_dau1_ipsigXY;              
-        b_KS_dau1_ipsigZ_pp  = b_Rec_dau1_ipsigZ;           
-        b_KS_dau1_pt_pp      = b_Rec_dau1_pt;            
-        b_KS_dau2_chi2_pp    = b_Rec_dau2_chi2;               
-        b_KS_dau2_ipsigXY_pp = b_Rec_dau2_ipsigXY;                
-        b_KS_dau2_ipsigZ_pp  = b_Rec_dau2_ipsigZ;                 
-        b_KS_dau2_pt_pp      = b_Rec_dau2_pt;                
-        b_KS_best_bdt_pp     = b_Rec_bdt_score_pp;          
-        cout << idx_pp << " / " << j << " th _pp / jet ===> dR : " << dr_pp << " | pt : " << b_Rec_pt << " | x : " << b_Rec_pt/b_pt << " | bdt : " << b_Rec_bdt_score_pp << endl;
+        if (idx_pp != -1) {
+          m_hadtrForTMVA->GetEntry(idx_pp);
+          b_KS_idx_pp          = idx_pp;
+          b_KS_nMatched_pp     = b_Rec_nMatched;
+          b_KS_isFrom_pp       = b_Rec_isFrom;
+          b_KS_isHadFromTop_pp = b_Rec_isHadFromTop;  
+          b_KS_isHadFromW_pp   = b_Rec_isHadFromW; 
+          b_KS_isHadFromS_pp   = b_Rec_isHadFromS;   
+          b_KS_isHadFromC_pp   = b_Rec_isHadFromC;   
+          b_KS_isHadFromB_pp   = b_Rec_isHadFromB;   
+          b_KS_d_pp            = b_Rec_d;      
+          b_KS_pt_pp           = b_Rec_pt;        
+          b_KS_eta_pp          = b_Rec_eta;         
+          b_KS_phi_pp          = b_Rec_phi;         
+          b_KS_mass_pp         = b_Rec_mass;        
+          b_KS_lxy_pp          = b_Rec_lxy;       
+          b_KS_lxySig_pp       = b_Rec_lxySig;      
+          b_KS_l3D_pp          = b_Rec_l3D;        
+          b_KS_l3DSig_pp       = b_Rec_l3DSig;       
+          b_KS_legDR_pp        = b_Rec_legDR;      
+          b_KS_angleXY_pp      = b_Rec_angleXY;            
+          b_KS_angleXYZ_pp     = b_Rec_angleXYZ;              
+          b_KS_chi2_pp         = b_Rec_chi2;        
+          b_KS_dca_pp          = b_Rec_dca;              
+          b_KS_dau1_chi2_pp    = b_Rec_dau1_chi2;            
+          b_KS_dau1_ipsigXY_pp = b_Rec_dau1_ipsigXY;              
+          b_KS_dau1_ipsigZ_pp  = b_Rec_dau1_ipsigZ;           
+          b_KS_dau1_pt_pp      = b_Rec_dau1_pt;            
+          b_KS_dau2_chi2_pp    = b_Rec_dau2_chi2;               
+          b_KS_dau2_ipsigXY_pp = b_Rec_dau2_ipsigXY;                
+          b_KS_dau2_ipsigZ_pp  = b_Rec_dau2_ipsigZ;                 
+          b_KS_dau2_pt_pp      = b_Rec_dau2_pt;
+          b_KS_x_pp            = b_Rec_pt/Jet_pt[j];
+          b_KS_best_bdt_pp     = b_Rec_bdt_score_pp;          
+        }
+ 
+        if (idx_ph != -1) {
+          m_hadtrForTMVA->GetEntry(idx_ph);
+          b_KS_idx_ph          = idx_ph;
+          b_KS_nMatched_ph     = b_Rec_nMatched;
+          b_KS_isFrom_ph       = b_Rec_isFrom;
+          b_KS_isHadFromTop_ph = b_Rec_isHadFromTop;
+          b_KS_isHadFromW_ph   = b_Rec_isHadFromW;
+          b_KS_isHadFromS_ph   = b_Rec_isHadFromS;
+          b_KS_isHadFromC_ph   = b_Rec_isHadFromC;
+          b_KS_isHadFromB_ph   = b_Rec_isHadFromB;
+          b_KS_d_ph            = b_Rec_d;
+          b_KS_pt_ph           = b_Rec_pt;
+          b_KS_eta_ph          = b_Rec_eta;
+          b_KS_phi_ph          = b_Rec_phi;
+          b_KS_mass_ph         = b_Rec_mass;
+          b_KS_lxy_ph          = b_Rec_lxy;
+          b_KS_lxySig_ph       = b_Rec_lxySig;
+          b_KS_l3D_ph          = b_Rec_l3D;
+          b_KS_l3DSig_ph       = b_Rec_l3DSig;
+          b_KS_legDR_ph        = b_Rec_legDR;
+          b_KS_angleXY_ph      = b_Rec_angleXY;
+          b_KS_angleXYZ_ph     = b_Rec_angleXYZ;
+          b_KS_chi2_ph         = b_Rec_chi2;
+          b_KS_dca_ph          = b_Rec_dca;
+          b_KS_dau1_chi2_ph    = b_Rec_dau1_chi2;
+          b_KS_dau1_ipsigXY_ph = b_Rec_dau1_ipsigXY;
+          b_KS_dau1_ipsigZ_ph  = b_Rec_dau1_ipsigZ;
+          b_KS_dau1_pt_ph      = b_Rec_dau1_pt;
+          b_KS_dau2_chi2_ph    = b_Rec_dau2_chi2;
+          b_KS_dau2_ipsigXY_ph = b_Rec_dau2_ipsigXY;
+          b_KS_dau2_ipsigZ_ph  = b_Rec_dau2_ipsigZ;
+          b_KS_dau2_pt_ph      = b_Rec_dau2_pt;
+          b_KS_x_ph            = b_Rec_pt/Jet_pt[j];
+          b_KS_best_bdt_ph     = b_Rec_bdt_score_ph;
+        }
 
-        m_hadtrForTMVA->GetEntry(idx_ph);
-        b_KS_idx_ph          = idx_ph;
-        b_KS_nMatched_ph     = b_Rec_nMatched;
-        b_KS_isFrom_ph       = b_Rec_isFrom;
-        b_KS_isHadFromTop_ph = b_Rec_isHadFromTop;
-        b_KS_isHadFromW_ph   = b_Rec_isHadFromW;
-        b_KS_isHadFromS_ph   = b_Rec_isHadFromS;
-        b_KS_isHadFromC_ph   = b_Rec_isHadFromC;
-        b_KS_isHadFromB_ph   = b_Rec_isHadFromB;
-        b_KS_d_ph            = b_Rec_d;
-        b_KS_pt_ph           = b_Rec_pt;
-        b_KS_eta_ph          = b_Rec_eta;
-        b_KS_phi_ph          = b_Rec_phi;
-        b_KS_mass_ph         = b_Rec_mass;
-        b_KS_lxy_ph          = b_Rec_lxy;
-        b_KS_lxySig_ph       = b_Rec_lxySig;
-        b_KS_l3D_ph          = b_Rec_l3D;
-        b_KS_l3DSig_ph       = b_Rec_l3DSig;
-        b_KS_legDR_ph        = b_Rec_legDR;
-        b_KS_angleXY_ph      = b_Rec_angleXY;
-        b_KS_angleXYZ_ph     = b_Rec_angleXYZ;
-        b_KS_chi2_ph         = b_Rec_chi2;
-        b_KS_dca_ph          = b_Rec_dca;
-        b_KS_dau1_chi2_ph    = b_Rec_dau1_chi2;
-        b_KS_dau1_ipsigXY_ph = b_Rec_dau1_ipsigXY;
-        b_KS_dau1_ipsigZ_ph  = b_Rec_dau1_ipsigZ;
-        b_KS_dau1_pt_ph      = b_Rec_dau1_pt;
-        b_KS_dau2_chi2_ph    = b_Rec_dau2_chi2;
-        b_KS_dau2_ipsigXY_ph = b_Rec_dau2_ipsigXY;
-        b_KS_dau2_ipsigZ_ph  = b_Rec_dau2_ipsigZ;
-        b_KS_dau2_pt_ph      = b_Rec_dau2_pt;
-        b_KS_best_bdt_ph     = b_Rec_bdt_score_ph;
+        if (idx_hp != -1) {
+          m_hadtrForTMVA->GetEntry(idx_hp);
+          b_KS_idx_hp          = idx_hp;
+          b_KS_nMatched_hp     = b_Rec_nMatched;
+          b_KS_isFrom_hp       = b_Rec_isFrom;
+          b_KS_isHadFromTop_hp = b_Rec_isHadFromTop;
+          b_KS_isHadFromW_hp   = b_Rec_isHadFromW;  
+          b_KS_isHadFromS_hp   = b_Rec_isHadFromS;  
+          b_KS_isHadFromC_hp   = b_Rec_isHadFromC;  
+          b_KS_isHadFromB_hp   = b_Rec_isHadFromB;  
+          b_KS_d_hp            = b_Rec_d;           
+          b_KS_pt_hp           = b_Rec_pt;          
+          b_KS_eta_hp          = b_Rec_eta;         
+          b_KS_phi_hp          = b_Rec_phi;         
+          b_KS_mass_hp         = b_Rec_mass;        
+          b_KS_lxy_hp          = b_Rec_lxy;         
+          b_KS_lxySig_hp       = b_Rec_lxySig;      
+          b_KS_l3D_hp          = b_Rec_l3D;         
+          b_KS_l3DSig_hp       = b_Rec_l3DSig;      
+          b_KS_legDR_hp        = b_Rec_legDR;       
+          b_KS_angleXY_hp      = b_Rec_angleXY;     
+          b_KS_angleXYZ_hp     = b_Rec_angleXYZ;    
+          b_KS_chi2_hp         = b_Rec_chi2;        
+          b_KS_dca_hp          = b_Rec_dca;         
+          b_KS_dau1_chi2_hp    = b_Rec_dau1_chi2;   
+          b_KS_dau1_ipsigXY_hp = b_Rec_dau1_ipsigXY;
+          b_KS_dau1_ipsigZ_hp  = b_Rec_dau1_ipsigZ; 
+          b_KS_dau1_pt_hp      = b_Rec_dau1_pt;     
+          b_KS_dau2_chi2_hp    = b_Rec_dau2_chi2;   
+          b_KS_dau2_ipsigXY_hp = b_Rec_dau2_ipsigXY;
+          b_KS_dau2_ipsigZ_hp  = b_Rec_dau2_ipsigZ; 
+          b_KS_dau2_pt_hp      = b_Rec_dau2_pt;       
+          b_KS_x_hp            = b_Rec_pt/Jet_pt[j];
+          b_KS_best_bdt_hp     = b_Rec_bdt_score_hp;
+        }
 
-        m_hadtrForTMVA->GetEntry(idx_hp);
-        b_KS_idx_hp          = idx_hp;
-        b_KS_nMatched_hp     = b_Rec_nMatched;
-        b_KS_isFrom_hp       = b_Rec_isFrom;
-        b_KS_isHadFromTop_hp = b_Rec_isHadFromTop;
-        b_KS_isHadFromW_hp   = b_Rec_isHadFromW;  
-        b_KS_isHadFromS_hp   = b_Rec_isHadFromS;  
-        b_KS_isHadFromC_hp   = b_Rec_isHadFromC;  
-        b_KS_isHadFromB_hp   = b_Rec_isHadFromB;  
-        b_KS_d_hp            = b_Rec_d;           
-        b_KS_pt_hp           = b_Rec_pt;          
-        b_KS_eta_hp          = b_Rec_eta;         
-        b_KS_phi_hp          = b_Rec_phi;         
-        b_KS_mass_hp         = b_Rec_mass;        
-        b_KS_lxy_hp          = b_Rec_lxy;         
-        b_KS_lxySig_hp       = b_Rec_lxySig;      
-        b_KS_l3D_hp          = b_Rec_l3D;         
-        b_KS_l3DSig_hp       = b_Rec_l3DSig;      
-        b_KS_legDR_hp        = b_Rec_legDR;       
-        b_KS_angleXY_hp      = b_Rec_angleXY;     
-        b_KS_angleXYZ_hp     = b_Rec_angleXYZ;    
-        b_KS_chi2_hp         = b_Rec_chi2;        
-        b_KS_dca_hp          = b_Rec_dca;         
-        b_KS_dau1_chi2_hp    = b_Rec_dau1_chi2;   
-        b_KS_dau1_ipsigXY_hp = b_Rec_dau1_ipsigXY;
-        b_KS_dau1_ipsigZ_hp  = b_Rec_dau1_ipsigZ; 
-        b_KS_dau1_pt_hp      = b_Rec_dau1_pt;     
-        b_KS_dau2_chi2_hp    = b_Rec_dau2_chi2;   
-        b_KS_dau2_ipsigXY_hp = b_Rec_dau2_ipsigXY;
-        b_KS_dau2_ipsigZ_hp  = b_Rec_dau2_ipsigZ; 
-        b_KS_dau2_pt_hp      = b_Rec_dau2_pt;       
-        b_KS_best_bdt_hp     = b_Rec_bdt_score_hp;
-
-        m_hadtrForTMVA->GetEntry(idx_hh);
-        b_KS_idx_hh          = idx_hh;
-        b_KS_nMatched_hh     = b_Rec_nMatched;
-        b_KS_isFrom_hh       = b_Rec_isFrom;
-        b_KS_isHadFromTop_hh = b_Rec_isHadFromTop;
-        b_KS_isHadFromW_hh   = b_Rec_isHadFromW;
-        b_KS_isHadFromS_hh   = b_Rec_isHadFromS;
-        b_KS_isHadFromC_hh   = b_Rec_isHadFromC;
-        b_KS_isHadFromB_hh   = b_Rec_isHadFromB;
-        b_KS_d_hh            = b_Rec_d;
-        b_KS_pt_hh           = b_Rec_pt;
-        b_KS_eta_hh          = b_Rec_eta;
-        b_KS_phi_hh          = b_Rec_phi;
-        b_KS_mass_hh         = b_Rec_mass;
-        b_KS_lxy_hh          = b_Rec_lxy;
-        b_KS_lxySig_hh       = b_Rec_lxySig;
-        b_KS_l3D_hh          = b_Rec_l3D;
-        b_KS_l3DSig_hh       = b_Rec_l3DSig;
-        b_KS_legDR_hh        = b_Rec_legDR;
-        b_KS_angleXY_hh      = b_Rec_angleXY;
-        b_KS_angleXYZ_hh     = b_Rec_angleXYZ;
-        b_KS_chi2_hh         = b_Rec_chi2;
-        b_KS_dca_hh          = b_Rec_dca;
-        b_KS_dau1_chi2_hh    = b_Rec_dau1_chi2;
-        b_KS_dau1_ipsigXY_hh = b_Rec_dau1_ipsigXY;
-        b_KS_dau1_ipsigZ_hh  = b_Rec_dau1_ipsigZ;
-        b_KS_dau1_pt_hh      = b_Rec_dau1_pt;
-        b_KS_dau2_chi2_hh    = b_Rec_dau2_chi2;
-        b_KS_dau2_ipsigXY_hh = b_Rec_dau2_ipsigXY;
-        b_KS_dau2_ipsigZ_hh  = b_Rec_dau2_ipsigZ;
-        b_KS_dau2_pt_hh      = b_Rec_dau2_pt;
-        b_KS_best_bdt_hh     = b_Rec_bdt_score_hh; 
+        if (idx_hh != -1) {
+          m_hadtrForTMVA->GetEntry(idx_hh);
+          b_KS_idx_hh          = idx_hh;
+          b_KS_nMatched_hh     = b_Rec_nMatched;
+          b_KS_isFrom_hh       = b_Rec_isFrom;
+          b_KS_isHadFromTop_hh = b_Rec_isHadFromTop;
+          b_KS_isHadFromW_hh   = b_Rec_isHadFromW;
+          b_KS_isHadFromS_hh   = b_Rec_isHadFromS;
+          b_KS_isHadFromC_hh   = b_Rec_isHadFromC;
+          b_KS_isHadFromB_hh   = b_Rec_isHadFromB;
+          b_KS_d_hh            = b_Rec_d;
+          b_KS_pt_hh           = b_Rec_pt;
+          b_KS_eta_hh          = b_Rec_eta;
+          b_KS_phi_hh          = b_Rec_phi;
+          b_KS_mass_hh         = b_Rec_mass;
+          b_KS_lxy_hh          = b_Rec_lxy;
+          b_KS_lxySig_hh       = b_Rec_lxySig;
+          b_KS_l3D_hh          = b_Rec_l3D;
+          b_KS_l3DSig_hh       = b_Rec_l3DSig;
+          b_KS_legDR_hh        = b_Rec_legDR;
+          b_KS_angleXY_hh      = b_Rec_angleXY;
+          b_KS_angleXYZ_hh     = b_Rec_angleXYZ;
+          b_KS_chi2_hh         = b_Rec_chi2;
+          b_KS_dca_hh          = b_Rec_dca;
+          b_KS_dau1_chi2_hh    = b_Rec_dau1_chi2;
+          b_KS_dau1_ipsigXY_hh = b_Rec_dau1_ipsigXY;
+          b_KS_dau1_ipsigZ_hh  = b_Rec_dau1_ipsigZ;
+          b_KS_dau1_pt_hh      = b_Rec_dau1_pt;
+          b_KS_dau2_chi2_hh    = b_Rec_dau2_chi2;
+          b_KS_dau2_ipsigXY_hh = b_Rec_dau2_ipsigXY;
+          b_KS_dau2_ipsigZ_hh  = b_Rec_dau2_ipsigZ;
+          b_KS_dau2_pt_hh      = b_Rec_dau2_pt;
+          b_KS_x_hh            = b_Rec_pt/Jet_pt[j];
+          b_KS_best_bdt_hh     = b_Rec_bdt_score_hh; 
+        }
       }
       m_jettrForTMVA->Fill();
     }

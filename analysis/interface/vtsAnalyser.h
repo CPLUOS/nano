@@ -119,7 +119,7 @@ private:
   float b_KS_angleXY_pp,          b_KS_angleXYZ_pp,         b_KS_chi2_pp,        b_KS_dca_pp;
   float b_KS_dau1_chi2_pp,        b_KS_dau1_ipsigXY_pp,     b_KS_dau1_ipsigZ_pp, b_KS_dau1_pt_pp;
   float b_KS_dau2_chi2_pp,        b_KS_dau2_ipsigXY_pp,     b_KS_dau2_ipsigZ_pp, b_KS_dau2_pt_pp;
-  float b_KS_best_bdt_pp;
+  float b_KS_dr_pp,               b_KS_x_pp,                b_KS_best_bdt_pp;
 
   int   b_KS_idx_ph,              b_KS_nMatched_ph,         b_KS_isFrom_ph;
   bool  b_KS_isHadFromTop_ph,     b_KS_isHadFromW_ph,       b_KS_isHadFromS_ph,  b_KS_isHadFromC_ph, b_KS_isHadFromB_ph;
@@ -128,7 +128,7 @@ private:
   float b_KS_angleXY_ph,          b_KS_angleXYZ_ph,         b_KS_chi2_ph,        b_KS_dca_ph;
   float b_KS_dau1_chi2_ph,        b_KS_dau1_ipsigXY_ph,     b_KS_dau1_ipsigZ_ph, b_KS_dau1_pt_ph;
   float b_KS_dau2_chi2_ph,        b_KS_dau2_ipsigXY_ph,     b_KS_dau2_ipsigZ_ph, b_KS_dau2_pt_ph;
-  float b_KS_best_bdt_ph;
+  float b_KS_dr_ph,               b_KS_x_ph,                b_KS_best_bdt_ph;
 
   int   b_KS_idx_hp,              b_KS_nMatched_hp,         b_KS_isFrom_hp;
   bool  b_KS_isHadFromTop_hp,     b_KS_isHadFromW_hp,       b_KS_isHadFromS_hp,  b_KS_isHadFromC_hp, b_KS_isHadFromB_hp;
@@ -137,7 +137,7 @@ private:
   float b_KS_angleXY_hp,          b_KS_angleXYZ_hp,         b_KS_chi2_hp,        b_KS_dca_hp;
   float b_KS_dau1_chi2_hp,        b_KS_dau1_ipsigXY_hp,     b_KS_dau1_ipsigZ_hp, b_KS_dau1_pt_hp;
   float b_KS_dau2_chi2_hp,        b_KS_dau2_ipsigXY_hp,     b_KS_dau2_ipsigZ_hp, b_KS_dau2_pt_hp;
-  float b_KS_best_bdt_hp;
+  float b_KS_dr_hp,               b_KS_x_hp,                b_KS_best_bdt_hp;
  
   int   b_KS_idx_hh,              b_KS_nMatched_hh,         b_KS_isFrom_hh;
   bool  b_KS_isHadFromTop_hh,     b_KS_isHadFromW_hh,       b_KS_isHadFromS_hh,  b_KS_isHadFromC_hh, b_KS_isHadFromB_hh;
@@ -146,7 +146,7 @@ private:
   float b_KS_angleXY_hh,          b_KS_angleXYZ_hh,         b_KS_chi2_hh,        b_KS_dca_hh;
   float b_KS_dau1_chi2_hh,        b_KS_dau1_ipsigXY_hh,     b_KS_dau1_ipsigZ_hh, b_KS_dau1_pt_hh;
   float b_KS_dau2_chi2_hh,        b_KS_dau2_ipsigXY_hh,     b_KS_dau2_ipsigZ_hh, b_KS_dau2_pt_hh;
-  float b_KS_best_bdt_hh;
+  float b_KS_dr_hh,               b_KS_x_hh,                b_KS_best_bdt_hh;
  
  
   int b_jet_start, b_jet_end; 
