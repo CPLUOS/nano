@@ -214,7 +214,8 @@ int main(Int_t argc, Char_t** argv)
     //f->GetObject("Delphes", tree);
     TChain *tree = new TChain("Delphes");
 
-    tree->Add("/cms/scratch/jlee/hh/*.root");
+    tree->Add("/cms/scratch/jlee/hh/*.root"); // ui
+    //tree->Add("/home/scratch/sunyoung/data/nanoAOD/hh/*.root"); // gate
 
     tree->SetBranchStatus("*",true);
     
