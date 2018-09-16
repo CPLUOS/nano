@@ -6,7 +6,6 @@
   <lib name="EG"/>
   <use name="nano/analysis"/>
 </bin>
-
 <bin name="massAnalyser" file="massAnalyser.cc">
   <use name="root"/>
   <use name="rootxml"/>
@@ -67,3 +66,19 @@
   <use name="nano/analysis"/>
   <flags CXXFLAGS="-g" />
 </bin>
+
+<!--Please make sure that CXXFLAGS and LDFLAGS have right include and link path before using doubleHiggsAnalyser. Recipe for setting all needed environment is in https://github.com/YooSunYoung/nano/-->
+<!--erase this comment out line if you want to use doubleHiggsAnalyser
+<bin name="doubleHiggsAnalyser" file="doubleHiggsAnalyser.cc">
+  <use name="root"/>
+  <lib name="TMVA"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+  <use name="nano/oxbridgekinetics"/>
+  <flags CXXFLAGS="-ICMSSW_BASE/src/nano/analysis/test/hh/Delphes-3.4.1/"/>
+  <flags LDFLAGS="-LCMSSW_BASE/src/nano/analysis/test/hh/Delphes-3.4.1/"/>
+  <flags LDFLAGS="-lDelphes"/>
+</bin>
+erase this comment out line if you want to use doubleHiggsAnalyser-->
