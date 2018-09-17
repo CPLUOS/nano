@@ -97,7 +97,7 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
   return muons;
 }
 
-vector<TParticle> topObjectSelection::gjetSelection() {
+vector<TParticle> topObjectSelection::genJetSelection() {
   vector<TParticle> jets;
   for (UInt_t i = 0; i < nJet; ++i){
     if (GenJet_pt[i] < 30) continue;

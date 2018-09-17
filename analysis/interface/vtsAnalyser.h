@@ -19,6 +19,8 @@ private:
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
   TMVA::Reader *m_hadReader;
+  TMVA::Reader *m_jetReader;
+  TMVA::Reader *m_jksReader;
 
   bool b_passedEvent;
   int b_nJet, b_nSelJet, b_nSelJetEv;
@@ -104,7 +106,7 @@ private:
 
   /* for FillJetTreeForTMVA() */
   int   b_isSJet, b_isBJet, b_isHighest, b_isClosestToLep;
-  int   b_cmult,  b_nmult;
+  float b_cmult,  b_nmult; // Data type was changed since JKS (and Jet) BDT require to provide variables for TMVA::reader as float
   float b_pt,     b_eta,    b_phi,       b_mass;
   float b_c_x1,   b_c_x2,   b_c_x3;
   float b_n_x1,   b_n_x2,   b_n_x3;
@@ -112,6 +114,8 @@ private:
   float b_CSVV2;
 
     /* for TMVA with KS info. */
+  float b_Jet_bdt_score_pp,       b_JKS_bdt_score_pp;
+
   int   b_KS_idx_pp,              b_KS_nMatched_pp,         b_KS_isFrom_pp;
   bool  b_KS_isHadFromTop_pp,     b_KS_isHadFromW_pp,       b_KS_isHadFromS_pp,  b_KS_isHadFromC_pp, b_KS_isHadFromB_pp;
   float b_KS_d_pp,                b_KS_pt_pp,               b_KS_eta_pp,         b_KS_phi_pp,        b_KS_mass_pp;

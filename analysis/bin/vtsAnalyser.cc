@@ -203,8 +203,8 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("isBJet",         &b_isBJet,         "isBJet/I");
   m_jettrForTMVA->Branch("isHighest",      &b_isHighest,      "isHighest/I");
   m_jettrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
-  m_jettrForTMVA->Branch("cmult",          &b_cmult,          "cmult/I");
-  m_jettrForTMVA->Branch("nmult",          &b_nmult,          "nmult/I");
+  m_jettrForTMVA->Branch("cmult",          &b_cmult,          "cmult/F");
+  m_jettrForTMVA->Branch("nmult",          &b_nmult,          "nmult/F");
   m_jettrForTMVA->Branch("pt",             &b_pt,             "pt/F");
   m_jettrForTMVA->Branch("eta",            &b_eta,            "eta/F");
   m_jettrForTMVA->Branch("phi",            &b_phi,            "phi/F");
@@ -220,6 +220,9 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("ptD",            &b_ptD,            "ptD/F");
   m_jettrForTMVA->Branch("area",           &b_area,           "area/F");
   m_jettrForTMVA->Branch("CSVV2",          &b_CSVV2,          "CSVV2/F");
+
+  m_jettrForTMVA->Branch("Jet_bdt_score_pp",   &b_Jet_bdt_score_pp,   "Jet_bdt_score/F");
+  m_jettrForTMVA->Branch("JKS_bdt_score_pp",   &b_JKS_bdt_score_pp,   "JKS_bdt_score/F");
 
   m_jettrForTMVA->Branch("KS_idx_pp"     ,     &b_KS_idx_pp,          "KS_idx_pp/I");
   m_jettrForTMVA->Branch("KS_nMatched_pp",     &b_KS_nMatched_pp,     "KS_nMatched_pp/I");
@@ -1136,6 +1139,9 @@ void vtsAnalyser::CollectVar() {
 }
 
 void vtsAnalyser::ResetForTMVA() {
+  b_Jet_bdt_score_pp   = -99;
+  b_JKS_bdt_score_pp   = -99;
+
   b_KS_idx_pp          = -99;   b_KS_nMatched_pp     = -99;   b_KS_isFrom_pp       = -99; 
   b_KS_isHadFromTop_pp = false; b_KS_isHadFromW_pp   = false; b_KS_isHadFromS_pp   = false; b_KS_isHadFromC_pp   = false; b_KS_isHadFromB_pp   = false; 
   b_KS_d_pp            = -99;   b_KS_pt_pp           = -99;   b_KS_eta_pp          = -99;   b_KS_phi_pp          = -99;   b_KS_mass_pp         = -99; 
@@ -1202,7 +1208,7 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       if (j == (int) closest_lep1_idx) b_isClosestToLep = 1;
       if (j == (int) closest_lep2_idx) b_isClosestToLep = 1;
 
-      b_cmult = jetID_cmult[j]; b_nmult = jetID_nmult[j];
+      b_cmult = (float)jetID_cmult[j]; b_nmult = (float)jetID_nmult[j];
       b_pt = Jet_pt[j]; b_eta = Jet_eta[j]; b_phi = Jet_phi[j]; b_mass = Jet_mass[j];
       b_c_x1 = jetID_cpt1[j]/Jet_pt[j]; b_c_x2 = jetID_cpt2[j]/Jet_pt[j]; b_c_x3 = jetID_cpt3[j]/Jet_pt[j];
       b_n_x1 = jetID_npt1[j]/Jet_pt[j]; b_n_x2 = jetID_npt2[j]/Jet_pt[j]; b_n_x3 = jetID_npt3[j]/Jet_pt[j];
@@ -1371,6 +1377,8 @@ void vtsAnalyser::FillJetTreeForTMVA() {
           b_KS_best_bdt_hh     = b_Rec_bdt_score_hh; 
         }
       }
+      b_Jet_bdt_score_pp = m_jetReader->EvaluateMVA("Jet_BDT");
+      b_JKS_bdt_score_pp = m_jksReader->EvaluateMVA("JKS_BDT");
       m_jettrForTMVA->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
@@ -1447,4 +1455,73 @@ void vtsAnalyser::SetMVAReader() {
   m_hadReader->BookMVA("ph_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/ph_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
   m_hadReader->BookMVA("hp_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/hp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
   m_hadReader->BookMVA("hh_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/hh_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+
+  m_jetReader = new TMVA::Reader();
+  m_jetReader->AddVariable("pt",    &b_pt);
+  m_jetReader->AddVariable("eta",   &b_eta);
+  m_jetReader->AddVariable("phi",   &b_phi);
+  m_jetReader->AddVariable("mass",  &b_mass);
+  m_jetReader->AddVariable("c_x1",  &b_c_x1);
+  m_jetReader->AddVariable("c_x2",  &b_c_x2);
+  m_jetReader->AddVariable("c_x3",  &b_c_x3);
+  m_jetReader->AddVariable("n_x1",  &b_n_x1);
+  m_jetReader->AddVariable("n_x2",  &b_n_x2);
+  m_jetReader->AddVariable("n_x3",  &b_n_x3);
+  m_jetReader->AddVariable("cmult", &b_cmult);
+  m_jetReader->AddVariable("nmult", &b_nmult);
+  m_jetReader->AddVariable("axis1", &b_axis1);
+  m_jetReader->AddVariable("axis2", &b_axis2);
+  m_jetReader->AddVariable("ptD",   &b_ptD);
+  m_jetReader->AddVariable("area",  &b_area);
+  m_jetReader->AddVariable("CSVV2", &b_CSVV2);
+
+  m_jetReader->BookMVA("Jet_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_combined_J_BDT/weights/vts_dR_04_Jet_BDT.weights.xml");
+
+
+  m_jksReader = new TMVA::Reader();
+  m_jksReader->AddVariable("pt",    &b_pt);
+  m_jksReader->AddVariable("eta",   &b_eta);
+  m_jksReader->AddVariable("phi",   &b_phi);
+  m_jksReader->AddVariable("mass",  &b_mass);
+  m_jksReader->AddVariable("c_x1",  &b_c_x1);
+  m_jksReader->AddVariable("c_x2",  &b_c_x2);
+  m_jksReader->AddVariable("c_x3",  &b_c_x3);
+  m_jksReader->AddVariable("n_x1",  &b_n_x1);
+  m_jksReader->AddVariable("n_x2",  &b_n_x2);
+  m_jksReader->AddVariable("n_x3",  &b_n_x3);
+  m_jksReader->AddVariable("cmult", &b_cmult);
+  m_jksReader->AddVariable("nmult", &b_nmult);
+  m_jksReader->AddVariable("axis1", &b_axis1);
+  m_jksReader->AddVariable("axis2", &b_axis2);
+  m_jksReader->AddVariable("ptD",   &b_ptD);
+  m_jksReader->AddVariable("area",  &b_area);
+  m_jksReader->AddVariable("CSVV2", &b_CSVV2);
+
+  m_jksReader->AddVariable("KS_d_pp",                &b_KS_d_pp);
+  m_jksReader->AddVariable("KS_pt_pp",               &b_KS_pt_pp);
+  m_jksReader->AddVariable("KS_eta_pp",              &b_KS_eta_pp);
+  m_jksReader->AddVariable("KS_phi_pp",              &b_KS_phi_pp);
+  m_jksReader->AddVariable("KS_mass_pp",             &b_KS_mass_pp);
+  m_jksReader->AddVariable("KS_lxy_pp",              &b_KS_lxy_pp);
+  m_jksReader->AddVariable("KS_lxySig_pp",           &b_KS_lxySig_pp);
+  m_jksReader->AddVariable("KS_l3D_pp",              &b_KS_l3D_pp);
+  m_jksReader->AddVariable("KS_l3DSig_pp",           &b_KS_l3DSig_pp);
+  m_jksReader->AddVariable("KS_legDR_pp",            &b_KS_legDR_pp);
+  m_jksReader->AddVariable("KS_angleXY_pp",          &b_KS_angleXY_pp);
+  m_jksReader->AddVariable("KS_angleXYZ_pp",         &b_KS_angleXYZ_pp);
+  m_jksReader->AddVariable("KS_chi2_pp",             &b_KS_chi2_pp);
+  m_jksReader->AddVariable("KS_dca_pp",              &b_KS_dca_pp);
+  m_jksReader->AddVariable("KS_dau1_chi2_pp",        &b_KS_dau1_chi2_pp);
+  m_jksReader->AddVariable("KS_dau1_ipsigXY_pp",     &b_KS_dau1_ipsigXY_pp);
+  m_jksReader->AddVariable("KS_dau1_ipsigZ_pp",      &b_KS_dau1_ipsigZ_pp);
+  m_jksReader->AddVariable("KS_dau1_pt_pp",          &b_KS_dau1_pt_pp);
+  m_jksReader->AddVariable("KS_dau2_chi2_pp",        &b_KS_dau2_chi2_pp);
+  m_jksReader->AddVariable("KS_dau2_ipsigXY_pp",     &b_KS_dau2_ipsigXY_pp);
+  m_jksReader->AddVariable("KS_dau2_ipsigZ_pp",      &b_KS_dau2_ipsigZ_pp);
+  m_jksReader->AddVariable("KS_dau2_pt_pp",          &b_KS_dau2_pt_pp);
+  m_jksReader->AddVariable("KS_best_bdt_pp",         &b_KS_best_bdt_pp);
+  m_jksReader->AddVariable("KS_x_pp",                &b_KS_x_pp);
+
+  m_jksReader->BookMVA("JKS_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_combined_JKS_BDT/weights/vts_dR_04_Jet_With_KS_BDT.weights.xml");
+
 }
