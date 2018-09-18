@@ -9,13 +9,14 @@ public:
 
   vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
-
+  vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false, Bool_t isGenericMC=false) : hadAnalyser(tree, 0, 0, isMC, dl, sle, slm), m_isGenericMC(isGenericMC) {}
   ~vtsAnalyser() {}
 
   void setOutput(std::string outputName);
   virtual void Loop();
-
 private:
+  Bool_t m_isGenericMC;
+
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
   TMVA::Reader *m_hadReader;

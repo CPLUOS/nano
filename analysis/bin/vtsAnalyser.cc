@@ -57,7 +57,8 @@ int main(int argc, char* argv[])
   } else {
     string jobName    = string(argv[1]);
     string sampleName = string(argv[2]);
-    Bool_t isMC = (sampleName.find("Run") == std::string::npos);
+    Bool_t isMC = (sampleName.find("Run2016") == std::string::npos);
+    Bool_t isGenericMC = (sampleName.find("NANOAOD") == std::string::npos);
     string outFileDir = hostDir + getenv("USER") + "/" + jobName + "/" + sampleName;
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
@@ -73,12 +74,12 @@ int main(int argc, char* argv[])
         ana.setOutput(outFileName);
         ana.Loop();
       }
-      if (string(inFileName).find("NANOAOD") == std::string::npos) {
+      if (isGenericMC) {
         cout << " input file is not tt###j_* sample" << endl;
         if (string(inFileName).find("run2") != std::string::npos) { 
           TFile *inFile = TFile::Open(inFileName, "READ");
           TTree *inTree = (TTree*) inFile->Get("Events");
-          vtsAnalyser ana(inTree,inTree,inTree,isMC,false,false,false);
+          vtsAnalyser ana(inTree,isMC,false,false,false,isGenericMC);
           string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
           ana.setOutput(outFileName);
           ana.Loop();
@@ -87,30 +88,31 @@ int main(int argc, char* argv[])
           cout << " input file has to be nanoAOD " << endl;
           continue;
         }
-      }
-      auto fileName = getFileName(argv[i]);
-      auto dirName = getDir(getDir(argv[i]));
-      /* auto sampleType = getType(dirName); */
-      TFile *inFile = TFile::Open(inFileName, "READ");
-      TTree *inTree = (TTree*) inFile->Get("Events");
-      TString hadFileName = dirName + "/HADAOD/" + fileName;
-      TString hadTruthFileName = dirName + "/HADTRUTHAOD/" + fileName;
+      } else {
+        auto fileName = getFileName(argv[i]);
+        auto dirName = getDir(getDir(argv[i]));
+        /* auto sampleType = getType(dirName); */
+        TFile *inFile = TFile::Open(inFileName, "READ");
+        TTree *inTree = (TTree*) inFile->Get("Events");
+        TString hadFileName = dirName + "/HADAOD/" + fileName;
+        TString hadTruthFileName = dirName + "/HADTRUTHAOD/" + fileName;
 /*
-      TFile *hadFile = TFile::Open(hadFileName, "READ");
-      TTree *hadTree = (TTree*) hadFile->Get("Events");
+        TFile *hadFile = TFile::Open(hadFileName, "READ");
+        TTree *hadTree = (TTree*) hadFile->Get("Events");
 */
-      TFile *hadTruthFile = TFile::Open(hadTruthFileName, "READ");
-      TTree *hadTruthTree = (TTree*) hadTruthFile->Get("Events");
+        TFile *hadTruthFile = TFile::Open(hadTruthFileName, "READ");
+        TTree *hadTruthTree = (TTree*) hadTruthFile->Get("Events");
 
-      cout << "dirName : " << dirName << " fileName : " << fileName << endl;
-      vtsAnalyser ana(inTree,hadTruthTree,hadTruthTree,isMC,false,false,false); // you don't need to use hadTree
-      string outFileName;
-      if (string(inFileName).find("herwig") == std::string::npos) outFileName = outFileDir+"/pythia_nanotree_"+fileName;
-      else if (string(inFileName).find("herwig") != std::string::npos) outFileName = outFileDir+"/herwig_nanotree_"+fileName;
-      else outFileName = outFileDir+"/nanotree_"+fileName;
-//      string outFileName = "/"+jobName+"/"+sampleName+"/nanotree_"+fileName;
-      ana.setOutput(outFileName);
-      ana.Loop();
+        cout << "dirName : " << dirName << " fileName : " << fileName << endl;
+        vtsAnalyser ana(inTree,hadTruthTree,hadTruthTree,isMC,false,false,false); // you don't need to use hadTree
+        string outFileName;
+        if (string(inFileName).find("herwig") == std::string::npos) outFileName = outFileDir+"/pythia_nanotree_"+fileName;
+        else if (string(inFileName).find("herwig") != std::string::npos) outFileName = outFileDir+"/herwig_nanotree_"+fileName;
+        else outFileName = outFileDir+"/nanotree_"+fileName;
+//        string outFileName = "/"+jobName+"/"+sampleName+"/nanotree_"+fileName;
+        ana.setOutput(outFileName);
+        ana.Loop();
+      }
     }
   }
 }
@@ -125,7 +127,7 @@ void vtsAnalyser::Loop() {
     fChain->GetEntry(iev);
     if (h_fChain) h_fChain->GetEntry(iev);
     if (ht_fChain) ht_fChain->GetEntry(iev);
-    cout << "event : " << iev << endl;
+//    cout << "event : " << iev << endl;
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
     ResetBranch();
     b_nJet = nJet;
@@ -134,17 +136,17 @@ void vtsAnalyser::Loop() {
     if (passedStep >= 4) { // -1 : No event selection, 0 : PV cut, reco lepton cut and so on, 1~4 : step 1 ~ 4
       b_passedEvent = true; b_nSelJetEv = jetSelection().size();
       MatchingForMC();
-      HadronAnalysis();
-      GenHadronAnalysis();
+      if (m_isGenericMC) GenHadronAnalysis();
       GenAnalysis();
       RecAnalysis();
       JetAnalysis();
       CollectVar();
       FillJetTreeForTMVA();
+      HadronAnalysis();
     } else b_passedEvent = false; 
     m_tree->Fill();
-    cout << " jet entry chk : " << b_jet_start << " " << b_jet_end << endl;
-    cout << " had entry chk : " << b_had_start << " " << b_had_end << endl;
+//    cout << " jet entry chk : " << b_jet_start << " " << b_jet_end << endl;
+//    cout << " had entry chk : " << b_had_start << " " << b_had_end << endl;
   }
 }
 
@@ -532,10 +534,15 @@ void vtsAnalyser::MatchingForMC() {
   for (unsigned int i=0; i<nGenPart; ++i) {
     if ((abs(GenPart_pdgId[i]) == 3 || abs(GenPart_pdgId[i]) == 5 || abs(GenPart_pdgId[i]) == 4) && ( (GenPart_statusFlags[i] & ( 1 << reco::GenStatusFlags::kIsFirstCopy)) != 0  ) ) {
       if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 6 && ( (GenPart_statusFlags[GenPart_genPartIdxMother[i]] & ( 1 << reco::GenStatusFlags::kIsLastCopy)) != 0 ) ) ) { 
-        m_tqMC.push_back(i);// cout << " [ " << i << " / " << nGenPart << " ]  >>>>>>>>>>>> got it <<<<<<<<<<< " << endl;
+        m_tqMC.push_back(i);
+        cout << " qMC [ " << i << " / " << nGenPart << " ]  >>>>>>>>>>>> got it <<<<<<<<<<< " << endl;
+        cout << " qMC [ " << i << " / " << nGenPart << " ]  >>>>> quark is : " << GenPart_pdgId[i] << " ( " << GenPart_status[i] << " ) ||| from : " << GenPart_pdgId[GenPart_genPartIdxMother[i]] << " ( " << GenPart_status[GenPart_genPartIdxMother[i]] << " ) " << endl;
       }
       if ( (abs(GenPart_pdgId[GenPart_genPartIdxMother[i]]) == 24 && (GenPart_status[GenPart_genPartIdxMother[i]] == 22 || GenPart_status[GenPart_genPartIdxMother[i]] == 52)) ) { // not completed yet since not used for now
         m_wqMC.push_back(i);
+        cout << " wqMC [ " << i << " / " << nGenPart << " ]  >>>>>>>>>>>> got it <<<<<<<<<<< " << endl;
+        cout << " wqMC [ " << i << " / " << nGenPart << " ]  >>>>> quark is : " << GenPart_pdgId[i] << " ( " << GenPart_status[i] << " ) ||| from : " << GenPart_pdgId[GenPart_genPartIdxMother[i]] << " ( " << GenPart_status[GenPart_genPartIdxMother[i]] << " ) " << endl;
+
       }
     }
   }
@@ -752,15 +759,16 @@ void vtsAnalyser::HadronAnalysis() {
     b_Jet_nConstituents = Jet_nConstituents[jidx]; 
     b_Jet_nElectrons = Jet_nElectrons[jidx];
     b_Jet_nMuons = Jet_nMuons[jidx];
-
-    b_hadTruth_nMatched = hadTruth_nMatched[idx];
-    b_hadTruth_nTrueDau = hadTruth_nTrueDau[idx];
-    b_hadTruth_isHadFromTop = hadTruth_isHadFromTop[idx];
-    b_hadTruth_isHadFromTsb = hadTruth_isHadFromTsb[idx];
-    b_hadTruth_isHadFromW= hadTruth_isHadFromW[idx];
-    b_hadTruth_isHadFromS= hadTruth_isHadFromS[idx];
-    b_hadTruth_isHadFromC= hadTruth_isHadFromC[idx];
-    b_hadTruth_isHadFromB = hadTruth_isHadFromB[idx];
+    if (m_isGenericMC) {
+      b_hadTruth_nMatched = hadTruth_nMatched[idx];
+      b_hadTruth_nTrueDau = hadTruth_nTrueDau[idx];
+      b_hadTruth_isHadFromTop = hadTruth_isHadFromTop[idx];
+      b_hadTruth_isHadFromTsb = hadTruth_isHadFromTsb[idx];
+      b_hadTruth_isHadFromW= hadTruth_isHadFromW[idx];
+      b_hadTruth_isHadFromS= hadTruth_isHadFromS[idx];
+      b_hadTruth_isHadFromC= hadTruth_isHadFromC[idx];
+      b_hadTruth_isHadFromB = hadTruth_isHadFromB[idx];
+    }
   }
 }
 
@@ -1017,13 +1025,16 @@ void vtsAnalyser::RecAnalysis() {
   for (unsigned int i=0; i<nhad; ++i) {
     if (had_pdgId[i] != 310) continue;
     ++nRecKS;
-    b_hadTruth_isHadFromTop_vec.push_back(hadTruth_isHadFromTop[i]);
-    b_hadTruth_isHadFromW_vec.push_back(hadTruth_isHadFromW[i]);
-    b_hadTruth_isHadFromS_vec.push_back(hadTruth_isHadFromS[i]);
-    b_hadTruth_isHadFromC_vec.push_back(hadTruth_isHadFromC[i]);
-    b_hadTruth_isHadFromB_vec.push_back(hadTruth_isHadFromB[i]);
-    b_hadTruth_isFrom_vec.push_back(hadTruth_isHadFromTsb[i]);
-    b_hadTruth_nMatched_vec.push_back(hadTruth_nMatched[i]);
+
+    if (m_isGenericMC) {
+      b_hadTruth_isHadFromTop_vec.push_back(hadTruth_isHadFromTop[i]);
+      b_hadTruth_isHadFromW_vec.push_back(hadTruth_isHadFromW[i]);
+      b_hadTruth_isHadFromS_vec.push_back(hadTruth_isHadFromS[i]);
+      b_hadTruth_isHadFromC_vec.push_back(hadTruth_isHadFromC[i]);
+      b_hadTruth_isHadFromB_vec.push_back(hadTruth_isHadFromB[i]);
+      b_hadTruth_isFrom_vec.push_back(hadTruth_isHadFromTsb[i]);
+      b_hadTruth_nMatched_vec.push_back(hadTruth_nMatched[i]);
+    }
     b_hadTruth_d_vec.push_back(GetD(had_pt[i], had_eta[i], had_phi[i], had_mass[i], had_x[i], had_y[i], had_z[i]));
     b_hadTruth_pt_vec.push_back(had_pt[i]);
     b_hadTruth_eta_vec.push_back(had_eta[i]);
@@ -1386,14 +1397,16 @@ void vtsAnalyser::FillJetTreeForTMVA() {
 }
 
 void vtsAnalyser::FillHadTreeForTMVA() {
-  b_Rec_pdgId = b_hadTruth_pdgId_vec.back();
-  b_Rec_nMatched = b_hadTruth_nMatched_vec.back();
-  b_Rec_isFrom = b_hadTruth_isFrom_vec.back();
-  b_Rec_isHadFromTop = b_hadTruth_isHadFromTop_vec.back();
-  b_Rec_isHadFromW = b_hadTruth_isHadFromW_vec.back();
-  b_Rec_isHadFromS = b_hadTruth_isHadFromS_vec.back();
-  b_Rec_isHadFromC = b_hadTruth_isHadFromC_vec.back();
-  b_Rec_isHadFromB = b_hadTruth_isHadFromB_vec.back();
+  if (m_isGenericMC) {
+    b_Rec_pdgId = b_hadTruth_pdgId_vec.back();
+    b_Rec_nMatched = b_hadTruth_nMatched_vec.back();
+    b_Rec_isFrom = b_hadTruth_isFrom_vec.back();
+    b_Rec_isHadFromTop = b_hadTruth_isHadFromTop_vec.back();
+    b_Rec_isHadFromW = b_hadTruth_isHadFromW_vec.back();
+    b_Rec_isHadFromS = b_hadTruth_isHadFromS_vec.back();
+    b_Rec_isHadFromC = b_hadTruth_isHadFromC_vec.back();
+    b_Rec_isHadFromB = b_hadTruth_isHadFromB_vec.back();
+  }
   b_Rec_d = b_hadTruth_d_vec.back();
   b_Rec_pt = b_hadTruth_pt_vec.back();
   b_Rec_eta = b_hadTruth_eta_vec.back();
