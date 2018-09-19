@@ -1,3 +1,4 @@
+#include <sstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -57,11 +58,16 @@ int main(int argc, char* argv[])
   } else {
     string jobName    = string(argv[1]);
     string sampleName = string(argv[2]);
-    Bool_t isMC = (sampleName.find("Run2016") == std::string::npos);
-    Bool_t isGenericMC = (sampleName.find("NANOAOD") == std::string::npos);
+/*
+    cout << "sampleName : " << sampleName << endl;
+    cout << "isMC : " << isMC << endl;
+    cout << "isGenericMC : " << isGenericMC << endl;
+*/
     string outFileDir = hostDir + getenv("USER") + "/" + jobName + "/" + sampleName;
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
+      Bool_t isMC = (string(inFileName).find("Run2016") == std::string::npos);
+      Bool_t isGenericMC = (string(inFileName).find("NANOAOD") == std::string::npos);
       if (!isMC) { 
         Bool_t isDL = false;
         if (string(inFileName).find("DoubleElectron") != std::string::npos || string(inFileName).find("DoubleMuon") != std::string::npos) isDL = true;
@@ -75,6 +81,9 @@ int main(int argc, char* argv[])
         ana.Loop();
       }
       if (isGenericMC) {
+
+        cout << "inFileName : " << inFileName << endl;
+
         cout << " input file is not tt###j_* sample" << endl;
         if (string(inFileName).find("run2") != std::string::npos) { 
           TFile *inFile = TFile::Open(inFileName, "READ");
@@ -132,9 +141,10 @@ void vtsAnalyser::Loop() {
     ResetBranch();
     b_nJet = nJet;
     b_nSelJet = jetSelection().size();
-    int passedStep = EventSelection();
-    if (passedStep >= 4) { // -1 : No event selection, 0 : PV cut, reco lepton cut and so on, 1~4 : step 1 ~ 4
-      b_passedEvent = true; b_nSelJetEv = jetSelection().size();
+    EventSelection();
+    if (b_step >= 4) { // -1 : No event selection, 0 : PV cut, reco lepton cut and so on, 1~4 : step 1 ~ 4
+      b_passedEvent = true; 
+      b_nSelJetEv = jetSelection().size();
       MatchingForMC();
       if (m_isGenericMC) GenHadronAnalysis();
       GenAnalysis();
@@ -547,7 +557,23 @@ void vtsAnalyser::MatchingForMC() {
     }
   }
 
-  if (m_tqMC.size() < 2) { cout << " >>>>> it's not a tsWbW event. save nothing." << endl; return; }
+  if (m_tqMC.size() < 2) { 
+    cout << " >>>>> it's not a tsWbW event. save nothing." << endl; 
+    if (m_isGenericMC) {
+      cout << " >>>>> fill rec and gen jet info vector with (index, pt, dr(q1,j) = -1, dr(q2,j) = -1, dr(lep1,j) = -1, dr(lep2,j) = -1 <<<<<" << endl;
+      for (unsigned int j=0; j<nGenJet; ++j) {
+        m_genJet.push_back({(int) j, GenJet_pt[j], -1, -1, -1, -1});
+      }
+      auto selectedJet = jetSelection();
+      if (selectedJet.size() != 0) {
+        for (unsigned int ij=0; ij<selectedJet.size();++ij) {
+          auto j = selectedJet[ij].GetFirstMother();
+          m_recJet.push_back({j, Jet_pt[j], -1, -1, -1, -1});
+        }
+      }
+    }
+    return; 
+  }
   /* Select quarks originated from t->qW */
   int tq1 = -1; int tq2 = -1;
   if (abs(GenPart_pdgId[m_tqMC[0]]) == 3) { tq1 = m_tqMC[0]; tq2 = m_tqMC[1]; }
@@ -947,63 +973,74 @@ void vtsAnalyser::GenAnalysis() {
     b_GenPart_phi_vec.push_back(GenPart_phi[i]);
     b_GenPart_mass_vec.push_back(GenPart_mass[i]);
 
-    recPair1.resize(nJet, {0,99,-1}); recPair2.resize(nJet, {0,99,-1});
-    for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
-      TLorentzVector jet_tlv;
-      jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-      auto dr = jet_tlv.DeltaR(gen_tlv);      auto x = GenPart_pt[i]/Jet_pt[j];
-      auto drMin1 = recPair1[j].dr; auto xMax1 = recPair1[j].x;
-      auto drMin2 = recPair2[j].dr; auto xMax2 = recPair2[j].x;
-      if (isFrom != m_qjMapForMC[j]) continue;
-      if (dr < drMin1) recPair1[j] = {i,dr,x};
-      else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
-      if (x > xMax2) recPair2[j] = {i,dr,x};
-      else if (x == xMax2 && dr < drMin2) recPair2[j] = {i,dr,x};
+    if (nJet !=0) {
+      recPair1.resize(nJet, {0,99,-1}); recPair2.resize(nJet, {0,99,-1});
+      for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
+        TLorentzVector jet_tlv;
+        jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
+        auto dr = jet_tlv.DeltaR(gen_tlv);      auto x = GenPart_pt[i]/Jet_pt[j];
+        auto drMin1 = recPair1[j].dr; auto xMax1 = recPair1[j].x;
+        auto drMin2 = recPair2[j].dr; auto xMax2 = recPair2[j].x;
+        if (isFrom != m_qjMapForMC[j]) continue;
+        if (dr < drMin1) recPair1[j] = {i,dr,x};
+        else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
+        if (x > xMax2) recPair2[j] = {i,dr,x};
+        else if (x == xMax2 && dr < drMin2) recPair2[j] = {i,dr,x};
+      }
     }
-    genPair1.resize(nGenJet, {0,99,-1}); genPair2.resize(nGenJet, {0,99,-1});
-    for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
-      TLorentzVector jet_tlv;
-      jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
-      auto dr = jet_tlv.DeltaR(gen_tlv); auto x = GenPart_pt[i]/GenJet_pt[j];
-      auto drMin1 = genPair1[j].dr; auto xMax1 = genPair1[j].x;
-      auto drMin2 = genPair2[j].dr; auto xMax2 = genPair2[j].x;
-      if (isFrom != m_qgjMapForMC[j]) continue;
-      if (dr < drMin1) genPair1[j] = {i,dr,x};
-      else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
-      if (x > xMax2) genPair2[j] = {i,dr,x};
-      else if (x == xMax2 && dr < drMin2) genPair2[j] = {i,dr,x};
+    if (nGenJet !=0) {
+      genPair1.resize(nGenJet, {0,99,-1}); genPair2.resize(nGenJet, {0,99,-1});
+      for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
+        TLorentzVector jet_tlv;
+        jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+        auto dr = jet_tlv.DeltaR(gen_tlv); auto x = GenPart_pt[i]/GenJet_pt[j];
+        auto drMin1 = genPair1[j].dr; auto xMax1 = genPair1[j].x;
+        auto drMin2 = genPair2[j].dr; auto xMax2 = genPair2[j].x;
+        if (isFrom != m_qgjMapForMC[j]) continue;
+        if (dr < drMin1) genPair1[j] = {i,dr,x};
+        else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
+        if (x > xMax2) genPair2[j] = {i,dr,x};
+        else if (x == xMax2 && dr < drMin2) genPair2[j] = {i,dr,x};
+      }
+      b_GenPart_isClosestPair_xOrder_j_vec.push_back(i);  b_GenPart_isHighestPair_xOrder_j_vec.push_back(i);
+      b_GenPart_isClosestPair_xOrder_gj_vec.push_back(i); b_GenPart_isHighestPair_xOrder_gj_vec.push_back(i);
     }
-    b_GenPart_isClosestPair_xOrder_j_vec.push_back(i);  b_GenPart_isHighestPair_xOrder_j_vec.push_back(i);
-    b_GenPart_isClosestPair_xOrder_gj_vec.push_back(i); b_GenPart_isHighestPair_xOrder_gj_vec.push_back(i);
   }
   if (nGenKS !=0) {
     /*  Save x and dr for the most closest(highest) KS for each jet */
-    for (unsigned int j=0; j<nJet; ++j) {
-      int cRecIdx = recPair1[j].idx; int hRecIdx = recPair2[j].idx;
-      b_GenPart_dr_closest_j_vec[cRecIdx] = recPair1[j].dr;
-      b_GenPart_x_closest_j_vec[cRecIdx] = recPair1[j].x;
-      b_GenPart_dr_highest_j_vec[hRecIdx] = recPair2[j].dr;
-      b_GenPart_x_highest_j_vec[hRecIdx] = recPair2[j].x;
+    if (nJet !=0) {
+      for (unsigned int j=0; j<nJet; ++j) {
+        int cRecIdx = recPair1[j].idx; int hRecIdx = recPair2[j].idx;
+        b_GenPart_dr_closest_j_vec[cRecIdx] = recPair1[j].dr;
+        b_GenPart_x_closest_j_vec[cRecIdx] = recPair1[j].x;
+        b_GenPart_dr_highest_j_vec[hRecIdx] = recPair2[j].dr;
+        b_GenPart_x_highest_j_vec[hRecIdx] = recPair2[j].x;
+      }
+      /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
+      std::sort(recPair1.begin(), recPair1.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
+      int hRecIdx1 = recPair1[0].idx;
+      std::replace_if(b_GenPart_isClosestPair_xOrder_j_vec.begin(),  b_GenPart_isClosestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx1); }, -1); 
+      std::sort(recPair2.begin(), recPair2.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
+      int hRecIdx2 = recPair2[0].idx;
+      std::replace_if(b_GenPart_isHighestPair_xOrder_j_vec.begin(),  b_GenPart_isHighestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx2); }, -1);
     }
-    for (unsigned int j=0; j<nGenJet; ++j) {
-      int cGenIdx = genPair1[j].idx;int hGenIdx = genPair2[j].idx;
-      b_GenPart_dr_closest_gj_vec[cGenIdx] = genPair1[j].dr;
-      b_GenPart_x_closest_gj_vec[cGenIdx] = genPair1[j].x;
-      b_GenPart_dr_highest_gj_vec[hGenIdx] = genPair2[j].dr;
-      b_GenPart_x_highest_gj_vec[hGenIdx] = genPair2[j].x;
-    }
-    /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
-    std::sort(recPair1.begin(), recPair1.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-    std::sort(genPair1.begin(), genPair1.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-    int hRecIdx1 = recPair1[0].idx; int hGenIdx1 = genPair1[0].idx;
-    std::replace_if(b_GenPart_isClosestPair_xOrder_j_vec.begin(),  b_GenPart_isClosestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx1); }, -1);
-    std::replace_if(b_GenPart_isClosestPair_xOrder_gj_vec.begin(), b_GenPart_isClosestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx1); }, -1);
+    if (nGenJet !=0) {
+      for (unsigned int j=0; j<nGenJet; ++j) {
+        int cGenIdx = genPair1[j].idx;int hGenIdx = genPair2[j].idx;
+        b_GenPart_dr_closest_gj_vec[cGenIdx] = genPair1[j].dr;
+        b_GenPart_x_closest_gj_vec[cGenIdx] = genPair1[j].x;
+        b_GenPart_dr_highest_gj_vec[hGenIdx] = genPair2[j].dr;
+        b_GenPart_x_highest_gj_vec[hGenIdx] = genPair2[j].x;
+      }
+      /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
+      std::sort(genPair1.begin(), genPair1.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
+      int hGenIdx1 = genPair1[0].idx;
+      std::replace_if(b_GenPart_isClosestPair_xOrder_gj_vec.begin(), b_GenPart_isClosestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx1); }, -1);
+      std::sort(genPair2.begin(), genPair2.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
+      int hGenIdx2 = genPair2[0].idx;
+      std::replace_if(b_GenPart_isHighestPair_xOrder_gj_vec.begin(), b_GenPart_isHighestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx2); }, -1);
 
-    std::sort(recPair2.begin(), recPair2.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-    std::sort(genPair2.begin(), genPair2.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-    int hRecIdx2 = recPair2[0].idx; int hGenIdx2 = genPair2[0].idx;
-    std::replace_if(b_GenPart_isHighestPair_xOrder_j_vec.begin(),  b_GenPart_isHighestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx2); }, -1);
-    std::replace_if(b_GenPart_isHighestPair_xOrder_gj_vec.begin(), b_GenPart_isHighestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx2); }, -1);
+    }
   }
 }
 
@@ -1025,7 +1062,6 @@ void vtsAnalyser::RecAnalysis() {
   for (unsigned int i=0; i<nhad; ++i) {
     if (had_pdgId[i] != 310) continue;
     ++nRecKS;
-
     if (m_isGenericMC) {
       b_hadTruth_isHadFromTop_vec.push_back(hadTruth_isHadFromTop[i]);
       b_hadTruth_isHadFromW_vec.push_back(hadTruth_isHadFromW[i]);
@@ -1064,30 +1100,34 @@ void vtsAnalyser::RecAnalysis() {
     TLorentzVector had_tlv;
     had_tlv.SetPtEtaPhiM(had_pt[i], had_eta[i], had_phi[i], had_mass[i]);
     recPair1.resize(nJet, {0,99,-1}); recPair2.resize(nJet, {0,99,-1});
-    for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
-      TLorentzVector jet_tlv;
-      jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-      auto dr = jet_tlv.DeltaR(had_tlv); auto x = had_pt[i]/Jet_pt[j];
-      auto drMin1 = recPair1[j].dr; auto xMax1 = recPair1[j].x;
-      auto drMin2 = recPair2[j].dr; auto xMax2 = recPair2[j].x;
-      if (hadTruth_isHadFromTsb[i] != m_qjMapForMC[j]) continue;
-      if (dr < drMin1) recPair1[j] = {i,dr,x};
-      else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
-      if (x > xMax2) recPair2[j] = {i,dr,x};
-      else if (x == xMax2 && dr < drMin2) recPair2[j] = {i,dr,x};
+    if (nJet !=0) {
+      for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
+        TLorentzVector jet_tlv;
+        jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
+        auto dr = jet_tlv.DeltaR(had_tlv); auto x = had_pt[i]/Jet_pt[j];
+        auto drMin1 = recPair1[j].dr; auto xMax1 = recPair1[j].x;
+        auto drMin2 = recPair2[j].dr; auto xMax2 = recPair2[j].x;
+        if (hadTruth_isHadFromTsb[i] != m_qjMapForMC[j]) continue;
+        if (dr < drMin1) recPair1[j] = {i,dr,x};
+        else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
+        if (x > xMax2) recPair2[j] = {i,dr,x};
+        else if (x == xMax2 && dr < drMin2) recPair2[j] = {i,dr,x};
+      }
     }
     genPair1.resize(nGenJet, {0,99,-1}); genPair2.resize(nGenJet, {0,99,-1});
-    for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
-      TLorentzVector jet_tlv;
-      jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
-      auto dr = jet_tlv.DeltaR(had_tlv); auto x = had_pt[i]/GenJet_pt[j];
-      auto drMin1 = genPair1[j].dr; auto xMax1 = genPair1[j].x;
-      auto drMin2 = genPair2[j].dr; auto xMax2 = genPair2[j].x;
-      if (hadTruth_isHadFromTsb[i] != m_qgjMapForMC[j]) continue;
-      if (dr < drMin1) genPair1[j] = {i,dr,x};
-      else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
-      if (x > xMax2) genPair2[j] = {i,dr,x};
-      else if (x == xMax2 && dr < drMin2) genPair2[j] = {i,dr,x};
+    if (nGenJet !=0) {
+      for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
+        TLorentzVector jet_tlv;
+        jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
+        auto dr = jet_tlv.DeltaR(had_tlv); auto x = had_pt[i]/GenJet_pt[j];
+        auto drMin1 = genPair1[j].dr; auto xMax1 = genPair1[j].x;
+        auto drMin2 = genPair2[j].dr; auto xMax2 = genPair2[j].x;
+        if (hadTruth_isHadFromTsb[i] != m_qgjMapForMC[j]) continue;
+        if (dr < drMin1) genPair1[j] = {i,dr,x};
+        else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
+        if (x > xMax2) genPair2[j] = {i,dr,x};
+        else if (x == xMax2 && dr < drMin2) genPair2[j] = {i,dr,x};
+      }
     }
     b_hadTruth_isClosestPair_xOrder_j_vec.push_back(i);  b_hadTruth_isHighestPair_xOrder_j_vec.push_back(i);
     b_hadTruth_isClosestPair_xOrder_gj_vec.push_back(i); b_hadTruth_isHighestPair_xOrder_gj_vec.push_back(i);
@@ -1095,31 +1135,36 @@ void vtsAnalyser::RecAnalysis() {
   
   if (nRecKS !=0) {
     /*  Save x and dr for the most closest(highest) KS for each jet */
-    for (unsigned int j=0; j<nJet; ++j) {
-      int cRecIdx = recPair1[j].idx; int hRecIdx = recPair2[j].idx;
-      b_hadTruth_dr_closest_j_vec[cRecIdx] = recPair1[j].dr;
-      b_hadTruth_x_closest_j_vec[cRecIdx] = recPair1[j].x;
-      b_hadTruth_dr_highest_j_vec[hRecIdx] = recPair2[j].dr;
-      b_hadTruth_x_highest_j_vec[hRecIdx] = recPair2[j].x;
+    if (nJet !=0) {
+      for (unsigned int j=0; j<nJet; ++j) {
+        int cRecIdx = recPair1[j].idx; int hRecIdx = recPair2[j].idx;
+        b_hadTruth_dr_closest_j_vec[cRecIdx] = recPair1[j].dr;
+        b_hadTruth_x_closest_j_vec[cRecIdx] = recPair1[j].x;
+        b_hadTruth_dr_highest_j_vec[hRecIdx] = recPair2[j].dr;
+        b_hadTruth_x_highest_j_vec[hRecIdx] = recPair2[j].x;
+      }
+      /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
+      auto xorder = [] (jetks  a, jetks b) { return (a.x > b.x); };
+      int hRecIdx1 = std::max_element(recPair1.begin(), recPair1.end(), xorder)->idx;
+      std::replace_if(b_hadTruth_isClosestPair_xOrder_j_vec.begin(),  b_hadTruth_isClosestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx1); }, -1);
+      int hRecIdx2 = std::max_element(recPair2.begin(), recPair2.end(), xorder)->idx;
+      std::replace_if(b_hadTruth_isHighestPair_xOrder_j_vec.begin(),  b_hadTruth_isHighestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx2); }, -1);
     }
-    for (unsigned int j=0; j<nGenJet; ++j) {
-      int cGenIdx = genPair1[j].idx;int hGenIdx = genPair2[j].idx;
-      b_hadTruth_dr_closest_gj_vec[cGenIdx] = genPair1[j].dr;
-      b_hadTruth_x_closest_gj_vec[cGenIdx] = genPair1[j].x;
-      b_hadTruth_dr_highest_gj_vec[hGenIdx] = genPair2[j].dr;
-      b_hadTruth_x_highest_gj_vec[hGenIdx] = genPair2[j].x;
+    if (nGenJet !=0) {
+      for (unsigned int j=0; j<nGenJet; ++j) {
+        int cGenIdx = genPair1[j].idx;int hGenIdx = genPair2[j].idx;
+        b_hadTruth_dr_closest_gj_vec[cGenIdx] = genPair1[j].dr;
+        b_hadTruth_x_closest_gj_vec[cGenIdx] = genPair1[j].x;
+        b_hadTruth_dr_highest_gj_vec[hGenIdx] = genPair2[j].dr;
+        b_hadTruth_x_highest_gj_vec[hGenIdx] = genPair2[j].x;
+      }
+      /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
+      auto xorder = [] (jetks  a, jetks b) { return (a.x > b.x); };
+      int hGenIdx1 = std::max_element(genPair1.begin(), genPair1.end(), xorder)->idx;
+      std::replace_if(b_hadTruth_isClosestPair_xOrder_gj_vec.begin(), b_hadTruth_isClosestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx1); }, -1);
+      int hGenIdx2 = std::max_element(genPair2.begin(), genPair2.end(), xorder)->idx;
+      std::replace_if(b_hadTruth_isHighestPair_xOrder_gj_vec.begin(), b_hadTruth_isHighestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx2); }, -1);
     }
-    /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
-    auto xorder = [] (jetks  a, jetks b) { return (a.x > b.x); };
-    int hRecIdx1 = std::max_element(recPair1.begin(), recPair1.end(), xorder)->idx;
-    int hGenIdx1 = std::max_element(genPair1.begin(), genPair1.end(), xorder)->idx;
-    std::replace_if(b_hadTruth_isClosestPair_xOrder_j_vec.begin(),  b_hadTruth_isClosestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx1); }, -1);
-    std::replace_if(b_hadTruth_isClosestPair_xOrder_gj_vec.begin(), b_hadTruth_isClosestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx1); }, -1);
-
-    int hRecIdx2 = std::max_element(recPair2.begin(), recPair2.end(), xorder)->idx;
-    int hGenIdx2 = std::max_element(genPair2.begin(), genPair2.end(), xorder)->idx;
-    std::replace_if(b_hadTruth_isHighestPair_xOrder_j_vec.begin(),  b_hadTruth_isHighestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx2); }, -1);
-    std::replace_if(b_hadTruth_isHighestPair_xOrder_gj_vec.begin(), b_hadTruth_isHighestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx2); }, -1);
   }
   b_had_end = m_hadtrForTMVA->GetEntries();
 }
@@ -1213,8 +1258,8 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       auto j = selectedJet[ij].GetFirstMother();
       TLorentzVector jet_tlv; jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
 
-      if ((j == (int) closest_s_idx) && (closest_s_dr <= m_jetConeSize)) b_isSJet = 1;
-      if ((j == (int) closest_b_idx) && (closest_b_dr <= m_jetConeSize)) b_isBJet = 1;
+      if ((j == (int) closest_s_idx) && (fabs(closest_s_dr) <= m_jetConeSize)) b_isSJet = 1;
+      if ((j == (int) closest_b_idx) && (fabs(closest_b_dr) <= m_jetConeSize)) b_isBJet = 1;
       if ((j == (int) highest_first_idx) || (j == (int) highest_second_idx)) b_isHighest = 1;
       if (j == (int) closest_lep1_idx) b_isClosestToLep = 1;
       if (j == (int) closest_lep2_idx) b_isClosestToLep = 1;
