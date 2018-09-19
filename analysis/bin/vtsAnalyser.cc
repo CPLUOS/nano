@@ -1260,9 +1260,16 @@ void vtsAnalyser::FillJetTreeForTMVA() {
 
       if ((j == (int) closest_s_idx) && (fabs(closest_s_dr) <= m_jetConeSize)) b_isSJet = 1;
       if ((j == (int) closest_b_idx) && (fabs(closest_b_dr) <= m_jetConeSize)) b_isBJet = 1;
-      if ((j == (int) highest_first_idx) || (j == (int) highest_second_idx)) b_isHighest = 1;
-      if (j == (int) closest_lep1_idx) b_isClosestToLep = 1;
-      if (j == (int) closest_lep2_idx) b_isClosestToLep = 1;
+      if ((j == (int) highest_first_idx) || (j == (int) highest_second_idx))   b_isHighest = 1;
+      if ((j == (int) closest_lep1_idx) || (j == (int) closest_lep2_idx))      b_isClosestToLep = 1;
+
+      /* distinguish fake isClosestToLep */
+      if (j == (int) closest_lep1_idx) {
+        if ( m_recJet[0].drl1j == -1 ) b_isClosestToLep = -1;
+      }
+      if (j == (int) closest_lep2_idx) {
+        if ( m_recJet[0].drl2j == -1 ) b_isClosestToLep = -1;
+      }
 
       b_cmult = (float)jetID_cmult[j]; b_nmult = (float)jetID_nmult[j];
       b_pt = Jet_pt[j]; b_eta = Jet_eta[j]; b_phi = Jet_phi[j]; b_mass = Jet_mass[j];
