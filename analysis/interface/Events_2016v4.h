@@ -32,6 +32,7 @@ public :
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
+
    UInt_t          run;
    UInt_t          luminosityBlock;
    ULong64_t       event;
@@ -101,15 +102,15 @@ public :
    Int_t           FatJet_subJetIdx1[10];   //[nFatJet]
    Int_t           FatJet_subJetIdx2[10];   //[nFatJet]
    UInt_t          nGenJetAK8;
-   Float_t         GenJetAK8_eta[10];   //[nGenJetAK8]
-   Float_t         GenJetAK8_mass[10];   //[nGenJetAK8]
-   Float_t         GenJetAK8_phi[10];   //[nGenJetAK8]
-   Float_t         GenJetAK8_pt[10];   //[nGenJetAK8]
+   Float_t         GenJetAK8_eta[40];   //[nGenJetAK8]
+   Float_t         GenJetAK8_mass[40];   //[nGenJetAK8]
+   Float_t         GenJetAK8_phi[40];   //[nGenJetAK8]
+   Float_t         GenJetAK8_pt[40];   //[nGenJetAK8]
    UInt_t          nGenJet;
-   Float_t         GenJet_eta[20];   //[nGenJet]
-   Float_t         GenJet_mass[20];   //[nGenJet]
-   Float_t         GenJet_phi[20];   //[nGenJet]
-   Float_t         GenJet_pt[20];   //[nGenJet]
+   Float_t         GenJet_eta[40];   //[nGenJet]
+   Float_t         GenJet_mass[40];   //[nGenJet]
+   Float_t         GenJet_phi[40];   //[nGenJet]
+   Float_t         GenJet_pt[40];   //[nGenJet]
    UInt_t          nGenPart;
    Float_t         GenPart_eta[5000];   //[nGenPart]
    Float_t         GenPart_mass[5000];   //[nGenPart]
@@ -165,6 +166,19 @@ public :
    Int_t           had_idx[7000];   //[nhad]
    Int_t           had_dau1_idx[7000];   //[nhad]
    Int_t           had_dau2_idx[7000];   //[nhad]
+   UInt_t          njetID;
+   Float_t         jetID_delta[35];   //[njetID]
+   Float_t         jetID_axis2[35];   //[njetID]
+   Float_t         jetID_axis1[35];   //[njetID]
+   Float_t         jetID_ptD[35];   //[njetID]
+   Float_t         jetID_cpt1[35];   //[njetID]
+   Float_t         jetID_cpt2[35];   //[njetID]
+   Float_t         jetID_cpt3[35];   //[njetID]
+   Float_t         jetID_npt1[35];   //[njetID]
+   Float_t         jetID_npt2[35];   //[njetID]
+   Float_t         jetID_npt3[35];   //[njetID]
+   Int_t           jetID_cmult[35];   //[njetID]
+   Int_t           jetID_nmult[35];   //[njetID]
    UInt_t          nJet;
    Float_t         Jet_area[35];   //[nJet]
    Float_t         Jet_btagCMVA[35];   //[nJet]
@@ -357,10 +371,10 @@ public :
    Float_t         SV_pAngle[9];   //[nSV]
    Int_t           Electron_genPartIdx[10];   //[nElectron]
    UChar_t         Electron_genPartFlav[10];   //[nElectron]
-   Int_t           GenJetAK8_partonFlavour[10];   //[nGenJetAK8]
-   UChar_t         GenJetAK8_hadronFlavour[10];   //[nGenJetAK8]
-   Int_t           GenJet_partonFlavour[20];   //[nGenJet]
-   UChar_t         GenJet_hadronFlavour[20];   //[nGenJet]
+   Int_t           GenJetAK8_partonFlavour[40];   //[nGenJetAK8]
+   UChar_t         GenJetAK8_hadronFlavour[40];   //[nGenJetAK8]
+   Int_t           GenJet_partonFlavour[40];   //[nGenJet]
+   UChar_t         GenJet_hadronFlavour[40];   //[nGenJet]
    Float_t         had_chi2[7000];   //[nhad]
    Float_t         had_eta[7000];   //[nhad]
    Float_t         had_mass[7000];   //[nhad]
@@ -1034,6 +1048,32 @@ public :
    UChar_t         hadTruth_isHadFromS[7000];   //[nhadTruth]
    UChar_t         hadTruth_isHadFromC[7000];   //[nhadTruth]
    UChar_t         hadTruth_isHadFromB[7000];   //[nhadTruth]
+   UInt_t          ngenHadron;
+   Float_t         genHadron_dau1_pt[150];   //[ngenHadron]
+   Float_t         genHadron_dau2_pt[150];   //[ngenHadron]
+   Float_t         genHadron_dau1_eta[150];   //[ngenHadron]
+   Float_t         genHadron_dau2_eta[150];   //[ngenHadron]
+   Float_t         genHadron_dau1_phi[150];   //[ngenHadron]
+   Float_t         genHadron_dau2_phi[150];   //[ngenHadron]
+   Float_t         genHadron_vx[150];   //[ngenHadron]
+   Float_t         genHadron_vy[150];   //[ngenHadron]
+   Float_t         genHadron_vz[150];   //[ngenHadron]
+   Int_t           genHadron_isGenHadFromTsb[150];   //[ngenHadron]
+   Int_t           genHadron_dau1_pdgId[150];   //[ngenHadron]
+   Int_t           genHadron_dau2_pdgId[150];   //[ngenHadron]
+   Int_t           genHadron_isGenParticle[150];   //[ngenHadron]
+   UChar_t         genHadron_isGenHadFromTop[150];   //[ngenHadron]
+   UChar_t         genHadron_inVol[150];   //[ngenHadron]
+   UChar_t         genHadron_isMatching[150];   //[ngenHadron]
+   UChar_t         genHadron_isMatched[150];   //[ngenHadron]
+   Float_t         genHadron_eta[150];   //[ngenHadron]
+   Float_t         genHadron_mass[150];   //[ngenHadron]
+   Float_t         genHadron_phi[150];   //[ngenHadron]
+   Float_t         genHadron_pt[150];   //[ngenHadron]
+   Float_t         genHadron_x[150];   //[ngenHadron]
+   Float_t         genHadron_y[150];   //[ngenHadron]
+   Float_t         genHadron_z[150];   //[ngenHadron]
+   Int_t           genHadron_pdgId[150];   //[ngenHadron]
 
    // List of branches
    TBranch        *b_run;   //!
@@ -1169,6 +1209,19 @@ public :
    TBranch        *b_had_idx;   //!
    TBranch        *b_had_dau1_idx;   //!
    TBranch        *b_had_dau2_idx;   //!
+   TBranch        *b_njetID;   //!
+   TBranch        *b_jetID_delta;   //!
+   TBranch        *b_jetID_axis2;   //!
+   TBranch        *b_jetID_axis1;   //!
+   TBranch        *b_jetID_ptD;   //!
+   TBranch        *b_jetID_cpt1;   //!
+   TBranch        *b_jetID_cpt2;   //!
+   TBranch        *b_jetID_cpt3;   //!
+   TBranch        *b_jetID_npt1;   //!
+   TBranch        *b_jetID_npt2;   //!
+   TBranch        *b_jetID_npt3;   //!
+   TBranch        *b_jetID_cmult;   //!
+   TBranch        *b_jetID_nmult;   //!
    TBranch        *b_nJet;   //!
    TBranch        *b_Jet_area;   //!
    TBranch        *b_Jet_btagCMVA;   //!
@@ -2037,6 +2090,32 @@ public :
    TBranch        *b_hadTruth_isHadFromS;   //!
    TBranch        *b_hadTruth_isHadFromC;   //!
    TBranch        *b_hadTruth_isHadFromB;   //!
+   TBranch        *b_ngenHadron;   //!
+   TBranch        *b_genHadron_dau1_pt;   //!
+   TBranch        *b_genHadron_dau2_pt;   //!
+   TBranch        *b_genHadron_dau1_eta;   //!
+   TBranch        *b_genHadron_dau2_eta;   //!
+   TBranch        *b_genHadron_dau1_phi;   //!
+   TBranch        *b_genHadron_dau2_phi;   //!
+   TBranch        *b_genHadron_vx;   //!
+   TBranch        *b_genHadron_vy;   //!
+   TBranch        *b_genHadron_vz;   //!
+   TBranch        *b_genHadron_isGenHadFromTsb;   //!
+   TBranch        *b_genHadron_dau1_pdgId;   //!
+   TBranch        *b_genHadron_dau2_pdgId;   //!
+   TBranch        *b_genHadron_isGenParticle;   //!
+   TBranch        *b_genHadron_isGenHadFromTop;   //!
+   TBranch        *b_genHadron_inVol;   //!
+   TBranch        *b_genHadron_isMatching;   //!
+   TBranch        *b_genHadron_isMatched;   //!
+   TBranch        *b_genHadron_eta;   //!
+   TBranch        *b_genHadron_mass;   //!
+   TBranch        *b_genHadron_phi;   //!
+   TBranch        *b_genHadron_pt;   //!
+   TBranch        *b_genHadron_x;   //!
+   TBranch        *b_genHadron_y;   //!
+   TBranch        *b_genHadron_z;   //!
+   TBranch        *b_genHadron_pdgId;   //!
 
    Events(TTree *tree=0, TTree *had=0, TTree *hadTruth=0);
    virtual ~Events();
@@ -2069,10 +2148,21 @@ Events::Events(TTree *tree, TTree *had, TTree *hadTruth) : fChain(0), h_fChain(0
 
 Events::~Events()
 {
+
+  if (!fChain) return;
+  delete fChain->GetCurrentFile();
+  if (!h_fChain) {
+    if (!ht_fChain) return;
+    else delete ht_fChain->GetCurrentFile();
+  } else h_fChain->GetCurrentFile();
+  if (!ht_fChain) return;
+  else delete ht_fChain->GetCurrentFile();
+/*
    if (!fChain) return;
    delete fChain->GetCurrentFile();
    if (h_fChain) delete h_fChain->GetCurrentFile();
    if (ht_fChain) delete ht_fChain->GetCurrentFile();
+*/
 }
 
 #include<iostream>
@@ -2238,6 +2328,19 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
    fChain->SetBranchAddress("GenVisTau_genPartIdxMother", GenVisTau_genPartIdxMother, &b_GenVisTau_genPartIdxMother);
    fChain->SetBranchAddress("GenVisTau_status", GenVisTau_status, &b_GenVisTau_status);
    fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
+   fChain->SetBranchAddress("njetID", &njetID, &b_njetID);
+   fChain->SetBranchAddress("jetID_delta", jetID_delta, &b_jetID_delta);
+   fChain->SetBranchAddress("jetID_axis2", jetID_axis2, &b_jetID_axis2);
+   fChain->SetBranchAddress("jetID_axis1", jetID_axis1, &b_jetID_axis1);
+   fChain->SetBranchAddress("jetID_ptD", jetID_ptD, &b_jetID_ptD);
+   fChain->SetBranchAddress("jetID_cpt1", jetID_cpt1, &b_jetID_cpt1);
+   fChain->SetBranchAddress("jetID_cpt2", jetID_cpt2, &b_jetID_cpt2);
+   fChain->SetBranchAddress("jetID_cpt3", jetID_cpt3, &b_jetID_cpt3);
+   fChain->SetBranchAddress("jetID_npt1", jetID_npt1, &b_jetID_npt1);
+   fChain->SetBranchAddress("jetID_npt2", jetID_npt2, &b_jetID_npt2);
+   fChain->SetBranchAddress("jetID_npt3", jetID_npt3, &b_jetID_npt3);
+   fChain->SetBranchAddress("jetID_cmult", jetID_cmult, &b_jetID_cmult);
+   fChain->SetBranchAddress("jetID_nmult", jetID_nmult, &b_jetID_nmult);
    fChain->SetBranchAddress("nJet", &nJet, &b_nJet);
    fChain->SetBranchAddress("Jet_area", Jet_area, &b_Jet_area);
    fChain->SetBranchAddress("Jet_btagCMVA", Jet_btagCMVA, &b_Jet_btagCMVA);
@@ -3140,7 +3243,53 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
      h_fChain->SetBranchAddress("had_z", had_z, &b_had_z);
      h_fChain->SetBranchAddress("had_ndof", had_ndof, &b_had_ndof);
      h_fChain->SetBranchAddress("had_pdgId", had_pdgId, &b_had_pdgId);
-   }
+   } else {
+     fChain->SetBranchAddress("nhad_jet", &nhad_jet, &b_nhad_jet);
+     fChain->SetBranchAddress("had_jet_btagCMVA", had_jet_btagCMVA, &b_had_jet_btagCMVA);
+     fChain->SetBranchAddress("had_jet_btagCSVV2", had_jet_btagCSVV2, &b_had_jet_btagCSVV2);
+     fChain->SetBranchAddress("had_jet_btagDeepB", had_jet_btagDeepB, &b_had_jet_btagDeepB);
+     fChain->SetBranchAddress("had_jet_btagDeepC", had_jet_btagDeepC, &b_had_jet_btagDeepC);
+     fChain->SetBranchAddress("had_jet_eta", had_jet_eta, &b_had_jet_eta);
+     fChain->SetBranchAddress("had_jet_mass", had_jet_mass, &b_had_jet_mass);
+     fChain->SetBranchAddress("had_jet_phi", had_jet_phi, &b_had_jet_phi);
+     fChain->SetBranchAddress("had_jet_pt", had_jet_pt, &b_had_jet_pt);
+     fChain->SetBranchAddress("nhad", &nhad, &b_nhad);
+     fChain->SetBranchAddress("had_jetDR", had_jetDR, &b_had_jetDR);
+     fChain->SetBranchAddress("had_legDR", had_legDR, &b_had_legDR);
+     fChain->SetBranchAddress("had_diffMass", had_diffMass, &b_had_diffMass);
+     fChain->SetBranchAddress("had_lxy", had_lxy, &b_had_lxy);
+     fChain->SetBranchAddress("had_lxyErr", had_lxyErr, &b_had_lxyErr);
+     fChain->SetBranchAddress("had_l3D", had_l3D, &b_had_l3D);
+     fChain->SetBranchAddress("had_l3DErr", had_l3DErr, &b_had_l3DErr);
+     fChain->SetBranchAddress("had_dca", had_dca, &b_had_dca);
+     fChain->SetBranchAddress("had_angleXY", had_angleXY, &b_had_angleXY);
+     fChain->SetBranchAddress("had_angleXYZ", had_angleXYZ, &b_had_angleXYZ);
+     fChain->SetBranchAddress("had_dau1_chi2", had_dau1_chi2, &b_had_dau1_chi2);
+     fChain->SetBranchAddress("had_dau1_nHits", had_dau1_nHits, &b_had_dau1_nHits);
+     fChain->SetBranchAddress("had_dau1_pt", had_dau1_pt, &b_had_dau1_pt);
+     fChain->SetBranchAddress("had_dau1_ipsigXY", had_dau1_ipsigXY, &b_had_dau1_ipsigXY);
+     fChain->SetBranchAddress("had_dau1_ipsigZ", had_dau1_ipsigZ, &b_had_dau1_ipsigZ);
+     fChain->SetBranchAddress("had_dau2_chi2", had_dau2_chi2, &b_had_dau2_chi2);
+     fChain->SetBranchAddress("had_dau2_nHits", had_dau2_nHits, &b_had_dau2_nHits);
+     fChain->SetBranchAddress("had_dau2_pt", had_dau2_pt, &b_had_dau2_pt);
+     fChain->SetBranchAddress("had_dau2_ipsigXY", had_dau2_ipsigXY, &b_had_dau2_ipsigXY);
+     fChain->SetBranchAddress("had_dau2_ipsigZ", had_dau2_ipsigZ, &b_had_dau2_ipsigZ);
+     fChain->SetBranchAddress("had_nJet", had_nJet, &b_had_nJet);
+     fChain->SetBranchAddress("had_nDau", had_nDau, &b_had_nDau);
+     fChain->SetBranchAddress("had_idx", had_idx, &b_had_idx);
+     fChain->SetBranchAddress("had_dau1_idx", had_dau1_idx, &b_had_dau1_idx);
+     fChain->SetBranchAddress("had_dau2_idx", had_dau2_idx, &b_had_dau2_idx);
+     fChain->SetBranchAddress("had_chi2", had_chi2, &b_had_chi2);
+     fChain->SetBranchAddress("had_eta", had_eta, &b_had_eta);
+     fChain->SetBranchAddress("had_mass", had_mass, &b_had_mass);
+     fChain->SetBranchAddress("had_phi", had_phi, &b_had_phi);
+     fChain->SetBranchAddress("had_pt", had_pt, &b_had_pt);
+     fChain->SetBranchAddress("had_x", had_x, &b_had_x);
+     fChain->SetBranchAddress("had_y", had_y, &b_had_y);
+     fChain->SetBranchAddress("had_z", had_z, &b_had_z);
+     fChain->SetBranchAddress("had_ndof", had_ndof, &b_had_ndof);
+     fChain->SetBranchAddress("had_pdgId", had_pdgId, &b_had_pdgId);
+  }
    
    if (ht_fChain) {
      if (ht_fChain != h_fChain) {
@@ -3167,6 +3316,34 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
      ht_fChain->SetBranchAddress("hadTruth_isHadFromS", hadTruth_isHadFromS, &b_hadTruth_isHadFromS);
      ht_fChain->SetBranchAddress("hadTruth_isHadFromC", hadTruth_isHadFromC, &b_hadTruth_isHadFromC);
      ht_fChain->SetBranchAddress("hadTruth_isHadFromB", hadTruth_isHadFromB, &b_hadTruth_isHadFromB);
+
+     ht_fChain->SetBranchAddress("ngenHadron", &ngenHadron, &b_ngenHadron);
+     ht_fChain->SetBranchAddress("genHadron_dau1_pt", genHadron_dau1_pt, &b_genHadron_dau1_pt);
+     ht_fChain->SetBranchAddress("genHadron_dau2_pt", genHadron_dau2_pt, &b_genHadron_dau2_pt);
+     ht_fChain->SetBranchAddress("genHadron_dau1_eta", genHadron_dau1_eta, &b_genHadron_dau1_eta);
+     ht_fChain->SetBranchAddress("genHadron_dau2_eta", genHadron_dau2_eta, &b_genHadron_dau2_eta);
+     ht_fChain->SetBranchAddress("genHadron_dau1_phi", genHadron_dau1_phi, &b_genHadron_dau1_phi);
+     ht_fChain->SetBranchAddress("genHadron_dau2_phi", genHadron_dau2_phi, &b_genHadron_dau2_phi);
+     ht_fChain->SetBranchAddress("genHadron_vx", genHadron_vx, &b_genHadron_vx);
+     ht_fChain->SetBranchAddress("genHadron_vy", genHadron_vy, &b_genHadron_vy);
+     ht_fChain->SetBranchAddress("genHadron_vz", genHadron_vz, &b_genHadron_vz);
+     ht_fChain->SetBranchAddress("genHadron_isGenHadFromTsb", genHadron_isGenHadFromTsb, &b_genHadron_isGenHadFromTsb);
+     ht_fChain->SetBranchAddress("genHadron_dau1_pdgId", genHadron_dau1_pdgId, &b_genHadron_dau1_pdgId);
+     ht_fChain->SetBranchAddress("genHadron_dau2_pdgId", genHadron_dau2_pdgId, &b_genHadron_dau2_pdgId);
+     ht_fChain->SetBranchAddress("genHadron_isGenParticle", genHadron_isGenParticle, &b_genHadron_isGenParticle);
+     ht_fChain->SetBranchAddress("genHadron_isGenHadFromTop", genHadron_isGenHadFromTop, &b_genHadron_isGenHadFromTop);
+     ht_fChain->SetBranchAddress("genHadron_inVol", genHadron_inVol, &b_genHadron_inVol);
+     ht_fChain->SetBranchAddress("genHadron_isMatching", genHadron_isMatching, &b_genHadron_isMatching);
+     ht_fChain->SetBranchAddress("genHadron_isMatched", genHadron_isMatched, &b_genHadron_isMatched);
+     ht_fChain->SetBranchAddress("genHadron_eta", genHadron_eta, &b_genHadron_eta);
+     ht_fChain->SetBranchAddress("genHadron_mass", genHadron_mass, &b_genHadron_mass);
+     ht_fChain->SetBranchAddress("genHadron_phi", genHadron_phi, &b_genHadron_phi);
+     ht_fChain->SetBranchAddress("genHadron_pt", genHadron_pt, &b_genHadron_pt);
+     ht_fChain->SetBranchAddress("genHadron_x", genHadron_x, &b_genHadron_x);
+     ht_fChain->SetBranchAddress("genHadron_y", genHadron_y, &b_genHadron_y);
+     ht_fChain->SetBranchAddress("genHadron_z", genHadron_z, &b_genHadron_z);
+     ht_fChain->SetBranchAddress("genHadron_pdgId", genHadron_pdgId, &b_genHadron_pdgId);
+
    }
 
    Notify();
