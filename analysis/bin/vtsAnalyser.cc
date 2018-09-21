@@ -70,7 +70,11 @@ int main(int argc, char* argv[])
       Bool_t isGenericMC = (string(inFileName).find("NANOAOD") == std::string::npos);
       if (!isMC) { 
         Bool_t isDL = false;
-        if (string(inFileName).find("DoubleElectron") != std::string::npos || string(inFileName).find("DoubleMuon") != std::string::npos) isDL = true;
+        if (string(inFileName).find("DoubleElectron") != std::string::npos) isDL = true;
+        if (string(inFileName).find("DoubleMuon") != std::string::npos)     isDL = true;
+        if (string(inFileName).find("DoubleEG") != std::string::npos)       isDL = true;
+        if (string(inFileName).find("MuonEG") != std::string::npos)         isDL = true;
+
         Bool_t isSLE = (string(inFileName).find("SingleElectron") != std::string::npos);
         Bool_t isSLM = (string(inFileName).find("SingleMuon") != std::string::npos);
         TFile *inFile = TFile::Open(inFileName, "READ");
@@ -81,9 +85,7 @@ int main(int argc, char* argv[])
         ana.Loop();
       }
       if (isGenericMC) {
-
         cout << "inFileName : " << inFileName << endl;
-
         cout << " input file is not tt###j_* sample" << endl;
         if (string(inFileName).find("run2") != std::string::npos) { 
           TFile *inFile = TFile::Open(inFileName, "READ");
