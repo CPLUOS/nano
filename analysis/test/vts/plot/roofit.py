@@ -56,7 +56,7 @@ c.Draw()
 c.SaveAs("fit.png")
 c.SaveAs("fit.pdf")
 
-Ntoys = 200    # number of toy MC generation
+Ntoys = 200000    # number of toy MC generation
 Ntot = 69684853. # total number of ttbar event (cross-section * luminosity)
 BR_w_to_lep = 0.111 # Branching ratio of W->lepton + neutrino
 BR_tau_to_elec = 0.178174 # Branching ratio of tau -> elec + neutrino
@@ -71,45 +71,55 @@ nSelJet_avg_bWbW = 2.84  # mean of nSelJet for bbbar sample
 
 hlist = []
 vtslist = []
+nsiglist = []
+nslist = []
 Y = array.array("f",[])
 for vts in xrange(0,14):
-    vts = vts/100.
+    vts = vts/100. # Vts_gen
     vts_term_bWsW = 2*vts**2*(1-vts**2) # ratio of ttbar->bWsW
     vts_term_bWbW = (1-vts**2)**2
     Y.append(vts)
-    h_vts = TH1D("","",100,-0.01,0.2)
+    h_vts = TH1D("","toy MC distribution;|V_{ts}|;Entry",100,-0.01,0.2)
+    h_Nsig = TH1D("", "N_{sig} comparison;N_{sig}^{rec};Entry", 100, -1000, 17000)
     for i in range(Ntoys):
-        w.var("Nsig").setVal(N_ttbar_reco_dilep*(vts_term_bWsW)*ep_s_sb*1) # N sig for bWsW : 1 means number of rec s jet per event (because used samples are bWsW)
+        w.var("Nsig").setVal(N_ttbar_reco_dilep*(vts_term_bWsW)*ep_s_sb*1) # N sig for bWsW : 1 means number of rec s jet per event (because used samples are bWsW) # Nsig_gen
         w.var("Nbkg").setVal(N_ttbar_reco_dilep*(vts_term_bWbW)*nSelJet_avg_bWbW  # N bkg for bWbW : because bkg means non-s, nSelJet avg for bWbW is multiflied and ep_bkg_bb is just 1 
                                 + N_ttbar_reco_dilep*(vts_term_bWsW)*(ep_s_sb)*(nSelJet_avg_bWsW - 1) # N bkg for bWsW 1 : when rec s jet exist, avg of number of bkg is nSelJet_avg - 1 
 				+ N_ttbar_reco_dilep*(vts_term_bWsW)*(ep_ns_sb)*(nSelJet_avg_bWsW) # N bkg for bWsW 2 : when rec s jet does not exist, avg of number of bkg is nSelJet_avg
                             )
+        if i == 0 : 
+            nslist.append(w.var("Nsig").getVal())
         toy = tot.generate(RooArgSet(x))
         res = tot.fitTo(toy, RooFit.Save(), RooFit.PrintLevel(-10))
 #	res.Print("r")
 #        if res.status() is not 0 : 
 #	  continue
-        ns = w.var("Nsig").getVal()
+        ns = w.var("Nsig").getVal() # Nsig_rec
         nb = w.var("Nbkg").getVal()
-        h_vts.Fill(math.sqrt((ns/(2*ep_s_sb))/(N_ttbar_reco_dilep)))#*(1/math.sqrt(1-vts**2))) 
-#        h_vts.Fill(math.sqrt((ns/(2*ep_s_sb))/(N_ttbar_reco_dilep))*(1/math.sqrt(1-vts**2)))
+        h_Nsig.Fill(ns)
+        h_vts.Fill(math.sqrt((ns/(2*ep_s_sb))/(N_ttbar_reco_dilep))) # Vts_rec
     hlist.append(h_vts)
     vtslist.append(vts)
+    nsiglist.append(h_Nsig)
 
 cnv = TCanvas()
-hlist[0].SetStats(0)
-hlist[0].Draw()
 means = array.array("f",[])
 stddevs = array.array("f",[])
-hlist[0].SetMaximum(max(h.GetMaximum() for h in hlist)*1.05)
 toy_leg = TLegend(0.65,0.65,0.9,0.9)
+vts_gen = TLine()
 for i, h in enumerate(hlist):
+    if i == 0 :
+        hlist[i].SetStats(0)
+        hlist[i].Draw()
+        hlist[i].SetMaximum(max(h.GetMaximum() for h in hlist)*1.05)
     print h.GetMean()
     means.append(h.GetMean())
     stddevs.append(h.GetStdDev())
     toy_leg.AddEntry(h, "vts = {0}".format(vtslist[i]))
     h.SetLineColor(i+2)
     h.Draw("same")
+    vts_gen.SetLineColor(i+2)
+    vts_gen.DrawLine(Y[i],0,Y[i],max(h.GetMaximum() for h in hlist)*1.05)
 toy_leg.Draw()
 cnv.SaveAs("toyMC.png")
 cnv.SaveAs("toyMC.pdf")
@@ -150,3 +160,21 @@ mean.Draw("same")
 leg.Draw("same")
 cnv2.SaveAs("confidence.png")
 cnv2.SaveAs("confidence.pdf")
+
+cnsig = TCanvas()
+n_leg = TLegend(0.65,0.45,0.9,0.9)
+Nsig_gen = TLine()
+for i, ns in enumerate(nsiglist):
+    if i == 0 :
+        nsiglist[i].SetStats(0)
+        nsiglist[i].Draw()
+    n_entry = n_leg.AddEntry(ns, "N_{sig}^{gen} = %d" % (nslist[i]))
+    n_entry.SetTextSize(0.02)
+    ns.SetLineColor(i+2)
+    ns.Draw("same")
+    Nsig_gen.SetLineColor(i+2)
+    Nsig_gen.DrawLine(nslist[i],0,nslist[i],max(h.GetMaximum() for h in nsiglist)*1.05)
+n_leg.Draw()
+cnsig.SaveAs("nsig_comparison.png")
+cnsig.SaveAs("nsig_comparison.pdf")
+

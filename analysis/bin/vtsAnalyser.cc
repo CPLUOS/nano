@@ -389,6 +389,16 @@ void vtsAnalyser::MakeBranch() {
   BranchI(hadTruth_nMatched); BranchI(hadTruth_nTrueDau); 
   BranchO(hadTruth_isHadFromTop); BranchI(hadTruth_isHadFromTsb); BranchO(hadTruth_isHadFromW); BranchO(hadTruth_isHadFromS); BranchO(hadTruth_isHadFromC); BranchO(hadTruth_isHadFromB);
 
+  /* weight */
+  BranchF(genweight);   BranchF(puweight); 
+  BranchF(eleffweight); BranchF(eleffweight_up); BranchF(eleffweight_dn); 
+  BranchF(mueffweight); BranchF(mueffweight_up); BranchF(mueffweight_dn); 
+  BranchF(btagweight);  BranchVF(csvweights);
+
+  /* trigger */
+  BranchF(tri);    BranchF(tri_up);  BranchF(tri_dn);
+  BranchO(trig_m); BranchO(trig_m2); BranchO(trig_e); BranchO(trig_mm); BranchO(trig_em); BranchO(trig_ee);
+
   /* For MatchingForMC() */
   BranchF(Jet_dr_closest_s);    BranchF(Jet_dr_closest_b);
   BranchF(SelJet_dr_closest_s); BranchF(SelJet_dr_closest_b);
