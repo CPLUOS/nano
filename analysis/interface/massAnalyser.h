@@ -12,10 +12,10 @@ private:
   float b_cme_dau1_chi2, b_cme_dau1_nHits, b_cme_dau1_pt, b_cme_dau1_ipsigXY, b_cme_dau1_ipsigZ;
   float b_cme_dau2_chi2, b_cme_dau2_nHits, b_cme_dau2_pt, b_cme_dau2_ipsigXY, b_cme_dau2_ipsigZ;
   float b_cme_jet_btagCMVA, b_cme_jet_btagCSVV2, b_cme_jet_btagDeepB, b_cme_jet_btagDeepC;
-  float b_cme_mass;
+  float b_cme_mass, b_cme_diffMass;
   float b_cme_tmva_bdtg;
   int b_cme_pdgId;
-  int b_cme_nMatched;
+  int b_cme_nMatched, b_cme_nJet;
   float b_bdtg;
   int b_maxbIdx;
   //For C meson
