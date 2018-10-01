@@ -19,7 +19,7 @@ dirname = "test"
 pstored="/xrootd/store/user/%s/nanoAOD/%s/"%(os.environ['USER'],user_input)
 #pstored = "/cms/scratch/daniel/nanoAOD/src/nano/analysis/h2mu/Results/CSV/"
 
-pmerged=pstored+"results_merged/" 
+pmerged="/cms/scratch/yyoun/nanoAOD/src/nano/analysis/test/topMass/Samples/"+user_input+"/" 
 
 if pmerged not in os.listdir(pstored):
     os.system("mkdir -p "+pmerged)
@@ -41,8 +41,8 @@ for d in dir_list:
         failed_list.append(d)
     else:
         #os.system("hadd -f %s.root %s"%(pmerged+"h2muAnalyzer_"+d,file_names))
-        print "hadd -f %s.root %s"%(pmerged+"tth2mu_"+d,file_names)
-        os.system("hadd -f %s.root %s"%(pmerged+"tth2mu_"+d,file_names))
+        print "hadd -f %s.root %s"%(pmerged+"sl_"+d,file_names)
+        os.system("hadd -f %s.root %s"%(pmerged+"sl_"+d,file_names))
 
 if len(failed_list) > 0:
     print

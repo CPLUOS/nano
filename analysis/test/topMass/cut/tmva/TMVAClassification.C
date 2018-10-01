@@ -121,7 +121,7 @@ int TMVAClassification( TString myMethodList = "" )
    // Read training and test data
    // (it is also possible to use ASCII format as input -> see TMVA Users Guide)
    TFile *input(0);
-   TString fname = "./tmva_class_example.root";
+   TString fname = "./tmva_batch/Results/copt_927/hadron/nanoAOD.root";
    //TString fname = "/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/batch/Results/results_merged/copt_kps_acb.root";
    if (!gSystem->AccessPathName( fname )) {
       input = TFile::Open( fname ); // check if file in local directory exists
@@ -138,8 +138,8 @@ int TMVAClassification( TString myMethodList = "" )
 
    // Register the training and test trees
 
-   TTree *signalTree     = (TTree*)input->Get("D0sig");
-   TTree *background     = (TTree*)input->Get("D0bkg");
+   TTree *signalTree     = (TTree*)input->Get("Hadsig");
+   TTree *background     = (TTree*)input->Get("Hadbkg");
 
    // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
    TString outfileName( "TMVA.root" );
@@ -169,43 +169,45 @@ int TMVAClassification( TString myMethodList = "" )
    // note that you may also use variable expressions, such as: "3*var1/var2*abs(var3)"
    // [all types of expressions that can also be parsed by TTree::Draw( "expression" )]
    
-   dataloader->AddVariable( "cme_lxy", 'F' );
-   dataloader->AddVariable( "cme_lxyE", 'F' );
+   //dataloader->AddVariable( "cme_lxy", 'F' );
+   //dataloader->AddVariable( "cme_lxyE", 'F' );
    //dataloader->AddVariable( "cme_lxySig", 'F' );
-   dataloader->AddVariable( "cme_l3D", 'F' );
+   //dataloader->AddVariable( "cme_l3D", 'F' );
    dataloader->AddVariable( "cme_l3DE", 'F' );
    //dataloader->AddVariable( "cme_l3DSig", 'F' );
    dataloader->AddVariable( "cme_jetDR", 'F' );
    dataloader->AddVariable( "cme_legDR", 'F' );
+   //dataloader->AddVariable( "cme_angleXY", 'F' );
+   //dataloader->AddVariable( "cme_angleXYZ", 'F' );
    
    dataloader->AddVariable( "cme_dca", 'F' );
-   dataloader->AddVariable( "cme_angleXY", 'F' );
-   dataloader->AddVariable( "cme_angleXYZ", 'F' );
-   dataloader->AddVariable( "cme_x", 'F' );
-   dataloader->AddVariable( "cme_y", 'F' );
-   dataloader->AddVariable( "cme_z", 'F' );
-   dataloader->AddVariable( "cme_pt", 'F' );
+   //dataloader->AddVariable( "cme_nJet", 'F' );
+   //dataloader->AddVariable( "cme_x", 'F' );
+   //dataloader->AddVariable( "cme_y", 'F' );
+   //dataloader->AddVariable( "cme_z", 'F' );
+   //dataloader->AddVariable( "cme_pt", 'F' );
    dataloader->AddVariable( "cme_chi2", 'F' );
-   dataloader->AddVariable( "cme_eta", 'F' );
-   dataloader->AddVariable( "cme_phi", 'F' );
+   //dataloader->AddVariable( "cme_eta", 'F' );
+   //dataloader->AddVariable( "cme_phi", 'F' );
    
-   dataloader->AddVariable( "cme_jet_btagCMVA", 'F' );
+   //dataloader->AddVariable( "cme_jet_btagCMVA", 'F' );
    dataloader->AddVariable( "cme_jet_btagCSVV2", 'F' );
-   dataloader->AddVariable( "cme_jet_btagDeepB", 'F' );
-   dataloader->AddVariable( "cme_jet_btagDeepC", 'F' );
-   dataloader->AddVariable( "cme_dau1_chi2", 'F' );
-   dataloader->AddVariable( "cme_dau1_ipsigXY", 'F' );
-   dataloader->AddVariable( "cme_dau1_ipsigZ", 'F' );
-   dataloader->AddVariable( "cme_dau1_nHits", 'F' );
-   dataloader->AddVariable( "cme_dau1_pt", 'F' );
-   dataloader->AddVariable( "cme_dau2_chi2", 'F' );
-   dataloader->AddVariable( "cme_dau2_ipsigXY", 'F' );
-   dataloader->AddVariable( "cme_dau2_ipsigZ", 'F' );
-   dataloader->AddVariable( "cme_dau2_nHits", 'F' );
-   dataloader->AddVariable( "cme_dau2_pt", 'F' );
+   //dataloader->AddVariable( "cme_jet_btagDeepB", 'F' );
+   //dataloader->AddVariable( "cme_jet_btagDeepC", 'F' );
+   
+   //dataloader->AddVariable( "cme_dau1_chi2", 'F' );
+   //dataloader->AddVariable( "cme_dau1_ipsigXY", 'F' );
+   //dataloader->AddVariable( "cme_dau1_ipsigZ", 'F' );
+   //dataloader->AddVariable( "cme_dau1_nHits", 'F' );
+   //dataloader->AddVariable( "cme_dau1_pt", 'F' );
+   //dataloader->AddVariable( "cme_dau2_chi2", 'F' );
+   //dataloader->AddVariable( "cme_dau2_ipsigXY", 'F' );
+   //dataloader->AddVariable( "cme_dau2_ipsigZ", 'F' );
+   //dataloader->AddVariable( "cme_dau2_nHits", 'F' );
+   //dataloader->AddVariable( "cme_dau2_pt", 'F' );
 
    dataloader->AddSpectator( "cme_mass", 'F' );
-   // dataloader->AddSpectator( "cme_diffMass", 'F' );
+   //dataloader->AddSpectator( "cme_diffMass", 'F' );
    
    
    // dataloader->AddVariable( "cme_ndof", 'I' );
@@ -272,10 +274,10 @@ int TMVAClassification( TString myMethodList = "" )
    //dataloader->SetBackgroundWeightExpression( "weight" );
 
    // Apply additional cuts on the signal and background samples (can be different)
-   //TCut mycuts = "cmeTruth_nMatched==2 && cmeTruth_nTrueDau==2"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
-   //TCut mycutb = "cmeTruth_nMatched==0"; // for example: TCut mycutb = "abs(var1)<0.5";
-   TCut mycuts = ""; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
-   TCut mycutb = ""; // for example: TCut mycutb = "abs(var1)<0.5";
+   TCut mycuts = "cmeTruth_nMatched==2 && cmeTruth_nTrueDau==2"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   TCut mycutb =""; //"cmeTruth_nMatched==0"; // for example: TCut mycutb = "abs(var1)<0.5";
+   //TCut mycuts = ""; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   //TCut mycutb = ""; // for example: TCut mycutb = "abs(var1)<0.5";
 
 
    // Tell the dataloader how to use the training and testing events
@@ -289,8 +291,8 @@ int TMVAClassification( TString myMethodList = "" )
    //
    //    dataloader->PrepareTrainingAndTestTree( mycut,
    //         "NSigTrain=3000:NBkgTrain=3000:NSigTest=3000:NBkgTest=3000:SplitMode=Random:!V" );
-   dataloader->PrepareTrainingAndTestTree( mycuts, mycutb,
-                                       "nTrain_Signal=5000:nTrain_Background=70000:SplitMode=Random:NormMode=NumEvents:!V" );
+   dataloader->PrepareTrainingAndTestTree( mycuts, mycutb,"SplitMode=Random:NormMode=NumEvents:!V" );
+       //"nTrain_Signal=7500:nTrain_Background=96000:SplitMode=Random:NormMode=NumEvents:!V" );
 
    // ### Book MVA methods
    //

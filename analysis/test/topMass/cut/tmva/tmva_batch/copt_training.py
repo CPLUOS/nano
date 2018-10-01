@@ -7,7 +7,7 @@ from array import array
 FileArg = sys.argv
 tempdir = FileArg[1]
 #Dirname = "/cms/scratch/seulgi/nanoAOD/src/nano/analysis/test/topMass/cut/batch/Results/%s/" %tempdir
-Dirname = "/cms/scratch/jdj0715/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/tmva_batch/Results/%s/" %tempdir
+Dirname = "/cms/scratch/yyoun/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/tmva_batch/Results/copt_927/%s/" %tempdir
 if not os.path.isdir(Dirname):
     os.makedirs(Dirname)
 
@@ -15,10 +15,10 @@ temp = FileArg[2].split('/').pop()
 cattree = Dirname+temp
 
 f = ROOT.TFile(cattree, "recreate")
+Hadsig = ROOT.TTree("Hadsig", "Hadsig")
+Hadbkg = ROOT.TTree("Hadbkg", "Hadbkg")
 D0sig = ROOT.TTree("D0sig", "D0sig")
 D0bkg = ROOT.TTree("D0bkg", "D0bkg")
-Jpsisig = ROOT.TTree("Jpsisig", "Jpsisig")
-Jpsibkg = ROOT.TTree("Jpsibkg", "Jpsibkg")
 
 ## Variables ##
 cme_dca = array("f",[0])
@@ -64,6 +64,88 @@ cme_dau2_nHits = array("f", [0])
 cme_dau2_pt = array("f", [0])
 
 # Branch ##
+Hadsig.Branch("cme_dca", cme_dca, "cme_dca/F")
+Hadsig.Branch("cme_diffMass", cme_diffMass, "cme_diffMass/F")
+Hadsig.Branch("cme_angleXY", cme_angleXY, "cme_angleXY/F")
+Hadsig.Branch("cme_angleXYZ", cme_angleXYZ, "cme_angleXYZ/F")
+Hadsig.Branch("cme_lxy", cme_lxy, "cme_lxy/F")
+Hadsig.Branch("cme_lxyErr", cme_lxyErr, "cme_lxyErr/F")
+Hadsig.Branch("cme_lxyE", cme_lxyE, "cme_lxyE/F")
+Hadsig.Branch("cme_l3D", cme_l3D, "cme_l3D/F")
+Hadsig.Branch("cme_l3DErr", cme_l3DErr, "cme_l3DErr/F")
+Hadsig.Branch("cme_l3DE", cme_l3DE, "cme_l3DE/F")
+Hadsig.Branch("cme_jetDR", cme_jetDR, "cme_jetDR/F")
+Hadsig.Branch("cme_legDR", cme_legDR, "cme_legDR/F")
+Hadsig.Branch("cme_nJet", cme_nJet, "cme_nJet/I")
+Hadsig.Branch("cme_chi2", cme_chi2, "cme_chi2/F")
+Hadsig.Branch("cme_eta", cme_eta, "cme_eta/F")
+Hadsig.Branch("cme_mass", cme_mass, "cme_mass/F")
+Hadsig.Branch("cme_phi", cme_phi, "cme_phi/F")
+Hadsig.Branch("cme_pt", cme_pt, "cme_pt/F")
+Hadsig.Branch("cme_x", cme_x, "cme_x/F")
+Hadsig.Branch("cme_y", cme_y, "cme_y/F")
+Hadsig.Branch("cme_z", cme_z, "cme_z/F")
+Hadsig.Branch("cme_ndof", cme_ndof, "cme_ndof/I")
+Hadsig.Branch("cme_pdgId", cme_pdgId, "cme_pdgId/I")
+Hadsig.Branch("cme_jet_btagCMVA", cme_jet_btagCMVA, "cme_jet_btagCMVA/F")
+Hadsig.Branch("cme_jet_btagCSVV2", cme_jet_btagCSVV2, "cme_jet_btagCSVV2/F")
+Hadsig.Branch("cme_jet_btagDeepB", cme_jet_btagDeepB, "cme_jet_btagDeepB/F")
+Hadsig.Branch("cme_jet_btagDeepC", cme_jet_btagDeepC, "cme_jet_btagDeepC/F")
+Hadsig.Branch("cme_nDau", cme_nDau, "cme_nDau/I")
+Hadsig.Branch("cme_dau1_chi2", cme_dau1_chi2, "cme_dau1_chi2/F")
+Hadsig.Branch("cme_dau1_pt", cme_dau1_pt, "cme_dau1_pt/F")
+Hadsig.Branch("cme_dau1_ipsigXY", cme_dau1_ipsigXY, "cme_dau1_ipsigXY/F")
+Hadsig.Branch("cme_dau1_ipsigZ", cme_dau1_ipsigZ, "cme_dau1_ipsigZ/F")
+Hadsig.Branch("cme_dau1_nHits", cme_dau1_nHits, "cme_dau1_nHits/F")
+Hadsig.Branch("cme_dau2_chi2", cme_dau2_chi2, "cme_dau2_chi2/F")
+Hadsig.Branch("cme_dau2_pt", cme_dau2_pt, "cme_dau2_pt/F")
+Hadsig.Branch("cme_dau2_ipsigXY", cme_dau2_ipsigXY, "cme_dau2_ipsigXY/F")
+Hadsig.Branch("cme_dau2_ipsigZ", cme_dau2_ipsigZ, "cme_dau2_ipsigZ/F")
+Hadsig.Branch("cme_dau2_nHits", cme_dau2_nHits, "cme_dau2_nHits/F")
+Hadsig.Branch("cmeTruth_nMatched", cmeTruth_nMatched, "cmeTruth_nMatched/I")
+Hadsig.Branch("cmeTruth_nTrueDau", cmeTruth_nTrueDau, "cmeTruth_nTrueDau/I")
+
+Hadbkg.Branch("cme_dca", cme_dca, "cme_dca/F")
+Hadbkg.Branch("cme_diffMass", cme_diffMass, "cme_diffMass/F")
+Hadbkg.Branch("cme_angleXY", cme_angleXY, "cme_angleXY/F")
+Hadbkg.Branch("cme_angleXYZ", cme_angleXYZ, "cme_angleXYZ/F")
+Hadbkg.Branch("cme_lxy", cme_lxy, "cme_lxy/F")
+Hadbkg.Branch("cme_lxyErr", cme_lxyErr, "cme_lxyErr/F")
+Hadbkg.Branch("cme_lxyE", cme_lxyE, "cme_lxyE/F")
+Hadbkg.Branch("cme_l3D", cme_l3D, "cme_l3D/F")
+Hadbkg.Branch("cme_l3DErr", cme_l3DErr, "cme_l3DErr/F")
+Hadbkg.Branch("cme_l3DE", cme_l3DE, "cme_l3DE/F")
+Hadbkg.Branch("cme_jetDR", cme_jetDR, "cme_jetDR/F")
+Hadbkg.Branch("cme_legDR", cme_legDR, "cme_legDR/F")
+Hadbkg.Branch("cme_nJet", cme_nJet, "cme_nJet/I")
+Hadbkg.Branch("cme_chi2", cme_chi2, "cme_chi2/F")
+Hadbkg.Branch("cme_eta", cme_eta, "cme_eta/F")
+Hadbkg.Branch("cme_mass", cme_mass, "cme_mass/F")
+Hadbkg.Branch("cme_phi", cme_phi, "cme_phi/F")
+Hadbkg.Branch("cme_pt", cme_pt, "cme_pt/F")
+Hadbkg.Branch("cme_x", cme_x, "cme_x/F")
+Hadbkg.Branch("cme_y", cme_y, "cme_y/F")
+Hadbkg.Branch("cme_z", cme_z, "cme_z/F")
+Hadbkg.Branch("cme_ndof", cme_ndof, "cme_ndof/I")
+Hadbkg.Branch("cme_pdgId", cme_pdgId, "cme_pdgId/I")
+Hadbkg.Branch("cme_jet_btagCMVA", cme_jet_btagCMVA, "cme_jet_btagCMVA/F")
+Hadbkg.Branch("cme_jet_btagCSVV2", cme_jet_btagCSVV2, "cme_jet_btagCSVV2/F")
+Hadbkg.Branch("cme_jet_btagDeepB", cme_jet_btagDeepB, "cme_jet_btagDeepB/F")
+Hadbkg.Branch("cme_jet_btagDeepC", cme_jet_btagDeepC, "cme_jet_btagDeepC/F")
+Hadbkg.Branch("cme_nDau", cme_nDau, "cme_nDau/I")
+Hadbkg.Branch("cme_dau1_chi2", cme_dau1_chi2, "cme_dau1_chi2/F")
+Hadbkg.Branch("cme_dau1_pt", cme_dau1_pt, "cme_dau1_pt/F")
+Hadbkg.Branch("cme_dau1_ipsigXY", cme_dau1_ipsigXY, "cme_dau1_ipsigXY/F")
+Hadbkg.Branch("cme_dau1_ipsigZ", cme_dau1_ipsigZ, "cme_dau1_ipsigZ/F")
+Hadbkg.Branch("cme_dau1_nHits", cme_dau1_nHits, "cme_dau1_nHits/F")
+Hadbkg.Branch("cme_dau2_chi2", cme_dau2_chi2, "cme_dau2_chi2/F")
+Hadbkg.Branch("cme_dau2_pt", cme_dau2_pt, "cme_dau2_pt/F")
+Hadbkg.Branch("cme_dau2_ipsigXY", cme_dau2_ipsigXY, "cme_dau2_ipsigXY/F")
+Hadbkg.Branch("cme_dau2_ipsigZ", cme_dau2_ipsigZ, "cme_dau2_ipsigZ/F")
+Hadbkg.Branch("cme_dau2_nHits", cme_dau2_nHits, "cme_dau2_nHits/F")
+Hadbkg.Branch("cmeTruth_nMatched", cmeTruth_nMatched, "cmeTruth_nMatched/I")
+Hadbkg.Branch("cmeTruth_nTrueDau", cmeTruth_nTrueDau, "cmeTruth_nTrueDau/I")
+
 D0sig.Branch("cme_dca", cme_dca, "cme_dca/F")
 D0sig.Branch("cme_diffMass", cme_diffMass, "cme_diffMass/F")
 D0sig.Branch("cme_angleXY", cme_angleXY, "cme_angleXY/F")
@@ -146,98 +228,22 @@ D0bkg.Branch("cme_dau2_nHits", cme_dau2_nHits, "cme_dau2_nHits/F")
 D0bkg.Branch("cmeTruth_nMatched", cmeTruth_nMatched, "cmeTruth_nMatched/I")
 D0bkg.Branch("cmeTruth_nTrueDau", cmeTruth_nTrueDau, "cmeTruth_nTrueDau/I")
 
-Jpsisig.Branch("cme_dca", cme_dca, "cme_dca/F")
-Jpsisig.Branch("cme_diffMass", cme_diffMass, "cme_diffMass/F")
-Jpsisig.Branch("cme_angleXY", cme_angleXY, "cme_angleXY/F")
-Jpsisig.Branch("cme_angleXYZ", cme_angleXYZ, "cme_angleXYZ/F")
-Jpsisig.Branch("cme_lxy", cme_lxy, "cme_lxy/F")
-Jpsisig.Branch("cme_lxyErr", cme_lxyErr, "cme_lxyErr/F")
-Jpsisig.Branch("cme_lxyE", cme_lxyE, "cme_lxyE/F")
-Jpsisig.Branch("cme_l3D", cme_l3D, "cme_l3D/F")
-Jpsisig.Branch("cme_l3DErr", cme_l3DErr, "cme_l3DErr/F")
-Jpsisig.Branch("cme_l3DE", cme_l3DE, "cme_l3DE/F")
-Jpsisig.Branch("cme_jetDR", cme_jetDR, "cme_jetDR/F")
-Jpsisig.Branch("cme_legDR", cme_legDR, "cme_legDR/F")
-Jpsisig.Branch("cme_nJet", cme_nJet, "cme_nJet/I")
-Jpsisig.Branch("cme_chi2", cme_chi2, "cme_chi2/F")
-Jpsisig.Branch("cme_eta", cme_eta, "cme_eta/F")
-Jpsisig.Branch("cme_mass", cme_mass, "cme_mass/F")
-Jpsisig.Branch("cme_phi", cme_phi, "cme_phi/F")
-Jpsisig.Branch("cme_pt", cme_pt, "cme_pt/F")
-Jpsisig.Branch("cme_x", cme_x, "cme_x/F")
-Jpsisig.Branch("cme_y", cme_y, "cme_y/F")
-Jpsisig.Branch("cme_z", cme_z, "cme_z/F")
-Jpsisig.Branch("cme_ndof", cme_ndof, "cme_ndof/I")
-Jpsisig.Branch("cme_pdgId", cme_pdgId, "cme_pdgId/I")
-Jpsisig.Branch("cme_jet_btagCMVA", cme_jet_btagCMVA, "cme_jet_btagCMVA/F")
-Jpsisig.Branch("cme_jet_btagCSVV2", cme_jet_btagCSVV2, "cme_jet_btagCSVV2/F")
-Jpsisig.Branch("cme_jet_btagDeepB", cme_jet_btagDeepB, "cme_jet_btagDeepB/F")
-Jpsisig.Branch("cme_jet_btagDeepC", cme_jet_btagDeepC, "cme_jet_btagDeepC/F")
-Jpsisig.Branch("cme_nDau", cme_nDau, "cme_nDau/I")
-Jpsisig.Branch("cme_dau1_chi2", cme_dau1_chi2, "cme_dau1_chi2/F")
-Jpsisig.Branch("cme_dau1_pt", cme_dau1_pt, "cme_dau1_pt/F")
-Jpsisig.Branch("cme_dau1_ipsigXY", cme_dau1_ipsigXY, "cme_dau1_ipsigXY/F")
-Jpsisig.Branch("cme_dau1_ipsigZ", cme_dau1_ipsigZ, "cme_dau1_ipsigZ/F")
-Jpsisig.Branch("cme_dau1_nHits", cme_dau1_nHits, "cme_dau1_nHits/F")
-Jpsisig.Branch("cme_dau2_chi2", cme_dau2_chi2, "cme_dau2_chi2/F")
-Jpsisig.Branch("cme_dau2_pt", cme_dau2_pt, "cme_dau2_pt/F")
-Jpsisig.Branch("cme_dau2_ipsigXY", cme_dau2_ipsigXY, "cme_dau2_ipsigXY/F")
-Jpsisig.Branch("cme_dau2_ipsigZ", cme_dau2_ipsigZ, "cme_dau2_ipsigZ/F")
-Jpsisig.Branch("cme_dau2_nHits", cme_dau2_nHits, "cme_dau2_nHits/F")
-Jpsisig.Branch("cmeTruth_nMatched", cmeTruth_nMatched, "cmeTruth_nMatched/I")
-Jpsisig.Branch("cmeTruth_nTrueDau", cmeTruth_nTrueDau, "cmeTruth_nTrueDau/I")
-
-Jpsibkg.Branch("cme_dca", cme_dca, "cme_dca/F")
-Jpsibkg.Branch("cme_diffMass", cme_diffMass, "cme_diffMass/F")
-Jpsibkg.Branch("cme_angleXY", cme_angleXY, "cme_angleXY/F")
-Jpsibkg.Branch("cme_angleXYZ", cme_angleXYZ, "cme_angleXYZ/F")
-Jpsibkg.Branch("cme_lxy", cme_lxy, "cme_lxy/F")
-Jpsibkg.Branch("cme_lxyErr", cme_lxyErr, "cme_lxyErr/F")
-Jpsibkg.Branch("cme_lxyE", cme_lxyE, "cme_lxyE/F")
-Jpsibkg.Branch("cme_l3D", cme_l3D, "cme_l3D/F")
-Jpsibkg.Branch("cme_l3DErr", cme_l3DErr, "cme_l3DErr/F")
-Jpsibkg.Branch("cme_l3DE", cme_l3DE, "cme_l3DE/F")
-Jpsibkg.Branch("cme_jetDR", cme_jetDR, "cme_jetDR/F")
-Jpsibkg.Branch("cme_legDR", cme_legDR, "cme_legDR/F")
-Jpsibkg.Branch("cme_nJet", cme_nJet, "cme_nJet/I")
-Jpsibkg.Branch("cme_chi2", cme_chi2, "cme_chi2/F")
-Jpsibkg.Branch("cme_eta", cme_eta, "cme_eta/F")
-Jpsibkg.Branch("cme_mass", cme_mass, "cme_mass/F")
-Jpsibkg.Branch("cme_phi", cme_phi, "cme_phi/F")
-Jpsibkg.Branch("cme_pt", cme_pt, "cme_pt/F")
-Jpsibkg.Branch("cme_x", cme_x, "cme_x/F")
-Jpsibkg.Branch("cme_y", cme_y, "cme_y/F")
-Jpsibkg.Branch("cme_z", cme_z, "cme_z/F")
-Jpsibkg.Branch("cme_ndof", cme_ndof, "cme_ndof/I")
-Jpsibkg.Branch("cme_pdgId", cme_pdgId, "cme_pdgId/I")
-Jpsibkg.Branch("cme_jet_btagCMVA", cme_jet_btagCMVA, "cme_jet_btagCMVA/F")
-Jpsibkg.Branch("cme_jet_btagCSVV2", cme_jet_btagCSVV2, "cme_jet_btagCSVV2/F")
-Jpsibkg.Branch("cme_jet_btagDeepB", cme_jet_btagDeepB, "cme_jet_btagDeepB/F")
-Jpsibkg.Branch("cme_jet_btagDeepC", cme_jet_btagDeepC, "cme_jet_btagDeepC/F")
-Jpsibkg.Branch("cme_nDau", cme_nDau, "cme_nDau/I")
-Jpsibkg.Branch("cme_dau1_chi2", cme_dau1_chi2, "cme_dau1_chi2/F")
-Jpsibkg.Branch("cme_dau1_pt", cme_dau1_pt, "cme_dau1_pt/F")
-Jpsibkg.Branch("cme_dau1_ipsigXY", cme_dau1_ipsigXY, "cme_dau1_ipsigXY/F")
-Jpsibkg.Branch("cme_dau1_ipsigZ", cme_dau1_ipsigZ, "cme_dau1_ipsigZ/F")
-Jpsibkg.Branch("cme_dau1_nHits", cme_dau1_nHits, "cme_dau1_nHits/F")
-Jpsibkg.Branch("cme_dau2_chi2", cme_dau2_chi2, "cme_dau2_chi2/F")
-Jpsibkg.Branch("cme_dau2_pt", cme_dau2_pt, "cme_dau2_pt/F")
-Jpsibkg.Branch("cme_dau2_ipsigXY", cme_dau2_ipsigXY, "cme_dau2_ipsigXY/F")
-Jpsibkg.Branch("cme_dau2_ipsigZ", cme_dau2_ipsigZ, "cme_dau2_ipsigZ/F")
-Jpsibkg.Branch("cme_dau2_nHits", cme_dau2_nHits, "cme_dau2_nHits/F")
-Jpsibkg.Branch("cmeTruth_nMatched", cmeTruth_nMatched, "cmeTruth_nMatched/I")
-Jpsibkg.Branch("cmeTruth_nTrueDau", cmeTruth_nTrueDau, "cmeTruth_nTrueDau/I")
-
-
+# Make histo for njsi
+hnD0 = TH1F("nD0", "nD0", 20, -0.5, 19.5)
+hnHad = TH1F("nHad", "nHad", 20, -0.5, 19.5)
+hnHadAll = TH1F("nHadAll", "nHadAll", 20, -0.5, 19.5)
 
 for i, hadFile in enumerate(FileArg[2:]):
     InFile = TNetXNGFile(hadFile)
     events = InFile.Get("Events")
 
     for iev, event in enumerate(events):
+        nD0 = 0
+        nHad = 0
+        nHadAll = 0
         for k in range(event.nhad):
-
-            if abs(event.had_pdgId[k]) != 421 and abs(event.had_pdgId[k]) != 443: continue
+            nHadAll+=1 
+            #if abs(event.had_pdgId[k]) != 421 and abs(event.had_pdgId[k]) != 443: continue
             cme_dca[0] = event.had_dca[k]
             cme_angleXY[0] = event.had_angleXY[k]
             cme_angleXYZ[0] = event.had_angleXYZ[k]
@@ -279,17 +285,45 @@ for i, hadFile in enumerate(FileArg[2:]):
             cme_dau2_nHits[0] = event.had_dau2_nHits[k]
             cme_dau2_pt[0] = event.had_dau2_pt[k]
             
-            if cmeTruth_nMatched[0] == 2 and cmeTruth_nTrueDau[0] == 2:
-                if abs(cme_pdgId[0]) == 421:
+            if cme_l3DE[0] >200: continue
+            if cme_jetDR[0] >0.3: continue
+            if cme_legDR[0] >0.6 : continue
+            if cme_dca[0] >1 : continue
+            if cme_chi2[0] >10 : continue
+            if cme_jet_btagCSVV2[0] < 0.05: continue 
+
+            if cme_dau1_chi2[0] >4 : continue
+            if cme_dau1_nHits[0] <3 : continue
+            if cme_dau1_pt[0] <0.5 : continue
+            if cme_dau2_chi2[0] >3 : continue
+            if cme_dau2_nHits[0] <3 : continue
+            if cme_dau2_pt[0] <0.5 : continue
+            if cme_angleXY[0] <0.95 : continue
+            if abs(cme_x[0]) >8 : continue
+            if abs(cme_y[0]) >8 : continue
+            if abs(cme_z[0]) >20: continue
+            
+            
+            if cmeTruth_nMatched[0] == 2 and cmeTruth_nTrueDau[0] == 2: 
+                Hadsig.Fill()
+                nHad += 1
+                if abs(cme_pdgId[0]) ==421:
                     D0sig.Fill()
-                else:
-                    Jpsisig.Fill()
-            elif cmeTruth_nMatched[0] == 0:
+                    nD0 += 1
+            else: 
+                Hadbkg.Fill() 
+                nHad += 1
+            #cmeTruth_nMatched[0] == 0:
                 if abs(cme_pdgId[0]) == 421:
                     D0bkg.Fill()
-                else:
-                    Jpsibkg.Fill()
+                    nD0 += 1
+        hnD0.Fill(nD0)
+        hnHad.Fill(nHad)
+        hnHadAll.Fill(nHadAll)
 
 
+hnD0.Write()
+hnHad.Write()
+hnHadAll.Write()
 f.Write()
 f.Close()

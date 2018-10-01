@@ -12,7 +12,7 @@ vector<TParticle> topObjectSelection::elecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
     if (Electron_pt[i] < 20) continue;
-    if (isSemiLep) { if (Electron_pt[i] < 35) continue; }
+    if (isSemiLep) { if (Electron_pt[i] <= 34) continue; }
     if (std::abs(Electron_eta[i]) > 2.1) continue;
     if (Electron_cutBased[i] < 4) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
@@ -38,7 +38,7 @@ vector<TParticle> topObjectSelection::muonSelection() {
   for (UInt_t i = 0; i < nMuon; ++i){
     if (!Muon_tightId[i]) continue;
     if (Muon_pt[i] < 20) continue;
-    if (isSemiLep) { if (Muon_pt[i] < 26) continue; }
+    if (isSemiLep) { if (Muon_pt[i] <=26) continue; }
     if (std::abs(Muon_eta[i]) > 2.4) continue;
     //if (isSemiLep) { if (std::abs(Muon_eta[i]) > 2.1) continue; }
     if (Muon_pfRelIso04_all[i] > 0.06) continue;

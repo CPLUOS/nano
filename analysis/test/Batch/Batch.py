@@ -13,34 +13,75 @@ mcFiles_h2mumu = [
                  ]
 
 mcFiles_topmass = [
-                   'TT_powheg',
-                #   'SingleTop_tW', 'SingleTbar_tW',
-                #   'DYJets','DYJets_10to50',
-                #   'WJets', 'ZZ', 'WW', 'WZ',
-                #   'TT_powheg_mtop1665', 'TT_powheg_mtop1695', 'TT_powheg_mtop1715',
-                #   'TT_powheg_mtop1735', 'TT_powheg_mtop1755', 'TT_powheg_mtop1785',
+                  'TT_powheg',
+                  'SingleTop_tW', 'SingleTbar_tW',
+                'SingleTop_s-channel',
+                'SingleTop_t-channel',
+                'SingleTbar_t-channel',
+                  'DYJets','DYJets_10to50',
+                  'ZZ', 'WW', 'WZ', 
+                 'WToLNu_0J',
+                 'WToLNu_1J',
+                 'WToLNu_2J',
+                "QCD_Pt-15to20_MuEnriched",
+                "QCD_Pt-20to30_MuEnriched",
+                "QCD_Pt-30to50_MuEnriched",
+                "QCD_Pt-50to80_MuEnriched",
+                "QCD_Pt-80to120_MuEnriched",
+                "QCD_Pt-120to170_MuEnriched",
+                "QCD_Pt-170to300_MuEnriched",
+                "QCD_Pt-300to470_MuEnriched",
+                "QCD_Pt-470to600_MuEnriched",
+                "QCD_Pt-600to800_MuEnriched",
+                "QCD_Pt-800to1000_MuEnriched",
+                "QCD_Pt-1000toInf_MuEnriched",
+                "QCD_Pt-20to30_EMEnriched",
+                "QCD_Pt-30to50_EMEnriched",
+                "QCD_Pt-50to80_EMEnriched",
+                "QCD_Pt-80to120_EMEnriched",
+                "QCD_Pt-120to170_EMEnriched",
+                "QCD_Pt-170to300_EMEnriched",
+                "QCD_Pt-300toInf_EMEnriched",
+                #  "DYJetsToLL_M-50_HT-70to100",
+                #  "DYJetsToLL_M-50_HT-100to200",
+                #  "DYJetsToLL_M-50_HT-200to400",
+                #  "DYJetsToLL_M-50_HT-400to600",
+                #  "DYJetsToLL_M-50_HT-600to800",
+                #  "DYJetsToLL_M-50_HT-800to1200",
+                #  "DYJetsToLL_M-50_HT-1200to2500",
+                #  "DYJetsToLL_M-50_HT-2500toInf",
+                #   "WJets",
+                #  "WJetsToLNu_HT-70To100",
+                #    "WJetsToLNu_HT-100To200",
+                #    "WJetsToLNu_HT-200To400",
+                #    "WJetsToLNu_HT-400To600",
+                #    "WJetsToLNu_HT-600To800",
+                #    "WJetsToLNu_HT-800To1200",
+                #    "WJetsToLNu_HT-1200To2500",
+                #    "WJetsToLNu_HT-2500ToInf",
                   ]
 
-mcFiles_vts = ['WW']
+#mcFiles_vts = ['WW']
 
 dataFiles = [
-             'SingleMuon_Run2016', 'SingleEG_Run2016',
-             'DoubleMuon_Run2016', 'DoubleEG_Run2016',
-             'MuonEG_Run2016', 'MuonEG_Run2016',
-             'DoubleMuon_Run2016', 'DoubleEG_Run2016']
+             'SingleMuon_Run2016', 'SingleElectron_Run2016',
+             #'DoubleMuon_Run2016', 'DoubleEG_Run2016',
+             #'MuonEG_Run2016', 'MuonEG_Run2016',
+             #'DoubleMuon_Run2016', 'DoubleEG_Run2016'
+]
 dataFiles = [data+period for period in ["B","C","D","E","F","G","H"] for data in dataFiles]
 
 anaName = sys.argv[1]
 analyser = anaName+'Analyser'
 if   anaName == 'h2mu'    : RunFiles = mcFiles_h2mumu  + dataFiles
-elif anaName == 'mass'    : RunFiles = mcFiles_topmass + dataFiles
+elif anaName == 'slmass'    : RunFiles = mcFiles_topmass + dataFiles
 elif anaName == 'vts'     : RunFiles = mcFiles_vts     + dataFiles
 elif anaName == 'cutbased': RunFiles = mcFiles_topmass; analyser = "cutbased";
 else: print "put right name of analysis (h2mu/mass/vts/cutbased)"
-RunFiles = ['WW']
+#RunFiles = ['WW']
 
-maxFiles = 10
-setDir = "test"
+maxFiles = 20
+setDir = "slmass_928re"
 cmsswBase = os.environ['CMSSW_BASE']
 datadir = '%s/src/nano/nanoAOD/data/dataset/dataset_'%cmsswBase
 

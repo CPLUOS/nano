@@ -26,7 +26,7 @@ for datasetName in RunFiles:
     print fileList
     jobName = analysis+'_'+datasetName 
 
-    Dirname = "{}/src/nano/analysis/test/topMass/cut/tmva/tmva_batch/training_file/{}".format(os.environ['CMSSW_BASE'],jobName)
+    Dirname = "{}/src/nano/analysis/test/topMass/cut/tmva/tmva_batch/training_testfile/{}".format(os.environ['CMSSW_BASE'],jobName)
     if os.path.isdir(Dirname):
         print "ERROR: output directory already existing."
         sys.exit()

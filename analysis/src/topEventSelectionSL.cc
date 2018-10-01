@@ -79,9 +79,9 @@ int topEventSelectionSL::EventSelection()
   //Triggers
   b_trig_m_trk    = HLT_IsoTkMu24 ? 1 : 0;
   b_trig_m_global = HLT_IsoMu24 ? 1 : 0;
-  
+
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24 ? 1 : 0;
-  //b_trig_e = HLT_Ele27_WPTight_Gsf;
+  //b_trig_e = HLT_Ele27_WPTight_Gsf ? 1:0;
   b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf ? 1 : 0;
   
   //if ( !( b_trig_m > 0 || b_trig_e > 0 ) ) return b_step;
@@ -110,9 +110,12 @@ int topEventSelectionSL::EventSelection()
   //if ( !( IsoMu24 || IsoTkMu24 ) ) return b_step;*/
 
   b_tri = b_tri_up = b_tri_dn = 0;
-  b_tri = 1;//( IsoMu24 || IsoTkMu24 ? 1.0 : 0.0 ); //computeTrigSF(recolep1, recolep2);
-  b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
-  b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
+  b_tri = computeTrigSFForSL(recolep);
+  b_tri_up = computeTrigSFForSL(recolep,1);
+  b_tri_dn = computeTrigSFForSL(recolep,-1);
+  //( IsoMu24 || IsoTkMu24 ? 1.0 : 0.0 ); //computeTrigSF(recolep1, recolep2);
+  //computeTrigSF(recolep1, recolep2, 1);
+  //computeTrigSF(recolep1, recolep2, -1);
 
   b_met = MET_pt;
   b_met_phi = MET_phi;
@@ -187,13 +190,13 @@ int topEventSelectionSL::EventSelection()
     m_jets.push_back(mom);
   }
 
-  if (b_njet > 0) {
+  if (b_njet >= 4) {
     b_step = 3;
     if (h_cutFlow) h_cutFlow->Fill(5);
     if (h_cutFlowLep) h_cutFlowLep->Fill(3);
   } else return b_step;
   
-  if (b_nbjet > 0) { // Replace '>' by '>=' when QCD studying
+  if (b_nbjet >=2 ) { // Replace '>' by '>=' when QCD studying
     b_step = 4;
     if (h_cutFlow) h_cutFlow->Fill(6);
     if (h_cutFlowLep) h_cutFlowLep->Fill(4);
