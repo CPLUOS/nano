@@ -1,4 +1,11 @@
 #include "nano/external/interface/ElecScaleFactorEvaluator.h"
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include <cassert>
+#include "TLorentzVector.h"
+
+using namespace std;
 
 ElecScaleFactorEvaluator::ElecScaleFactorEvaluator(){
   const unsigned int n = (pt_bins.size()-1)*(eta_bins.size()-1);
@@ -11,11 +18,12 @@ ElecScaleFactorEvaluator::ElecScaleFactorEvaluator(){
 };
 
 double ElecScaleFactorEvaluator::operator()(const double x, const double y, const double shift){
-  auto xbin = std::lower_bound(pt_bins.begin(), pt_bins.end(), x);
-  if ( xbin == pt_bins.end() || xbin+1 == pt_bins.end() ) return 1;
-  auto ybin = std::lower_bound(eta_bins.begin(), eta_bins.end(), y);
-  if ( ybin == eta_bins.end() || ybin+1 == eta_bins.end() ) return 1;
+  if ( x < (*pt_bins.begin()) or x >= (*(pt_bins.end()-1)) ) return 1;
+  if ( y < (*eta_bins.begin()) or y >= (*(eta_bins.end()-1)) ) return 1;
   
+  auto xbin = std::upper_bound(pt_bins.begin(), pt_bins.end(), x)-1;
+  auto ybin = std::upper_bound(eta_bins.begin(), eta_bins.end(), y)-1;
+
   const int column = xbin-pt_bins.begin();
   const int row = ybin-eta_bins.begin();
   
@@ -31,11 +39,12 @@ double ElecScaleFactorEvaluator::getScaleFactor(const TParticle& p, const int pi
   if ( aid == pid ) {
     const double x = p.Pt(), y = p.Eta();
     
-    auto xbin = std::lower_bound(pt_bins.begin(), pt_bins.end(), x);
-    if ( xbin == pt_bins.end() || xbin+1 == pt_bins.end() ) return 1;
-    auto ybin = std::lower_bound(eta_bins.begin(), eta_bins.end(), y);
-    if ( ybin == eta_bins.end() || ybin+1 == eta_bins.end() ) return 1;
-    
+    if ( x < (*pt_bins.begin()) or x >= (*(pt_bins.end()-1)) ) return 1;
+    if ( y < (*eta_bins.begin()) or y >= (*(eta_bins.end()-1)) ) return 1;
+
+    auto xbin = std::upper_bound(pt_bins.begin(), pt_bins.end(), x)-1;
+    auto ybin = std::upper_bound(eta_bins.begin(), eta_bins.end(), y)-1;
+
     const int column = xbin-pt_bins.begin();
     const int row = ybin-eta_bins.begin();
     
