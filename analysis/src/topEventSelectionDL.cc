@@ -42,7 +42,7 @@ int topEventSelectionDL::EventSelection() {
   auto elecs = elecSelection();
 
   if (muons.size() + elecs.size() != 2) return b_step;
-
+  b_step = 0;
   h_cutFlow->Fill(3);
 
   int mulpdg = 1;
@@ -193,6 +193,7 @@ void topEventSelectionDL::Reset() {
   b_step1 = 0; b_step2 = 0; b_step3 = 0; b_step4 = 0; b_step5 = 0; b_step6 = 0; b_step7 = 0; 
   b_nvertex = -1; b_step = -1; b_channel = 0; b_njet = -1; b_nbjet = -1;
   b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; b_btagweight = 1;
+  b_btagweight_up = 1; b_btagweight_dn = 1;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 

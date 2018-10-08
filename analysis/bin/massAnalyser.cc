@@ -3,34 +3,34 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 
 using namespace std;
 
 massAnalyser::massAnalyser(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) : topEventSelectionDL(tree, had, hadTruth, isMC, dl, sle, slm)
 {
+  //m_output = NULL;
 }
 
-massAnalyser::~massAnalyser()
-{
+massAnalyser::~massAnalyser() {
 }
 
 void massAnalyser::Loop() {
   if (fChain == 0) return;
-
   Long64_t nentries = fChain->GetEntries();
   
   // Events loop
   for (Long64_t iev=0; iev<nentries; iev++) {
     resetBranch();
     fChain->GetEntry(iev);
+    //if( h_fChain) h_fChain->GetEntry(iev);
     int keep = EventSelection();
-    if (keep >= 5) {
-      collectTMVAvalues();
+    if (keep >= -1) {
+      //collectTMVAvalues();
       //cmesonSelection();
-      //m_tree->Fill();
     }
-    m_tree->Fill();    
+    m_tree->Fill();
   }
 }
 
@@ -38,13 +38,25 @@ void massAnalyser::Loop() {
 int main(int argc, char* argv[]) {
   string env = getenv("CMSSW_BASE");
   string username = getenv("USER");
-  
-  if (argc != 1) {
+
+  if (argc <= 1) {
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
+    TTree *tree;
+    f->GetObject("Events", tree);
+
+    massAnalyser t(tree, tree, 0, true, false, false, false);
+    t.setOutput("test.root");
+    t.Loop();
+  }
+  else {
+    std::string strLine;
+    
     std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/" + username + "/nanoAOD/" + std::string(argv[1]) + "/" + std::string(argv[2]);
+    //std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrootd_user/" + username + "/xrootd/nanoAOD/" + std::string(argv[1]) + "/" + std::string(argv[2]);
     std::string temp = argv[2];
     
     Bool_t isDL = false;
-    if ((temp.find("Double") != std::string::npos) || (temp.find("MuonEG") != std::string::npos)) isDL = true;
+    if ((temp.find("DoubleEG") != std::string::npos) || (temp.find("DoubleMuon") != std::string::npos) || (temp.find("MuonEG") != std::string::npos)) isDL = true;
 
     Bool_t isSL_e = false;
     Size_t found_SL_e = temp.find("SingleElectron");
@@ -58,11 +70,11 @@ int main(int argc, char* argv[]) {
     Size_t found = temp.find("Run");
     if (found == std::string::npos) isMC = true;
 
-    for(Int_t i = 3; i < argc; i++) {
+    for (Int_t i = 3; i < argc; i++) {
       cerr << argv[i] << endl;
       TFile *f = TFile::Open(argv[i], "read");
-     
-      TTree *tree;                  
+
+      TTree *tree;                
       f->GetObject("Events", tree);
       
       temp = argv[i];   
@@ -74,15 +86,7 @@ int main(int argc, char* argv[]) {
       t.Loop();
     }
   }
-  else {
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
-    TTree *tree;
-    f->GetObject("Events", tree);
-
-    massAnalyser t(tree, tree, 0, true, false, false, false);
-    t.setOutput("test.root");
-    t.Loop();
-  }
+  
   return 0;
 }
 
@@ -92,7 +96,7 @@ void massAnalyser::setOutput(std::string outputName) {
   m_tree = new TTree("event", "event");
   MakeBranch(m_tree);
 
-  
+  /*
   bdtg = new TMVA::Reader();
   //bdtg->AddVariable("cme_lxy", &b_cme_lxy);
   //bdtg->AddVariable("cme_lxyE", &b_cme_lxyE);
@@ -127,7 +131,7 @@ void massAnalyser::setOutput(std::string outputName) {
   //bdtg->AddVariable("cme_dau2_pt", &b_cme_dau2_pt);
   bdtg->AddSpectator("cme_mass", &b_cme_mass);
   bdtg->BookMVA("BDTG", "/cms/scratch/jdj0715/nanoAOD/src/nano/analysis/test/topMass/cut/tmva/dataset/weights/TMVAClassification_BDTG.weights.xml");
-  
+  */ 
   
   h_nevents = new TH1D("nevents", "nevents", 1, 0, 1);
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
@@ -165,6 +169,8 @@ void massAnalyser::MakeBranch(TTree* t) {
   t->Branch("genweight", &b_genweight, "genweight/F");
   t->Branch("csvweight", "std::vector<float>", &b_csvweights);
   t->Branch("btagweight", &b_btagweight, "btagweight/F");
+  t->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
+  t->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   t->Branch("eleffweight", &b_eleffweight, "eleffweight/F");
   t->Branch("PV_npvs", &PV_npvs, "PV_npvs/I");

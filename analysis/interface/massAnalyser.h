@@ -21,9 +21,9 @@ private:
   //For C meson
   std::vector<TLorentzVector> d0s;
   TLorentzVector b_d0;
-  std::vector<float> b_d0_lepSV_lowM;
-  std::vector<float> b_d0_lepSV_correctM;
-  std::vector<float> b_d0_lepSV_dRM;
+  //std::vector<float> b_d0_lepSV_lowM;
+  //std::vector<float> b_d0_lepSV_correctM;
+  //std::vector<float> b_d0_lepSV_dRM;
   //Making output branch
   void MakeBranch(TTree* t);
   void resetBranch();

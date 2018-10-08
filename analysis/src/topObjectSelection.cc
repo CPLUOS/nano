@@ -101,10 +101,7 @@ vector<TParticle> topObjectSelection::jetSelection() {
   //BTagEntry::JetFlavor JF;
 
   vector<TParticle> jets;
-  //float Jet_SF_CSV[19] = {1.0,};
-  b_btagweight = 1.0;
   for (UInt_t i = 0; i < nJet; ++i){
-    //b_btagweight = 1.0;
     if (Jet_pt[i] < 30) continue;
     if (std::abs(Jet_eta[i]) > 2.4) continue;
     if (Jet_jetId[i] < 1) continue;
@@ -120,13 +117,27 @@ vector<TParticle> topObjectSelection::jetSelection() {
     jet.SetFirstMother(i);
     jets.push_back(jet);
     b_btagCSVV2 = Jet_btagCSVV2[i];
-    //BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
-    BTagEntry::JetFlavor JF;
-    if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
+    BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+    /*
+    BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+    if (abs(Jet_hadronFlavour[i]) == 5) {
+        JF = BTagEntry::FLAV_B;
     //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
-    auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
-    b_btagweight *= bjetSF;
- 
+        auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+        b_btagweight *= bjetSF;
+    }
+    */
+    if (abs(Jet_hadronFlavour[i]) == 5) {
+        JF = BTagEntry::FLAV_B;
+        auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+        b_btagweight *= bjetSF;
+
+        auto bjetSF_up = m_btagSF_up.eval_auto_bounds("up", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+        b_btagweight_up *= bjetSF_up;
+
+        auto bjetSF_dn = m_btagSF_dn.eval_auto_bounds("down", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+        b_btagweight_dn *= bjetSF_dn;
+    }
   }
 
   return jets;
@@ -135,6 +146,12 @@ vector<TParticle> topObjectSelection::jetSelection() {
 vector<TParticle> topObjectSelection::bjetSelection() {
   vector<TParticle> bjets;
   for (UInt_t i = 0; i < nJet; ++i ) {
+    /*
+    b_btagweight = 1.0;
+    b_btagweight_up = 1.0;
+    b_btagweight_dn = 1.0;
+    BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+    */
     if (Jet_pt[i] < 30) continue;
     if (std::abs(Jet_eta[i]) > 2.4) continue;
     if (Jet_jetId[i] < 1) continue;
@@ -150,6 +167,20 @@ vector<TParticle> topObjectSelection::bjetSelection() {
     bjet.SetMomentum(mom);
     bjet.SetFirstMother(i);
     bjets.push_back(bjet);
+    /*
+    b_btagCSVV2 = Jet_btagCSVV2[i];
+    if (abs(Jet_hadronFlavour[i]) == 5) {
+        JF = BTagEntry::FLAV_B;
+        auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+        b_btagweight *= bjetSF;
+
+        auto bjetSF_up = m_btagSF_up.eval_auto_bounds("up", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+        b_btagweight_up *= bjetSF_up;
+
+        auto bjetSF_dn = m_btagSF_dn.eval_auto_bounds("down", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+        b_btagweight_dn *= bjetSF_dn;
+    }
+    */                     
   }
   return bjets;
 }
