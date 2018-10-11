@@ -52,11 +52,14 @@ int main(int argc, char* argv[]) {
     std::string strLine;
     
     std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrd/store/user/" + username + "/nanoAOD/" + std::string(argv[1]) + "/" + std::string(argv[2]);
-    //std::string dirName = "root://cms-xrdr.sdfarm.kr:1094///xrootd_user/" + username + "/xrootd/nanoAOD/" + std::string(argv[1]) + "/" + std::string(argv[2]);
     std::string temp = argv[2];
     
     Bool_t isDL = false;
-    if ((temp.find("DoubleEG") != std::string::npos) || (temp.find("DoubleMuon") != std::string::npos) || (temp.find("MuonEG") != std::string::npos)) isDL = true;
+    //if ((temp.find("Double") != std::string::npos) || (temp.find("MuonEG") != std::string::npos)) isDL = true;
+    Size_t found_DL_1 = temp.find("Double");
+    Size_t found_DL_2 = temp.find("MuonEG");
+    if ((found_DL_1 != std::string::npos) || (found_DL_2 != std::string::npos) ) isDL = true;
+    
 
     Bool_t isSL_e = false;
     Size_t found_SL_e = temp.find("SingleElectron");
@@ -73,7 +76,6 @@ int main(int argc, char* argv[]) {
     for (Int_t i = 3; i < argc; i++) {
       cerr << argv[i] << endl;
       TFile *f = TFile::Open(argv[i], "read");
-
       TTree *tree;                
       f->GetObject("Events", tree);
       
@@ -152,8 +154,8 @@ void massAnalyser::MakeBranch(TTree* t) {
   t->Branch("nbjet", &b_nbjet, "nbjet/I");
   t->Branch("btagCSVV2", &b_btagCSVV2, "btagCSVV2/F");
 
-  t->Branch("jet", "TLorentzVector", &b_jet);
-  t->Branch("bjet", "TLorentzVector", &b_bjet);
+  //t->Branch("jet", "TLorentzVector", &b_jet);
+  //t->Branch("bjet", "TLorentzVector", &b_bjet);
   t->Branch("lep1", "TLorentzVector", &b_lep1);
   //t->Branch("lep1_pid", &b_lep1_pid, "lep1_pid/I");    
   t->Branch("lep2", "TLorentzVector", &b_lep2);
@@ -188,7 +190,7 @@ void massAnalyser::MakeBranch(TTree* t) {
   t->Branch("d0_lepSV_lowM","std::vector<float>",&b_d0_lepSV_lowM);
   t->Branch("d0_lepSV_dRM","std::vector<float>",&b_d0_lepSV_dRM);
   t->Branch("d0_lepSV_correctM","std::vector<float>",&b_d0_lepSV_correctM);
-  t->Branch("cme_lxy", &b_cme_lxy, "cme_lxy/F");
+  /*t->Branch("cme_lxy", &b_cme_lxy, "cme_lxy/F");
   t->Branch("cme_lxyE", &b_cme_lxyE, "cme_lxyE/F");
   t->Branch("cme_l3D", &b_cme_l3D, "cme_l3D/F");
   t->Branch("cme_l3DE", &b_cme_l3DE, "cme_l3DE/F");
@@ -219,7 +221,7 @@ void massAnalyser::MakeBranch(TTree* t) {
   t->Branch("cme_dau2_ipsigZ", &b_cme_dau2_ipsigZ, "cme_dau2_ipsigZ/F");
   t->Branch("cme_dau2_nHits", &b_cme_dau2_nHits, "cme_dau2_nHits/I");
   t->Branch("cme_dau2_pt", &b_cme_dau2_pt, "cme_dau2_pt/F");
-
+*/
 
 
 }
@@ -233,7 +235,7 @@ void massAnalyser::resetBranch() {
   b_cme_pdgId = 0;
   b_cme_tmva_bdtg = -999;
   b_bdtg = -1; b_maxbIdx = -1;
-  b_cme_lxy = -999;
+  /*b_cme_lxy = -999;
   b_cme_lxyE = -999;
   b_cme_l3D = -999;
   b_cme_l3DE = -999;
@@ -264,7 +266,7 @@ void massAnalyser::resetBranch() {
   b_cme_dau2_ipsigZ = -999;
   b_cme_dau2_nHits = -999;
   b_cme_dau2_pt = -999;
-
+*/
   
   b_d0_lepSV_lowM.clear();
   b_d0_lepSV_dRM.clear();
@@ -278,21 +280,14 @@ void massAnalyser::collectTMVAvalues() {
     //b_cme_lxyE = had_lxy[i] / had_lxyErr[i];
     //b_cme_l3D = had_l3D[i];
     if (fabs(had_pdgId[i]) != 421) continue;
-    if (fabs(had_pt[i]) < 5 || fabs(had_pt[i]>140)) continue;
-    if (fabs(had_lxy[i]) > 6) continue;
-    if (fabs(had_l3D[i]) > 14) continue;
-    if ((had_lxy[i]/had_lxyErr[i]) > 200) continue;
+    if (fabs(had_pt[i]) < 5) continue;
     if ((had_l3D[i]/had_l3DErr[i]) > 200) continue;
     if (fabs(had_jetDR[i]) > 0.3) continue;
-    if (fabs(had_legDR[i]) < 0.015) continue;
-    if (fabs(had_legDR[i]) > 0.59) continue;
-    if (fabs(had_dca[i]) > 1) continue;
     if (fabs(had_jet_btagCSVV2[i]) < 0.05) continue;
     if (had_l3D[i] > 0 && had_l3DErr[i] > 0) {
         b_cme_l3DE = had_l3D[i] / had_l3DErr[i];
     }
     if (fabs(had_angleXY[i]) < 0.95) continue;
-    if (fabs(had_angleXYZ[i]) < 0.9) continue;
     if (fabs(had_x[i]) > 6) continue;
     if (fabs(had_y[i]) > 6) continue;
     if (fabs(had_z[i]) > 18) continue;

@@ -14,7 +14,7 @@ protected:
   TH1D* h_cutFlow;
 
   //Variables
-  TLorentzVector b_lep1, b_lep2, b_dilep, b_jet, b_bjet;
+  TLorentzVector b_lep1, b_lep2, b_dilep;//, b_jet, b_bjet;
   TParticle recolep1, recolep2;
   int b_lep1_pid, b_lep2_pid, b_lep1_idx, b_lep2_idx;
   float b_jet1_CSVInclV2, b_jet2_CSVInclV2;
