@@ -42,9 +42,9 @@ public:
 
   enum TTSLChannel { CH_NOLL = 0, CH_EL, CH_MU };
   
-  int SetCutValues();
+  virtual int SetCutValues();
 
-  int EventSelection();
+  virtual int EventSelection();
 
   void Reset();
 
