@@ -66,43 +66,64 @@ int main(int argc, char* argv[])
     string outFileDir = hostDir + getenv("USER") + "/" + jobName + "/" + sampleName;
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
-      Bool_t isMC = (string(inFileName).find("Run2016") == std::string::npos);
-      Bool_t isGenericMC = (string(inFileName).find("NANOAOD") == std::string::npos);
+      auto fileName = getFileName(argv[i]);
+      auto dirName = getDir(getDir(argv[i]));
+      /* auto sampleType = getType(dirName); */
+
+      Bool_t isMC = false;
+      Bool_t isGenericMC = false;
+
+      if (string(inFileName).find("Run2016") == std::string::npos && (string(inFileName).find("Run2017") == std::string::npos) && (string(inFileName).find("Run2018") == std::string::npos) ) {
+        isMC = true;
+      }
+      if (string(inFileName).find("NANOAOD") != std::string::npos) {
+        isGenericMC = false;
+      } else {
+        isGenericMC = true;
+      }
+
       if (!isMC) { 
         Bool_t isDL = false;
-        if (string(inFileName).find("DoubleElectron") != std::string::npos) isDL = true;
         if (string(inFileName).find("DoubleMuon") != std::string::npos)     isDL = true;
         if (string(inFileName).find("DoubleEG") != std::string::npos)       isDL = true;
         if (string(inFileName).find("MuonEG") != std::string::npos)         isDL = true;
-
+        cout << "inFileName : " << inFileName << endl;
         Bool_t isSLE = (string(inFileName).find("SingleElectron") != std::string::npos);
         Bool_t isSLM = (string(inFileName).find("SingleMuon") != std::string::npos);
         TFile *inFile = TFile::Open(inFileName, "READ");
         TTree *inTree = (TTree*) inFile->Get("Events");
         vtsAnalyser ana(inTree, inTree, inTree, isMC, isDL, isSLE, isSLM);
-        string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
+//        string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
+        string outFileName = outFileDir+"/rd_"+fileName;
         ana.setOutput(outFileName);
         ana.Loop();
+        cout << inFileName << " : Analysis Complete " << endl;
       }
-      if (isGenericMC) {
+      if (isMC && isGenericMC) {
         cout << "inFileName : " << inFileName << endl;
         cout << " input file is not tt###j_* sample" << endl;
         if (string(inFileName).find("run2") != std::string::npos) { 
           TFile *inFile = TFile::Open(inFileName, "READ");
           TTree *inTree = (TTree*) inFile->Get("Events");
           vtsAnalyser ana(inTree,isMC,false,false,false,isGenericMC);
-          string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
+//          string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
+          string outFileName = outFileDir+"/mc_"+fileName;
           ana.setOutput(outFileName);
           ana.Loop();
-          continue;
+          cout << inFileName << " : Analysis Complete " << endl;
+        } else if (string(inFileName).find("nanoTest") != std::string::npos) { // Added temporarily
+          TFile *inFile = TFile::Open(inFileName, "READ");
+          TTree *inTree = (TTree*) inFile->Get("Events");
+          vtsAnalyser ana(inTree,isMC,false,false,false,isGenericMC);
+          string outFileName = outFileDir+"/mc_"+fileName;
+          ana.setOutput(outFileName);
+          ana.Loop();
+          cout << inFileName << " : Analysis Complete " << endl;
         } else {
           cout << " input file has to be nanoAOD " << endl;
           continue;
         }
-      } else {
-        auto fileName = getFileName(argv[i]);
-        auto dirName = getDir(getDir(argv[i]));
-        /* auto sampleType = getType(dirName); */
+      } else if (isMC) {
         TFile *inFile = TFile::Open(inFileName, "READ");
         TTree *inTree = (TTree*) inFile->Get("Events");
         TString hadFileName = dirName + "/HADAOD/" + fileName;
@@ -123,6 +144,7 @@ int main(int argc, char* argv[])
 //        string outFileName = "/"+jobName+"/"+sampleName+"/nanotree_"+fileName;
         ana.setOutput(outFileName);
         ana.Loop();
+        cout << inFileName << " : Analysis Complete " << endl;
       }
     }
   }
@@ -148,7 +170,6 @@ void vtsAnalyser::Loop() {
       b_passedEvent = true; 
       b_nSelJetEv = jetSelection().size();
       MatchingForMC();
-      if (m_isGenericMC) GenHadronAnalysis();
       GenAnalysis();
       RecAnalysis();
       JetAnalysis();
@@ -234,6 +255,11 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("ptD",            &b_ptD,            "ptD/F");
   m_jettrForTMVA->Branch("area",           &b_area,           "area/F");
   m_jettrForTMVA->Branch("CSVV2",          &b_CSVV2,          "CSVV2/F");
+
+  m_jettrForTMVA->Branch("dau_pt",      &b_dau_pt,      "dau_pt[350]/F");
+  m_jettrForTMVA->Branch("dau_eta",     &b_dau_eta,     "dau_eta[350]/F");
+  m_jettrForTMVA->Branch("dau_phi",     &b_dau_phi,     "dau_phi[350]/F");
+  m_jettrForTMVA->Branch("dau_charge",  &b_dau_charge,  "dau_charge[350]/I");
 
   m_jettrForTMVA->Branch("Jet_bdt_score_pp",   &b_Jet_bdt_score_pp,   "Jet_bdt_score/F");
   m_jettrForTMVA->Branch("JKS_bdt_score_pp",   &b_JKS_bdt_score_pp,   "JKS_bdt_score/F");
@@ -389,6 +415,16 @@ void vtsAnalyser::MakeBranch() {
   BranchI(hadTruth_nMatched); BranchI(hadTruth_nTrueDau); 
   BranchO(hadTruth_isHadFromTop); BranchI(hadTruth_isHadFromTsb); BranchO(hadTruth_isHadFromW); BranchO(hadTruth_isHadFromS); BranchO(hadTruth_isHadFromC); BranchO(hadTruth_isHadFromB);
 
+  /* weight */
+  BranchF(genweight);   BranchF(puweight); 
+  BranchF(eleffweight); BranchF(eleffweight_up); BranchF(eleffweight_dn); 
+  BranchF(mueffweight); BranchF(mueffweight_up); BranchF(mueffweight_dn); 
+  BranchF(btagweight);  BranchVF(csvweights);
+
+  /* trigger */
+  BranchF(tri);    BranchF(tri_up);  BranchF(tri_dn);
+  BranchO(trig_m); BranchO(trig_m2); BranchO(trig_e); BranchO(trig_mm); BranchO(trig_em); BranchO(trig_ee);
+
   /* For MatchingForMC() */
   BranchF(Jet_dr_closest_s);    BranchF(Jet_dr_closest_b);
   BranchF(SelJet_dr_closest_s); BranchF(SelJet_dr_closest_b);
@@ -408,18 +444,6 @@ void vtsAnalyser::MakeBranch() {
   BranchF(had_x); BranchF(had_dr);
   BranchF(Jet_btagCSVV2); BranchF(Jet_btagDeepB); BranchF(Jet_btagDeepC); BranchF(Jet_btagCMVA);
   BranchF(Jet_area); BranchF(Jet_pt); BranchI(Jet_nConstituents); BranchI(Jet_nElectrons); BranchI(Jet_nMuons);
-
-  /* For GenHadronAnalysis() */
-  BranchVI(genHadron_isGenFrom_vec); BranchVO(genHadron_isGenFromTop_vec); BranchVO(genHadron_inVol_vec);
-  BranchVF(genHadron_d_vec); BranchVF(genHadron_pt_vec); BranchVF(genHadron_eta_vec); BranchVF(genHadron_phi_vec); BranchVF(genHadron_mass_vec);
-  BranchVF(genHadron_dau1_pt_vec); BranchVF(genHadron_dau1_eta_vec); BranchVF(genHadron_dau1_phi_vec); BranchVI(genHadron_dau1_pdgId_vec);
-  BranchVF(genHadron_dau2_pt_vec); BranchVF(genHadron_dau2_eta_vec); BranchVF(genHadron_dau2_phi_vec); BranchVI(genHadron_dau2_pdgId_vec);
-  BranchVF(genHadron_x_closest_j_vec);  BranchVF(genHadron_dr_closest_j_vec);  BranchVF(genHadron_x_highest_j_vec);  BranchVF(genHadron_dr_highest_j_vec);
-  BranchVF(genHadron_x_closest_gj_vec); BranchVF(genHadron_dr_closest_gj_vec); BranchVF(genHadron_x_highest_gj_vec); BranchVF(genHadron_dr_highest_gj_vec); 
-  BranchVI(genHadron_isClosestPair_xOrder_j_vec);  BranchVI(genHadron_isHighestPair_xOrder_j_vec);  
-  BranchVI(genHadron_isClosestPair_xOrder_gj_vec); BranchVI(genHadron_isHighestPair_xOrder_gj_vec);
-
-  BranchVI(nSJet_vec); BranchVI(nBJet_vec); BranchVI(nGenSJet_vec); BranchVI(nGenBJet_vec);
 
   /* For GenAnalysis() */
   BranchVI(GenPart_isGenFrom_vec); BranchVO(GenPart_isGenFromTop_vec); BranchVO(GenPart_isGenFromW_vec); BranchVO(GenPart_isFromKstar_vec);
@@ -475,18 +499,6 @@ void vtsAnalyser::ResetBranch() {
   b_GenSJet = false;             b_GenBJet = false;             b_GenBothJet = false;             b_RecSJet = false;             b_RecBJet = false;             b_RecBothJet = false;
   b_GenSJetClosestToLep = false; b_GenBJetClosestToLep = false; b_GenBothJetClosestToLep = false; b_RecSJetClosestToLep = false; b_RecBJetClosestToLep = false; b_RecBothJetClosestToLep = false;
   b_GenSJetIsHighest = false;    b_GenBJetIsHighest = false;    b_GenBothJetIsHighest = false;    b_RecSJetIsHighest = false;    b_RecBJetIsHighest = false;    b_RecBothJetIsHighest = false;
-
-  /* For GenHadronAnalysis() */
-  b_genHadron_isGenFrom_vec.clear(); b_genHadron_isGenFromTop_vec.clear(); b_genHadron_inVol_vec.clear();
-  b_genHadron_d_vec.clear(); b_genHadron_pt_vec.clear(); b_genHadron_eta_vec.clear(); b_genHadron_phi_vec.clear(); b_genHadron_mass_vec.clear();
-  b_genHadron_dau1_pt_vec.clear(); b_genHadron_dau1_eta_vec.clear(); b_genHadron_dau1_phi_vec.clear(); b_genHadron_dau1_pdgId_vec.clear();
-  b_genHadron_dau2_pt_vec.clear(); b_genHadron_dau2_eta_vec.clear(); b_genHadron_dau2_phi_vec.clear(); b_genHadron_dau2_pdgId_vec.clear();
-  b_genHadron_x_closest_j_vec.clear();  b_genHadron_dr_closest_j_vec.clear();  b_genHadron_x_highest_j_vec.clear();  b_genHadron_dr_highest_j_vec.clear();
-  b_genHadron_x_closest_gj_vec.clear(); b_genHadron_dr_closest_gj_vec.clear(); b_genHadron_x_highest_gj_vec.clear(); b_genHadron_dr_highest_gj_vec.clear();
-  b_genHadron_isClosestPair_xOrder_j_vec.clear();  b_genHadron_isHighestPair_xOrder_j_vec.clear();
-  b_genHadron_isClosestPair_xOrder_gj_vec.clear(); b_genHadron_isHighestPair_xOrder_gj_vec.clear();
-
-  b_nSJet_vec.clear(); b_nBJet_vec.clear(); b_nGenSJet_vec.clear(); b_nGenBJet_vec.clear();
 
   /* For GenAnalysis() */
   b_GenPart_isGenFrom_vec.clear(); b_GenPart_isGenFromTop_vec.clear(); b_GenPart_isGenFromW_vec.clear(); b_GenPart_isFromKstar_vec.clear();
@@ -561,7 +573,7 @@ void vtsAnalyser::MatchingForMC() {
 
   if (m_tqMC.size() < 2) { 
     cout << " >>>>> it's not a tsWbW event. save nothing." << endl; 
-    if (m_isGenericMC) {
+    if (!m_isGenericMC) {
       cout << " >>>>> fill rec and gen jet info vector with (index, pt, dr(q1,j) = -1, dr(q2,j) = -1, dr(lep1,j) = -1, dr(lep2,j) = -1 <<<<<" << endl;
       for (unsigned int j=0; j<nGenJet; ++j) {
         m_genJet.push_back({(int) j, GenJet_pt[j], -1, -1, -1, -1});
@@ -787,7 +799,7 @@ void vtsAnalyser::HadronAnalysis() {
     b_Jet_nConstituents = Jet_nConstituents[jidx]; 
     b_Jet_nElectrons = Jet_nElectrons[jidx];
     b_Jet_nMuons = Jet_nMuons[jidx];
-    if (m_isGenericMC) {
+    if (!m_isGenericMC) {
       b_hadTruth_nMatched = hadTruth_nMatched[idx];
       b_hadTruth_nTrueDau = hadTruth_nTrueDau[idx];
       b_hadTruth_isHadFromTop = hadTruth_isHadFromTop[idx];
@@ -840,110 +852,6 @@ bool vtsAnalyser::isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, 
 }
 
 struct jetks { unsigned int idx; double dr; double x; };
-
-void vtsAnalyser::GenHadronAnalysis() {
-  std::vector<jetks> recPair1; std::vector<jetks> genPair1;
-  std::vector<jetks> recPair2; std::vector<jetks> genPair2;
-  int nGenHadKS = 0;
-  b_genHadron_dr_closest_j_vec.resize(ngenHadron,-1);
-  b_genHadron_x_closest_j_vec.resize(ngenHadron,-1);
-  b_genHadron_dr_closest_gj_vec.resize(ngenHadron,-1);
-  b_genHadron_x_closest_gj_vec.resize(ngenHadron,-1);
-  b_genHadron_dr_highest_j_vec.resize(ngenHadron,-1);
-  b_genHadron_x_highest_j_vec.resize(ngenHadron,-1);
-  b_genHadron_dr_highest_gj_vec.resize(ngenHadron,-1);
-  b_genHadron_x_highest_gj_vec.resize(ngenHadron,-1);
-
-  for (unsigned int i=0; i<ngenHadron; ++i) {
-    if (abs(genHadron_pdgId[i]) != 310) continue;
-    ++nGenHadKS;
-    b_genHadron_isGenFrom_vec.push_back(genHadron_isGenHadFromTsb[i]);
-    b_genHadron_isGenFromTop_vec.push_back(genHadron_isGenHadFromTop[i]);
-    b_genHadron_inVol_vec.push_back(genHadron_inVol[i]);
-    b_genHadron_d_vec.push_back(GetD(genHadron_pt[i], genHadron_eta[i], genHadron_phi[i], genHadron_mass[i], genHadron_x[i], genHadron_y[i], genHadron_z[i]));
-    b_genHadron_pt_vec.push_back(genHadron_pt[i]);
-    b_genHadron_eta_vec.push_back(genHadron_eta[i]);
-    b_genHadron_phi_vec.push_back(genHadron_phi[i]);
-    b_genHadron_mass_vec.push_back(genHadron_mass[i]);
-    b_genHadron_dau1_pt_vec.push_back(genHadron_dau1_pt[i]);
-    b_genHadron_dau1_eta_vec.push_back(genHadron_dau1_eta[i]);
-    b_genHadron_dau1_phi_vec.push_back(genHadron_dau1_phi[i]);
-    b_genHadron_dau1_pdgId_vec.push_back(genHadron_dau1_pdgId[i]);
-    b_genHadron_dau2_pt_vec.push_back(genHadron_dau2_pt[i]);
-    b_genHadron_dau2_eta_vec.push_back(genHadron_dau2_eta[i]);
-    b_genHadron_dau2_phi_vec.push_back(genHadron_dau2_phi[i]);
-    b_genHadron_dau2_pdgId_vec.push_back(genHadron_dau2_pdgId[i]);
-
-    TLorentzVector gen_tlv;
-    gen_tlv.SetPtEtaPhiM(genHadron_pt[i], genHadron_eta[i], genHadron_phi[i], genHadron_mass[i]);
-    recPair1.resize(nJet, {0,99,-1}); recPair2.resize(nJet, {0,99,-1});
-    for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
-      TLorentzVector jet_tlv;
-      jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-      auto dr = jet_tlv.DeltaR(gen_tlv);      auto x = genHadron_pt[i]/Jet_pt[j];
-      auto drMin1 = recPair1[j].dr; auto xMax1 = recPair1[j].x;
-      auto drMin2 = recPair2[j].dr; auto xMax2 = recPair2[j].x;
-      if (nGenHadKS==1) {
-        if (abs(m_qjMapForMC[j]) == 3) b_nSJet_vec.push_back(j);
-        else if (abs(m_qjMapForMC[j]) == 5) b_nBJet_vec.push_back(j);
-      }
-      if (genHadron_isGenHadFromTsb[i] != m_qjMapForMC[j]) continue;
-      if (dr < drMin1) recPair1[j] = {i,dr,x};
-      else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
-      if (x > xMax2) recPair2[j] = {i,dr,x};
-      else if (x == xMax2 && dr < drMin2) recPair2[j] = {i,dr,x};
-    }
-    genPair1.resize(nGenJet, {0,99,-1}); genPair2.resize(nGenJet, {0,99,-1});
-    for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
-      TLorentzVector jet_tlv;
-      jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
-      auto dr = jet_tlv.DeltaR(gen_tlv); auto x = genHadron_pt[i]/GenJet_pt[j];
-      auto drMin1 = genPair1[j].dr; auto xMax1 = genPair1[j].x;
-      auto drMin2 = genPair2[j].dr; auto xMax2 = genPair2[j].x;
-      if (nGenHadKS==1) {
-        if (abs(m_qgjMapForMC[j]) == 3) b_nGenSJet_vec.push_back(j);
-        else if (abs(m_qgjMapForMC[j]) == 5) b_nGenBJet_vec.push_back(j);
-      }
-      if (genHadron_isGenHadFromTsb[i] != m_qgjMapForMC[j]) continue;
-      if (dr < drMin1) genPair1[j] = {i,dr,x};
-      else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
-      if (x > xMax2) genPair2[j] = {i,dr,x};
-      else if (x == xMax2 && dr < drMin2) genPair2[j] = {i,dr,x};
-    }
-    b_genHadron_isClosestPair_xOrder_j_vec.push_back(i);  b_genHadron_isHighestPair_xOrder_j_vec.push_back(i);
-    b_genHadron_isClosestPair_xOrder_gj_vec.push_back(i); b_genHadron_isHighestPair_xOrder_gj_vec.push_back(i);
-  }
-  if (nGenHadKS !=0) {
-    /*  Save x and dr for the most closest(highest) KS for each jet */
-    for (unsigned int j=0; j<nJet; ++j) {
-      int cRecIdx = recPair1[j].idx; int hRecIdx = recPair2[j].idx;
-      b_genHadron_dr_closest_j_vec[cRecIdx] = recPair1[j].dr;
-      b_genHadron_x_closest_j_vec[cRecIdx] = recPair1[j].x;
-      b_genHadron_dr_highest_j_vec[hRecIdx] = recPair2[j].dr;
-      b_genHadron_x_highest_j_vec[hRecIdx] = recPair2[j].x;
-    }
-    for (unsigned int j=0; j<nGenJet; ++j) {
-      int cGenIdx = genPair1[j].idx;int hGenIdx = genPair2[j].idx;
-      b_genHadron_dr_closest_gj_vec[cGenIdx] = genPair1[j].dr;
-      b_genHadron_x_closest_gj_vec[cGenIdx] = genPair1[j].x;
-      b_genHadron_dr_highest_gj_vec[hGenIdx] = genPair2[j].dr;
-      b_genHadron_x_highest_gj_vec[hGenIdx] = genPair2[j].x;
-    }
-
-    /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
-    std::sort(recPair1.begin(), recPair1.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-    std::sort(genPair1.begin(), genPair1.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-    int hRecIdx1 = recPair1[0].idx; int hGenIdx1 = genPair1[0].idx;
-    std::replace_if(b_genHadron_isClosestPair_xOrder_j_vec.begin(),  b_genHadron_isClosestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx1); }, -1);
-    std::replace_if(b_genHadron_isClosestPair_xOrder_gj_vec.begin(), b_genHadron_isClosestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx1); }, -1);
-
-    std::sort(recPair2.begin(), recPair2.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-    std::sort(genPair2.begin(), genPair2.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-    int hRecIdx2 = recPair2[0].idx; int hGenIdx2 = genPair2[0].idx;
-    std::replace_if(b_genHadron_isHighestPair_xOrder_j_vec.begin(),  b_genHadron_isHighestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx2); }, -1);
-    std::replace_if(b_genHadron_isHighestPair_xOrder_gj_vec.begin(), b_genHadron_isHighestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx2); }, -1);
-  }
-}
 
 void vtsAnalyser::GenAnalysis() {
   std::vector<jetks> recPair1; std::vector<jetks> genPair1;
@@ -1064,7 +972,7 @@ void vtsAnalyser::RecAnalysis() {
   for (unsigned int i=0; i<nhad; ++i) {
     if (had_pdgId[i] != 310) continue;
     ++nRecKS;
-    if (m_isGenericMC) {
+    if (!m_isGenericMC) {
       b_hadTruth_isHadFromTop_vec.push_back(hadTruth_isHadFromTop[i]);
       b_hadTruth_isHadFromW_vec.push_back(hadTruth_isHadFromW[i]);
       b_hadTruth_isHadFromS_vec.push_back(hadTruth_isHadFromS[i]);
@@ -1199,6 +1107,19 @@ void vtsAnalyser::CollectVar() {
 void vtsAnalyser::ResetForTMVA() {
   b_Jet_bdt_score_pp   = -99;
   b_JKS_bdt_score_pp   = -99;
+  /*
+  std::fill_n(b_dau_pt,     sizeof(b_dau_pt),     -9.);//{ [0 ... 99] = -9};
+  std::fill_n(b_dau_eta,    sizeof(b_dau_eta),    -9.);//{ [0 ... 99] = -9};
+  std::fill_n(b_dau_phi,    sizeof(b_dau_phi),    -9.);//{ [0 ... 99] = -9};
+  std::fill_n(b_dau_charge, sizeof(b_dau_charge), -9);//{ [0 ... 99] = -9};
+  */
+  /* temp initialization of array */
+  for (unsigned int i = 0; i < m_jetDauArrSize; ++i) {
+    b_dau_pt[i] = -9.;
+    b_dau_eta[i] = -9.;
+    b_dau_phi[i] = -9.;
+    b_dau_charge[i] = -9;
+  }
 
   b_KS_idx_pp          = -99;   b_KS_nMatched_pp     = -99;   b_KS_isFrom_pp       = -99; 
   b_KS_isHadFromTop_pp = false; b_KS_isHadFromW_pp   = false; b_KS_isHadFromS_pp   = false; b_KS_isHadFromC_pp   = false; b_KS_isHadFromB_pp   = false; 
@@ -1272,6 +1193,10 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       if (j == (int) closest_lep2_idx) {
         if ( m_recJet[0].drl2j == -1 ) b_isClosestToLep = -1;
       }
+      TLorentzVector tlv_j; 
+      tlv_j.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);      
+    
+      cout << " [ " << ij << " / " << selectedJet.size() << " ] >>>>>> [ " << setw(10) << tlv_j.Pt() << " " << setw(10) << tlv_j.Eta() << " " << setw(10) << tlv_j.Phi() << " " << setw(10) << tlv_j.M() << " ] >>>>>> ( " << setw(3) << j << " " << setw(3) << m_qjMapForMC[j] << " " << setw(3) << b_isSJet << " " << setw(3) << b_isBJet << " " << setw(3) << b_isHighest << " " << setw(3) << b_isClosestToLep << " ) " << endl;
 
       b_cmult = (float)jetID_cmult[j]; b_nmult = (float)jetID_nmult[j];
       b_pt = Jet_pt[j]; b_eta = Jet_eta[j]; b_phi = Jet_phi[j]; b_mass = Jet_mass[j];
@@ -1280,12 +1205,21 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       b_axis1 = jetID_axis1[j]; b_axis2 = jetID_axis2[j]; b_ptD = jetID_ptD[j];
       b_area = Jet_area[j]; b_CSVV2 = Jet_btagCSVV2[j];
 
+      /* Save jet daughter information */
+      int ia = 0;
+      for (auto didx = jetID_dauIdx1[j]; didx < jetID_dauIdx2[j]; ++didx) {
+        b_dau_pt[ia]     = jetDau_pt[didx];
+        b_dau_eta[ia]    = jetDau_eta[didx];
+        b_dau_phi[ia]    = jetDau_phi[didx];
+        b_dau_charge[ia] = jetDau_charge[didx];
+        ia += 1;
+      }
+
       std::pair<int, float> best_BDT_pp = {-1, -99};
       std::pair<int, float> best_BDT_ph = {-1, -99};
       std::pair<int, float> best_BDT_hp = {-1, -99};
       std::pair<int, float> best_BDT_hh = {-1, -99};
       
-      cout << j << " th jet ==> " << m_qjMapForMC[j] << endl;
       if (b_had_start != -1 && b_had_end != -1) {
         for (auto ih=b_had_start; ih<b_had_end; ++ih) {
           m_hadtrForTMVA->GetEntry(ih);
@@ -1442,8 +1376,8 @@ void vtsAnalyser::FillJetTreeForTMVA() {
           b_KS_best_bdt_hh     = b_Rec_bdt_score_hh; 
         }
       }
-      b_Jet_bdt_score_pp = m_jetReader->EvaluateMVA("Jet_BDT");
-      b_JKS_bdt_score_pp = m_jksReader->EvaluateMVA("JKS_BDT");
+      b_Jet_bdt_score_pp = m_jetReader->EvaluateMVA("Jet_BDT_highest");
+      b_JKS_bdt_score_pp = m_jksReader->EvaluateMVA("JKS_BDT_highest");
       m_jettrForTMVA->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
@@ -1451,8 +1385,7 @@ void vtsAnalyser::FillJetTreeForTMVA() {
 }
 
 void vtsAnalyser::FillHadTreeForTMVA() {
-  if (m_isGenericMC) {
-    b_Rec_pdgId = b_hadTruth_pdgId_vec.back();
+  if (!m_isGenericMC) {
     b_Rec_nMatched = b_hadTruth_nMatched_vec.back();
     b_Rec_isFrom = b_hadTruth_isFrom_vec.back();
     b_Rec_isHadFromTop = b_hadTruth_isHadFromTop_vec.back();
@@ -1461,6 +1394,7 @@ void vtsAnalyser::FillHadTreeForTMVA() {
     b_Rec_isHadFromC = b_hadTruth_isHadFromC_vec.back();
     b_Rec_isHadFromB = b_hadTruth_isHadFromB_vec.back();
   }
+  b_Rec_pdgId = b_hadTruth_pdgId_vec.back();
   b_Rec_d = b_hadTruth_d_vec.back();
   b_Rec_pt = b_hadTruth_pt_vec.back();
   b_Rec_eta = b_hadTruth_eta_vec.back();
@@ -1518,10 +1452,10 @@ void vtsAnalyser::SetMVAReader() {
   m_hadReader->AddVariable("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ);
   m_hadReader->AddVariable("dau2_pt",      &b_Rec_dau2_pt);
 
-  m_hadReader->BookMVA("pp_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
-  m_hadReader->BookMVA("ph_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/ph_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
-  m_hadReader->BookMVA("hp_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/hp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
-  m_hadReader->BookMVA("hh_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/hh_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  m_hadReader->BookMVA("pp_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Had/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  m_hadReader->BookMVA("ph_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Had/ph_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  m_hadReader->BookMVA("hp_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Had/hp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  m_hadReader->BookMVA("hh_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Had/hh_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
 
   m_jetReader = new TMVA::Reader();
   m_jetReader->AddVariable("pt",    &b_pt);
@@ -1542,7 +1476,7 @@ void vtsAnalyser::SetMVAReader() {
   m_jetReader->AddVariable("area",  &b_area);
   m_jetReader->AddVariable("CSVV2", &b_CSVV2);
 
-  m_jetReader->BookMVA("Jet_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_combined_J_BDT/weights/vts_dR_04_Jet_BDT.weights.xml");
+  m_jetReader->BookMVA("Jet_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 
 
   m_jksReader = new TMVA::Reader();
@@ -1589,6 +1523,6 @@ void vtsAnalyser::SetMVAReader() {
   m_jksReader->AddVariable("KS_best_bdt_pp",         &b_KS_best_bdt_pp);
   m_jksReader->AddVariable("KS_x_pp",                &b_KS_x_pp);
 
-  m_jksReader->BookMVA("JKS_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/pp_combined_JKS_BDT/weights/vts_dR_04_Jet_With_KS_BDT.weights.xml");
+  m_jksReader->BookMVA("JKS_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKS_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 
 }
