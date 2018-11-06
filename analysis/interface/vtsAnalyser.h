@@ -5,7 +5,7 @@
 
 class vtsAnalyser : public hadAnalyser {
 public:
-  float m_jetConeSize = 0.4; float m_xCut = 0.2; unsigned int m_jetDauArrSize = 100;
+  float m_jetConeSize = 0.4; float m_xCut = 0.2; unsigned int m_jetDauArrSize = 350;
 
   vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
@@ -102,8 +102,8 @@ private:
   float b_axis1,  b_axis2,  b_ptD,       b_area;
   float b_CSVV2;
 
-  float b_dau_pt[100], b_dau_eta[100], b_dau_phi[100];  
-  int   b_dau_charge[100];
+  float b_dau_pt[350], b_dau_eta[350], b_dau_phi[350];  
+  int   b_dau_charge[350];
 
     /* for TMVA with KS info. */
   float b_Jet_bdt_score_pp,       b_JKS_bdt_score_pp;

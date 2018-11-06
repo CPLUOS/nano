@@ -71,13 +71,15 @@ int main(int argc, char* argv[])
       /* auto sampleType = getType(dirName); */
 
       Bool_t isMC = false;
-      Bool_t isGenericMC = true;
+      Bool_t isGenericMC = false;
 
       if (string(inFileName).find("Run2016") == std::string::npos && (string(inFileName).find("Run2017") == std::string::npos) && (string(inFileName).find("Run2018") == std::string::npos) ) {
         isMC = true;
       }
       if (string(inFileName).find("NANOAOD") != std::string::npos) {
         isGenericMC = false;
+      } else {
+        isGenericMC = true;
       }
 
       if (!isMC) { 
@@ -254,10 +256,10 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("area",           &b_area,           "area/F");
   m_jettrForTMVA->Branch("CSVV2",          &b_CSVV2,          "CSVV2/F");
 
-  m_jettrForTMVA->Branch("dau_pt",      &b_dau_pt,      "dau_pt[100]/F");
-  m_jettrForTMVA->Branch("dau_eta",     &b_dau_eta,     "dau_eta[100]/F");
-  m_jettrForTMVA->Branch("dau_phi",     &b_dau_phi,     "dau_phi[100]/F");
-  m_jettrForTMVA->Branch("dau_charge",  &b_dau_charge,  "dau_charge[100]/I");
+  m_jettrForTMVA->Branch("dau_pt",      &b_dau_pt,      "dau_pt[350]/F");
+  m_jettrForTMVA->Branch("dau_eta",     &b_dau_eta,     "dau_eta[350]/F");
+  m_jettrForTMVA->Branch("dau_phi",     &b_dau_phi,     "dau_phi[350]/F");
+  m_jettrForTMVA->Branch("dau_charge",  &b_dau_charge,  "dau_charge[350]/I");
 
   m_jettrForTMVA->Branch("Jet_bdt_score_pp",   &b_Jet_bdt_score_pp,   "Jet_bdt_score/F");
   m_jettrForTMVA->Branch("JKS_bdt_score_pp",   &b_JKS_bdt_score_pp,   "JKS_bdt_score/F");
@@ -1374,8 +1376,8 @@ void vtsAnalyser::FillJetTreeForTMVA() {
           b_KS_best_bdt_hh     = b_Rec_bdt_score_hh; 
         }
       }
-      b_Jet_bdt_score_pp = m_jetReader->EvaluateMVA("Jet_BDT");
-      b_JKS_bdt_score_pp = m_jksReader->EvaluateMVA("JKS_BDT");
+      b_Jet_bdt_score_pp = m_jetReader->EvaluateMVA("Jet_BDT_highest");
+      b_JKS_bdt_score_pp = m_jksReader->EvaluateMVA("JKS_BDT_highest");
       m_jettrForTMVA->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
@@ -1384,7 +1386,6 @@ void vtsAnalyser::FillJetTreeForTMVA() {
 
 void vtsAnalyser::FillHadTreeForTMVA() {
   if (!m_isGenericMC) {
-    b_Rec_pdgId = b_hadTruth_pdgId_vec.back();
     b_Rec_nMatched = b_hadTruth_nMatched_vec.back();
     b_Rec_isFrom = b_hadTruth_isFrom_vec.back();
     b_Rec_isHadFromTop = b_hadTruth_isHadFromTop_vec.back();
@@ -1393,6 +1394,7 @@ void vtsAnalyser::FillHadTreeForTMVA() {
     b_Rec_isHadFromC = b_hadTruth_isHadFromC_vec.back();
     b_Rec_isHadFromB = b_hadTruth_isHadFromB_vec.back();
   }
+  b_Rec_pdgId = b_hadTruth_pdgId_vec.back();
   b_Rec_d = b_hadTruth_d_vec.back();
   b_Rec_pt = b_hadTruth_pt_vec.back();
   b_Rec_eta = b_hadTruth_eta_vec.back();
@@ -1474,7 +1476,7 @@ void vtsAnalyser::SetMVAReader() {
   m_jetReader->AddVariable("area",  &b_area);
   m_jetReader->AddVariable("CSVV2", &b_CSVV2);
 
-  m_jetReader->BookMVA("Jet_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT/weights/vts_dR_04_Jet_BDT.weights.xml");
+  m_jetReader->BookMVA("Jet_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 
 
   m_jksReader = new TMVA::Reader();
@@ -1521,6 +1523,6 @@ void vtsAnalyser::SetMVAReader() {
   m_jksReader->AddVariable("KS_best_bdt_pp",         &b_KS_best_bdt_pp);
   m_jksReader->AddVariable("KS_x_pp",                &b_KS_x_pp);
 
-  m_jksReader->BookMVA("JKS_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKS_BDT/weights/vts_dR_04_Jet_BDT.weights.xml");
+  m_jksReader->BookMVA("JKS_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKS_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 
 }
