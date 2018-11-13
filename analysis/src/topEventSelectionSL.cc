@@ -12,6 +12,7 @@ topEventSelectionSL::topEventSelectionSL(TTree *tree, TTree *had, TTree *hadTrut
   m_isSL_e(sle),
   m_isSL_m(slm)
 {
+  SetCutValues();
 }
 
 topEventSelectionSL::~topEventSelectionSL()
