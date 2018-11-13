@@ -119,6 +119,8 @@ vector<TParticle> topObjectSelection::genJetSelection() {
 
 vector<TParticle> topObjectSelection::jetSelection() {
   double csvWgtHF = 1.0, csvWgtLF = 1.0, csvWgtC = 1.0, csvWgtTotal = 1.0;
+  double csvWgtHF_up = 1.0, csvWgtLF_up = 1.0, csvWgtC_up = 1.0, csvWgtTotal_up = 1.0;
+  double csvWgtHF_dn = 1.0, csvWgtLF_dn = 1.0, csvWgtC_dn = 1.0, csvWgtTotal_dn = 1.0;
   vector<TParticle> jets;
   for (UInt_t i = 0; i < nJet; ++i){
     if (Jet_pt[i] < 30) continue;
@@ -141,23 +143,39 @@ vector<TParticle> topObjectSelection::jetSelection() {
       if (abs(Jet_hadronFlavour[i]) == 5) {
         JF = BTagEntry::FLAV_B;
         double iCSVWgtHF = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtHF_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtHF_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
         if (iCSVWgtHF != 0) csvWgtHF *= iCSVWgtHF;
+        if (iCSVWgtHF_up != 0) csvWgtHF_up *= iCSVWgtHF_up;
+        if (iCSVWgtHF_dn != 0) csvWgtHF_dn *= iCSVWgtHF_dn;
       }
       else if (abs(Jet_hadronFlavour[i]) == 4) {
         JF = BTagEntry::FLAV_C;
         double iCSVWgtC = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtC_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtC_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
         if (iCSVWgtC != 0) csvWgtC *= iCSVWgtC;
+        if (iCSVWgtC_up != 0) csvWgtC_up *= iCSVWgtC_up;
+        if (iCSVWgtC_dn != 0) csvWgtC_dn *= iCSVWgtC_dn;
       }
       else {
         JF = BTagEntry::FLAV_UDSG;
         double iCSVWgtLF = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtLF_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtLF_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
         if (iCSVWgtLF != 0) csvWgtLF *= iCSVWgtLF;
+        if (iCSVWgtLF_up != 0) csvWgtLF_up *= iCSVWgtLF_up;
+        if (iCSVWgtLF_dn != 0) csvWgtLF_dn *= iCSVWgtLF_dn;
       } 
     }
   }
   csvWgtTotal = csvWgtHF * csvWgtC * csvWgtLF;  
+  csvWgtTotal_up = csvWgtHF_up * csvWgtC_up * csvWgtLF_up;  
+  csvWgtTotal_dn = csvWgtHF_dn * csvWgtC_dn * csvWgtLF_dn;  
 
   b_btagweight = csvWgtTotal;
+  b_btagweight_up = csvWgtTotal_up;
+  b_btagweight_dn = csvWgtTotal_dn;
   
   return jets;
 }
