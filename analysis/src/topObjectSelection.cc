@@ -118,8 +118,8 @@ vector<TParticle> topObjectSelection::genJetSelection() {
 }
 
 vector<TParticle> topObjectSelection::jetSelection() {
+  double csvWgtHF = 1.0, csvWgtLF = 1.0, csvWgtC = 1.0, csvWgtTotal = 1.0;
   vector<TParticle> jets;
-  float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
     if (Jet_pt[i] < 30) continue;
     if (std::abs(Jet_eta[i]) > 2.4) continue;
@@ -128,19 +128,36 @@ vector<TParticle> topObjectSelection::jetSelection() {
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
     bool hasOverLap = false;
     for (auto lep : recoleps){
-        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
+      if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
     auto jet = TParticle();
     jet.SetMomentum(mom);
     jet.SetFirstMother(i);
     jets.push_back(jet);
-    for (UInt_t iu = 0; iu < 19; iu++) {
-     // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
+    if (m_isMC) {
+      b_btagCSVV2 = Jet_btagCSVV2[i];
+      BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+      if (abs(Jet_hadronFlavour[i]) == 5) {
+        JF = BTagEntry::FLAV_B;
+        double iCSVWgtHF = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtHF != 0) csvWgtHF *= iCSVWgtHF;
+      }
+      else if (abs(Jet_hadronFlavour[i]) == 4) {
+        JF = BTagEntry::FLAV_C;
+        double iCSVWgtC = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtC != 0) csvWgtC *= iCSVWgtC;
+      }
+      else {
+        JF = BTagEntry::FLAV_UDSG;
+        double iCSVWgtLF = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtLF != 0) csvWgtLF *= iCSVWgtLF;
+      } 
     }
   }
-  for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
-  b_btagweight = Jet_SF_CSV[0];
+  csvWgtTotal = csvWgtHF * csvWgtC * csvWgtLF;  
+
+  b_btagweight = csvWgtTotal;
   
   return jets;
 }

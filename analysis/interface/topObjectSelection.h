@@ -10,7 +10,7 @@ class topObjectSelection : public nanoBase
 protected:
   std::vector<Float_t> b_csvweights;
   float b_btagweight;
-
+  float b_btagCSVV2;
   bool isDilep, isSemiLep;
   
 public:

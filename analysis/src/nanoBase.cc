@@ -27,8 +27,8 @@ nanoBase::nanoBase(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) :
   string csvFileName = "CSVv2_Moriond17_B_H.csv";
   std::string csvFile = env+"/src/nano/analysis/data/btagSF/"+csvFileName;
   BTagCalibration calib("csvv2", csvFile);
-  m_btagSF = BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central",{"up","down"});
-  m_btagSF.load(calib, BTagEntry::FLAV_B, "mujets");
+  m_btagSF = BTagCalibrationReader(BTagEntry::OP_MEDIUM,"central");
+  m_btagSF.load(calib, BTagEntry::FLAV_B, "comb");
 }
 
 nanoBase::~nanoBase()
