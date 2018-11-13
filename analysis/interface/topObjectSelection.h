@@ -11,8 +11,6 @@ protected:
   std::vector<Float_t> b_csvweights;
   float b_btagweight;
   Float_t b_isolep;
-
-  bool isDilep, isSemiLep;
   
   Float_t b_maxBDiscr_nonb;
   
@@ -89,8 +87,8 @@ public:
 
   std::vector<TParticle> genJetSelection();
 
-  topObjectSelection(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t isDilep = true, Bool_t isSemiLep = false);
-  topObjectSelection(TTree *tree=0, Bool_t isMC=false, Bool_t isDilep=true, Bool_t isSemiLep=false) : topObjectSelection(tree, 0, 0, isMC, isDilep, isSemiLep) {}
+  topObjectSelection(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false);
+  topObjectSelection(TTree *tree=0, Bool_t isMC=false) : topObjectSelection(tree, 0, 0, isMC) {}
   ~topObjectSelection() {}
   
   // In this function you need to set all the cut conditions in the above
