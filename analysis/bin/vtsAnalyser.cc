@@ -7,7 +7,6 @@
 #include "nano/analysis/interface/vtsAnalyser.h"
 #include "TFile.h"
 #include "TTree.h"
-
 #include "DataFormats/HepMCCandidate/interface/GenStatusFlags.h"
 
 using namespace std;
@@ -50,7 +49,6 @@ int main(int argc, char* argv[])
   if (argc <= 1) {
     cout << "no input file is specified. running with default file." << endl;
     auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/tsw/nanoAOD_111.root", "READ");
-    /* auto inFile = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/tsW_13TeV-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6/180611_131219/0000/nanoAOD_000.root"); */
     auto inTree = (TTree*) inFile->Get("Events");
     vtsAnalyser ana(inTree,inTree,0,true,false,false,false);
     ana.setOutput("nanotree.root");
@@ -58,18 +56,12 @@ int main(int argc, char* argv[])
   } else {
     string jobName    = string(argv[1]);
     string sampleName = string(argv[2]);
-/*
-    cout << "sampleName : " << sampleName << endl;
-    cout << "isMC : " << isMC << endl;
-    cout << "isGenericMC : " << isGenericMC << endl;
-*/
     string outFileDir = hostDir + getenv("USER") + "/" + jobName + "/" + sampleName;
     for (Int_t i = 3; i < argc; i++) {
       auto inFileName = argv[i];
       auto fileName = getFileName(argv[i]);
       auto dirName = getDir(getDir(argv[i]));
       /* auto sampleType = getType(dirName); */
-
       Bool_t isMC = false;
       Bool_t isGenericMC = false;
 
@@ -90,7 +82,6 @@ int main(int argc, char* argv[])
         TFile *inFile = TFile::Open(inFileName, "READ");
         TTree *inTree = (TTree*) inFile->Get("Events");
         vtsAnalyser ana(inTree, inTree, inTree, isMC, isDL, isSLE, isSLM);
-//        string outFileName = outFileDir+"/nanotree_"+to_string(i-3)+".root";
         string outFileName = outFileDir+"/rd_"+fileName;
         ana.setOutput(outFileName);
         ana.Loop();
@@ -142,6 +133,7 @@ int main(int argc, char* argv[])
         ana.setOutput(outFileName);
         ana.Loop();
         cout << inFileName << " : Analysis Complete " << endl;
+        
       }
     }
   }
@@ -318,23 +310,20 @@ void vtsAnalyser::MakeBranch() {
   BranchO(trig_m); BranchO(trig_m2); BranchO(trig_e); BranchO(trig_mm); BranchO(trig_em); BranchO(trig_ee);
 
   /* For MatchingForMC() */
-  BranchI(matchedS_jidx);
-  BranchI(matchedS_idx);     BranchI(matchedS_pdgId);     BranchI(matchedS_status);
-  BranchI(matchedS_mom_idx); BranchI(matchedS_mom_pdgId); BranchI(matchedS_mom_status);
-  BranchTLV(matchedS_tlv);
-
-  BranchI(matchedB_jidx);
-  BranchI(matchedB_idx);     BranchI(matchedB_pdgId);     BranchI(matchedB_status);
-  BranchI(matchedB_mom_idx); BranchI(matchedB_mom_pdgId); BranchI(matchedB_mom_status);
-  BranchTLV(matchedB_tlv);
-
+  BranchI(matched1_jidx);
+  BranchI(matched1_idx);     BranchI(matched1_pdgId);     BranchI(matched1_status);
+  BranchI(matched1_mom_idx); BranchI(matched1_mom_pdgId); BranchI(matched1_mom_status);
+  BranchTLV(matched1_tlv);
+  BranchI(matched2_jidx);
+  BranchI(matched2_idx);     BranchI(matched2_pdgId);     BranchI(matched2_status);
+  BranchI(matched2_mom_idx); BranchI(matched2_mom_pdgId); BranchI(matched2_mom_status);
+  BranchTLV(matched2_tlv);
   BranchF(Jet_dr_closest_s);    BranchF(Jet_dr_closest_b);
   BranchF(SelJet_dr_closest_s); BranchF(SelJet_dr_closest_b);
   BranchF(GenJet_dr_closest_s); BranchF(GenJet_dr_closest_b);
-
-  BranchO(GenSJet);             BranchO(GenBJet);             BranchO(GenBothJet);             BranchO(RecSJet);             BranchO(RecBJet);             BranchO(RecBothJet); 
-  BranchO(GenSJetClosestToLep); BranchO(GenBJetClosestToLep); BranchO(GenBothJetClosestToLep); BranchO(RecSJetClosestToLep); BranchO(RecBJetClosestToLep); BranchO(RecBothJetClosestToLep);  
-  BranchO(GenSJetIsHighest);    BranchO(GenBJetIsHighest);    BranchO(GenBothJetIsHighest);    BranchO(RecSJetIsHighest);    BranchO(RecBJetIsHighest);    BranchO(RecBothJetIsHighest); 
+  BranchI(GenSJet);             BranchI(GenBJet);             BranchI(RecSJet);             BranchI(RecBJet);            
+  BranchI(GenSJetClosestToLep); BranchI(GenBJetClosestToLep); BranchI(RecSJetClosestToLep); BranchI(RecBJetClosestToLep);  
+  BranchI(GenSJetIsHighest);    BranchI(GenBJetIsHighest);    BranchI(RecSJetIsHighest);    BranchI(RecBJetIsHighest);   
 
   /* For GenAnalysis() */
   BranchVI(GenPart_isGenFrom_vec);    BranchVO(GenPart_isGenFromTop_vec);  BranchVO(GenPart_isGenFromW_vec);   BranchVO(GenPart_isFromKstar_vec);
@@ -374,32 +363,26 @@ void vtsAnalyser::ResetBranch() {
   b_nJet = -1; b_nSelJet = -1; b_nSelJetEv = -1; 
   b_passedEvent = false;
 
-  b_hadTruth_nMatched     = -1;    b_hadTruth_nTrueDau = -1;
-  b_hadTruth_isHadFromTsb = -1;    b_hadTruth_isHadFromTop = false; b_hadTruth_isHadFromW = false; b_hadTruth_isHadFromS = false; b_hadTruth_isHadFromC = false; b_hadTruth_isHadFromB = false;
-
   /* For MatchingForMC() */
   m_tqMC.clear();       m_wqMC.clear(); 
   m_qjMapForMC.clear(); m_qgjMapForMC.clear();
   m_recJet.clear();     m_genJet.clear();
   m_closestRecJetForLep1.clear(); m_closestRecJetForLep2.clear(); 
   m_closestGenJetForLep1.clear(); m_closestGenJetForLep2.clear();
-
-  b_matchedS_jidx    = -1;
-  b_matchedS_idx     = -1; b_matchedS_pdgId     = -99; b_matchedS_status     = -1;
-  b_matchedS_mom_idx = -1; b_matchedS_mom_pdgId = -99; b_matchedS_mom_status = -1;
-  b_matchedS_tlv.SetPtEtaPhiM(0,0,0,0);
-
-  b_matchedB_jidx    = -1;
-  b_matchedB_idx     = -1; b_matchedB_pdgId     = -99; b_matchedB_status     = -1;
-  b_matchedB_mom_idx = -1; b_matchedB_mom_pdgId = -99; b_matchedB_mom_status = -1;
-  b_matchedB_tlv.SetPtEtaPhiM(0,0,0,0);
-
+  b_matched1_jidx    = -1;
+  b_matched1_idx     = -1; b_matched1_pdgId     = -99; b_matched1_status     = -1;
+  b_matched1_mom_idx = -1; b_matched1_mom_pdgId = -99; b_matched1_mom_status = -1;
+  b_matched1_tlv.SetPtEtaPhiM(0,0,0,0);
+  b_matched2_jidx    = -1;
+  b_matched2_idx     = -1; b_matched2_pdgId     = -99; b_matched2_status     = -1;
+  b_matched2_mom_idx = -1; b_matched2_mom_pdgId = -99; b_matched2_mom_status = -1;
+  b_matched2_tlv.SetPtEtaPhiM(0,0,0,0);
   b_Jet_dr_closest_s    = -1; b_Jet_dr_closest_b    = -1;
   b_SelJet_dr_closest_s = -1; b_SelJet_dr_closest_b = -1;
   b_GenJet_dr_closest_s = -1; b_GenJet_dr_closest_b = -1;
-  b_GenSJet             = false; b_GenBJet             = false; b_GenBothJet             = false; b_RecSJet             = false; b_RecBJet             = false; b_RecBothJet             = false;
-  b_GenSJetClosestToLep = false; b_GenBJetClosestToLep = false; b_GenBothJetClosestToLep = false; b_RecSJetClosestToLep = false; b_RecBJetClosestToLep = false; b_RecBothJetClosestToLep = false;
-  b_GenSJetIsHighest    = false; b_GenBJetIsHighest    = false; b_GenBothJetIsHighest    = false; b_RecSJetIsHighest    = false; b_RecBJetIsHighest    = false; b_RecBothJetIsHighest    = false;
+  b_GenSJet             = -1; b_GenBJet             = -1; b_RecSJet             = -1; b_RecBJet             = -1;
+  b_GenSJetClosestToLep = -1; b_GenBJetClosestToLep = -1; b_RecSJetClosestToLep = -1; b_RecBJetClosestToLep = -1;
+  b_GenSJetIsHighest    = -1; b_GenBJetIsHighest    = -1; b_RecSJetIsHighest    = -1; b_RecBJetIsHighest    = -1;
 
   /* For GenAnalysis() */
   b_GenPart_isGenFrom_vec.clear();    b_GenPart_isGenFromTop_vec.clear();  b_GenPart_isGenFromW_vec.clear();   b_GenPart_isFromKstar_vec.clear();
@@ -516,17 +499,41 @@ void vtsAnalyser::MatchingForMC() {
     m_genJet.push_back({(int) j, GenJet_pt[j], drs, drb, drl1, drl2});
   }
   if (noverlap > 2) std::cout << " >>>> BAD GENJET OVERLAP REMOVAL FOR EVENT <<<< " << std::endl;
-    
+  b_GenSJet = 0; b_GenBJet = 0; b_GenSJetClosestToLep = 0; b_GenBJetClosestToLep = 0; b_GenSJetIsHighest = 0; b_GenBJetIsHighest = 0; // Set up 0 value for distinguish the event to not-passed events (value -1)
   /* Find closest gen jet to l+ or l- */
-  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drl1j < b.drl1j); } );
-  m_closestGenJetForLep1[m_genJet[0].idx] = b_lep1_pid;
-  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drl2j < b.drl2j); } );
-  m_closestGenJetForLep2[m_genJet[0].idx] = b_lep2_pid;
+  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drl1j < b.drl1j); } ); // order by dR(gen jet, lepton1)
+  m_closestGenJetForLep1[m_genJet[0].idx] = b_lep1_pid; // save std::map (gen jet idx as key, lepton1 pdgId as value)
+  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drl2j < b.drl2j); } ); // order by dR(gen jet, lepton2)
+  m_closestGenJetForLep2[m_genJet[0].idx] = b_lep2_pid; // save std::map (gen jet idx as key, lepton2 pdgId as value)
+
   /* Find closest gen jet to s or b */
-  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } );
-  if (m_genJet[0].drsj <= m_jetConeSize) m_qgjMapForMC[m_genJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s/b
-  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } );
-  if (m_genJet[0].drbj <= m_jetConeSize) m_qgjMapForMC[m_genJet[0].idx] = tq2.pdgId;
+  /* and then save closest jet dr for s/b, Gen S(B) Jet, Gen S(B)Jet which is closest to l+ or l- and is in highest 2 pT jets */
+  int Gen1Jidx = -1, Gen2Jidx = -1;
+  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // order by dR(gen jet, gen s-quark)
+  if (m_genJet[0].drsj <= m_jetConeSize) {
+    m_qgjMapForMC[m_genJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s ==> if the sample used is ttbar->bWbW, then drsj will be also dR(gen jet, gen b-quark)
+    Gen1Jidx = m_genJet[0].idx; // index of jet which has smallest dR(gen jet, gen quark1)
+    if (abs(tq1.pdgId) == 3) { // count number of matched jet
+      b_GenSJet += 1;
+      if (m_closestGenJetForLep1[Gen1Jidx] != 0 || m_closestGenJetForLep2[Gen1Jidx] != 0) b_GenSJetClosestToLep += 1;
+      sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // order by jet pT
+      if ((int)m_genJet[0].idx == Gen1Jidx || (int)m_genJet[1].idx == Gen1Jidx) b_GenSJetIsHighest += 1;
+    } else {
+      b_GenBJet += 1; 
+      if (m_closestGenJetForLep1[Gen1Jidx] != 0 || m_closestGenJetForLep2[Gen1Jidx] != 0) b_GenBJetClosestToLep += 1;
+      sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // order by jet pT
+      if ((int)m_genJet[0].idx == Gen1Jidx || (int)m_genJet[1].idx == Gen1Jidx) b_GenBJetIsHighest += 1;
+    }
+  }
+  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // order by dR(gen jet, gen s-quark)
+  if (m_genJet[0].drbj <= m_jetConeSize) {
+    m_qgjMapForMC[m_genJet[0].idx] = tq2.pdgId; // if jet is inside dRCut == 0.4, then label the tag about b
+    Gen2Jidx = m_genJet[0].idx; // index of jet which has smallest dR(gen jet, gen quark2)
+    b_GenBJet += 1;
+    if (m_closestGenJetForLep1[Gen2Jidx] != 0 || m_closestGenJetForLep2[Gen2Jidx] != 0) b_GenBJetClosestToLep += 1;
+    sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // order by jet pT
+    if ((int)m_genJet[0].idx == Gen2Jidx || (int)m_genJet[1].idx == Gen2Jidx) b_GenBJetIsHighest += 1;
+  }
 
   /* Gen Partcle & Selected Reco Jet Matching */
   auto selectedJet = jetSelection();
@@ -539,6 +546,7 @@ void vtsAnalyser::MatchingForMC() {
       auto drl1 = b_lep1.DeltaR(jet_tlv); auto drl2 = b_lep2.DeltaR(jet_tlv);
       m_recJet.push_back({j, Jet_pt[j], drs, drb, drl1, drl2});
     }
+    b_RecSJet = 0; b_RecBJet = 0; b_RecSJetClosestToLep = 0; b_RecBJetClosestToLep = 0; b_RecSJetIsHighest = 0; b_RecBJetIsHighest = 0; // Set up 0 value for distinguish the event to not-passed events (value -1)
     /* Find closest sel jet to l+ or l- */
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drl1j < b.drl1j); } ); // order by dR(jet, lepton1)
     m_closestRecJetForLep1[m_recJet[0].idx] = b_lep1_pid; // save std::map (jet idx as key, lepton1 pdgId as value)
@@ -546,85 +554,50 @@ void vtsAnalyser::MatchingForMC() {
     m_closestRecJetForLep2[m_recJet[0].idx] = b_lep2_pid; // save std::map (jet idx as key, lepton2 pdgId as value)
 
     /* Find closest sel jet to s or b */ 
+    /* and then save closest jet dr for s/b, Rec S(B) Jet, Rec S(B)Jet which is closest to l+ or l- and is in highest 2 pT jets */
+    int Rec1Jidx = -1, Rec2Jidx = -1;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // order by dR(jet, gen s-quark)
-    if (m_recJet[0].drsj <= m_jetConeSize) { 
-      m_qjMapForMC[m_recJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s
-      b_matchedS_jidx               = m_recJet[0].idx;
-      b_matchedS_idx                = tq1.idx;
-      b_matchedS_pdgId              = tq1.pdgId;
-      b_matchedS_status             = tq1.status;
-      b_matchedS_mom_idx            = tq1.mom_idx;
-      b_matchedS_mom_pdgId          = tq1.mom_pdgId;
-      b_matchedS_mom_status         = tq1.mom_status;
-      b_matchedS_tlv                = tq1.tlv;
+    if (m_recJet[0].drsj <= m_jetConeSize) {
+      m_qjMapForMC[m_recJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s ==> if the sample used is ttbar->bWbW, then drsj will be also dR(jet, gen b-quark)
+      b_matched1_jidx               = m_recJet[0].idx;
+      b_matched1_idx                = tq1.idx;
+      b_matched1_pdgId              = tq1.pdgId;
+      b_matched1_status             = tq1.status;
+      b_matched1_mom_idx            = tq1.mom_idx;
+      b_matched1_mom_pdgId          = tq1.mom_pdgId;
+      b_matched1_mom_status         = tq1.mom_status;
+      b_matched1_tlv                = tq1.tlv;
+      Rec1Jidx = m_recJet[0].idx; // index of jet which has smallest dR(jet, gen quark1)
+      if (abs(tq1.pdgId) == 3) { // count number of matched jet
+        b_RecSJet += 1;
+        if (m_closestRecJetForLep1[Rec1Jidx] != 0 || m_closestRecJetForLep2[Rec1Jidx] != 0) b_RecSJetClosestToLep += 1;
+        sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // order by jet pT
+        if ((int)m_recJet[0].idx == Rec1Jidx || (int)m_recJet[1].idx == Rec1Jidx) b_RecSJetIsHighest += 1;
+      } else {
+        b_RecBJet += 1;
+        if (m_closestRecJetForLep1[Rec1Jidx] != 0 || m_closestRecJetForLep2[Rec1Jidx] != 0) b_RecBJetClosestToLep += 1;
+        sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // order by jet pT
+        if ((int)m_recJet[0].idx == Rec1Jidx || (int)m_recJet[1].idx == Rec1Jidx) b_RecBJetIsHighest += 1;
+      }
     }
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // order by dR(jet, gen b-quark)
     if (m_recJet[0].drbj <= m_jetConeSize) {
       m_qjMapForMC[m_recJet[0].idx] = tq2.pdgId; // if jet is inside dRCut == 0.4, then label the tag about b
-      b_matchedB_jidx               = m_recJet[0].idx;
-      b_matchedB_idx                = tq2.idx;
-      b_matchedB_pdgId              = tq2.pdgId;
-      b_matchedB_status             = tq2.status;
-      b_matchedB_mom_idx            = tq2.mom_idx;
-      b_matchedB_mom_pdgId          = tq2.mom_pdgId;
-      b_matchedB_mom_status         = tq2.mom_status;
-      b_matchedB_tlv                = tq2.tlv;
+      b_matched2_jidx               = m_recJet[0].idx;
+      b_matched2_idx                = tq2.idx;
+      b_matched2_pdgId              = tq2.pdgId;
+      b_matched2_status             = tq2.status;
+      b_matched2_mom_idx            = tq2.mom_idx;
+      b_matched2_mom_pdgId          = tq2.mom_pdgId;
+      b_matched2_mom_status         = tq2.mom_status;
+      b_matched2_tlv                = tq2.tlv;
+      Rec2Jidx = m_recJet[0].idx; // index of jet which has smallest dR(jet, gen quark2)
+      b_RecBJet += 1;
+      if (m_closestRecJetForLep1[Rec2Jidx] != 0 || m_closestRecJetForLep2[Rec2Jidx] != 0) b_RecBJetClosestToLep += 1;
+      sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // order by jet pT
+      if ((int)m_recJet[0].idx == Rec2Jidx || (int)m_recJet[1].idx == Rec2Jidx) b_RecBJetIsHighest += 1;
     }
-  } else cout << "Size of selectedJets is zero" << endl;
-
-  /* Save closest jet dr for s/b, Rec(Gen)S(B/Both)Jet, Rec(Gen)S(B/Both)Jet which is closest to l+ or l- and is in highest 2 pT jets */
-  /* GenJet */
-  int GenSJidx = -1, GenBJidx = -1;
-  if (m_genJet.size() != 0) {
-    sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } );
-    b_GenJet_dr_closest_s = m_genJet[0].drsj;
-    if (b_GenJet_dr_closest_s <= m_jetConeSize) {
-      GenSJidx = m_genJet[0].idx;
-      b_GenSJet = true;
-      if (m_closestGenJetForLep1[m_genJet[0].idx] != 0 || m_closestGenJetForLep2[m_genJet[0].idx] != 0) b_GenSJetClosestToLep = true;
-    }
-    sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } );
-    b_GenJet_dr_closest_b = m_genJet[0].drbj;
-    if (b_GenJet_dr_closest_b <= m_jetConeSize) {
-      GenBJidx = m_genJet[0].idx;
-      b_GenBJet = true;
-      if (m_closestGenJetForLep1[m_genJet[0].idx] != 0 || m_closestGenJetForLep2[m_genJet[0].idx] != 0) b_GenBJetClosestToLep = true;
-    }
-    sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } );
-    if ((int)m_genJet[0].idx == GenSJidx || (int)m_genJet[1].idx == GenSJidx) b_GenSJetIsHighest = true;
-    if ((int)m_genJet[0].idx == GenBJidx || (int)m_genJet[1].idx == GenBJidx) b_GenBJetIsHighest = true;
-    if (b_GenSJet && b_GenBJet) {
-      b_GenBothJet = true;
-      if (b_GenSJetIsHighest && b_GenBJetIsHighest) b_GenBothJetIsHighest = true;
-      if (b_GenSJetClosestToLep && b_GenBJetClosestToLep) b_GenBothJetClosestToLep = true;
-    }
-  }
-  /* SelectedJet */
-  int RecSJidx = -1, RecBJidx = -1;
-  if (m_recJet.size() != 0) {
-    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); 
-    b_SelJet_dr_closest_s = m_recJet[0].drsj;
-    if (b_SelJet_dr_closest_s <= m_jetConeSize) {
-      RecSJidx = m_recJet[0].idx;
-      b_RecSJet = true;
-      if (m_closestRecJetForLep1[m_recJet[0].idx] != 0 || m_closestRecJetForLep2[m_recJet[0].idx] != 0) b_RecSJetClosestToLep = true;
-    }
-    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } );
-    b_SelJet_dr_closest_b = m_recJet[0].drbj;
-    if (b_SelJet_dr_closest_b <= m_jetConeSize) {
-      RecBJidx = m_recJet[0].idx;
-      b_RecBJet = true;
-      if (m_closestRecJetForLep1[m_recJet[0].idx] != 0 || m_closestRecJetForLep2[m_recJet[0].idx] != 0) b_RecBJetClosestToLep = true;
-    }
-    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } );
-    if ((int)m_recJet[0].idx == RecSJidx || (int)m_recJet[1].idx == RecSJidx) b_RecSJetIsHighest = true;
-    if ((int)m_recJet[0].idx == RecBJidx || (int)m_recJet[1].idx == RecBJidx) b_RecBJetIsHighest = true;
-    if (b_RecSJet && b_RecBJet) {
-      b_RecBothJet = true;
-      if (b_RecSJetIsHighest && b_RecBJetIsHighest) b_RecBothJetIsHighest = true;
-      if (b_RecSJetClosestToLep && b_RecBJetClosestToLep) b_RecBothJetClosestToLep = true;
-    }
-  }
+  } else cout << ">>>>> Size of selectedJets is zero <<<<<" << endl;
 }
 
 bool vtsAnalyser::isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar) {
@@ -1092,9 +1065,7 @@ void vtsAnalyser::FillHadTreeForTMVA() {
 }
 
 void vtsAnalyser::SetMVAReader() {
-
   m_hadReader = new TMVA::Reader();            
-
   m_hadReader->AddVariable("d",            &b_Rec_d);
   m_hadReader->AddVariable("pt",           &b_Rec_pt);
   m_hadReader->AddVariable("eta",          &b_Rec_eta);
@@ -1117,7 +1088,6 @@ void vtsAnalyser::SetMVAReader() {
   m_hadReader->AddVariable("dau2_ipsigXY", &b_Rec_dau2_ipsigXY);
   m_hadReader->AddVariable("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ);
   m_hadReader->AddVariable("dau2_pt",      &b_Rec_dau2_pt);
-
   m_hadReader->BookMVA("KS_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Had/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
 
   m_jetReader = new TMVA::Reader();
@@ -1138,9 +1108,7 @@ void vtsAnalyser::SetMVAReader() {
   m_jetReader->AddVariable("ptD",   &b_ptD);
   m_jetReader->AddVariable("area",  &b_area);
   m_jetReader->AddVariable("CSVV2", &b_CSVV2);
-
   m_jetReader->BookMVA("Jet_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
-
 
   m_jksReader = new TMVA::Reader();
   m_jksReader->AddVariable("pt",    &b_pt);
@@ -1160,32 +1128,29 @@ void vtsAnalyser::SetMVAReader() {
   m_jksReader->AddVariable("ptD",   &b_ptD);
   m_jksReader->AddVariable("area",  &b_area);
   m_jksReader->AddVariable("CSVV2", &b_CSVV2);
-
-  m_jksReader->AddVariable("KS_d",                &b_KS_d);
-  m_jksReader->AddVariable("KS_pt",               &b_KS_pt);
-  m_jksReader->AddVariable("KS_eta",              &b_KS_eta);
-  m_jksReader->AddVariable("KS_phi",              &b_KS_phi);
-  m_jksReader->AddVariable("KS_mass",             &b_KS_mass);
-  m_jksReader->AddVariable("KS_lxy",              &b_KS_lxy);
-  m_jksReader->AddVariable("KS_lxySig",           &b_KS_lxySig);
-  m_jksReader->AddVariable("KS_l3D",              &b_KS_l3D);
-  m_jksReader->AddVariable("KS_l3DSig",           &b_KS_l3DSig);
-  m_jksReader->AddVariable("KS_legDR",            &b_KS_legDR);
-  m_jksReader->AddVariable("KS_angleXY",          &b_KS_angleXY);
-  m_jksReader->AddVariable("KS_angleXYZ",         &b_KS_angleXYZ);
-  m_jksReader->AddVariable("KS_chi2",             &b_KS_chi2);
-  m_jksReader->AddVariable("KS_dca",              &b_KS_dca);
-  m_jksReader->AddVariable("KS_dau1_chi2",        &b_KS_dau1_chi2);
-  m_jksReader->AddVariable("KS_dau1_ipsigXY",     &b_KS_dau1_ipsigXY);
-  m_jksReader->AddVariable("KS_dau1_ipsigZ",      &b_KS_dau1_ipsigZ);
-  m_jksReader->AddVariable("KS_dau1_pt",          &b_KS_dau1_pt);
-  m_jksReader->AddVariable("KS_dau2_chi2",        &b_KS_dau2_chi2);
-  m_jksReader->AddVariable("KS_dau2_ipsigXY",     &b_KS_dau2_ipsigXY);
-  m_jksReader->AddVariable("KS_dau2_ipsigZ",      &b_KS_dau2_ipsigZ);
-  m_jksReader->AddVariable("KS_dau2_pt",          &b_KS_dau2_pt);
-  m_jksReader->AddVariable("KS_best_bdt",         &b_KS_best_bdt);
-  m_jksReader->AddVariable("KS_x",                &b_KS_x);
-
+  m_jksReader->AddVariable("KS_d",            &b_KS_d);
+  m_jksReader->AddVariable("KS_pt",           &b_KS_pt);
+  m_jksReader->AddVariable("KS_eta",          &b_KS_eta);
+  m_jksReader->AddVariable("KS_phi",          &b_KS_phi);
+  m_jksReader->AddVariable("KS_mass",         &b_KS_mass);
+  m_jksReader->AddVariable("KS_lxy",          &b_KS_lxy);
+  m_jksReader->AddVariable("KS_lxySig",       &b_KS_lxySig);
+  m_jksReader->AddVariable("KS_l3D",          &b_KS_l3D);
+  m_jksReader->AddVariable("KS_l3DSig",       &b_KS_l3DSig);
+  m_jksReader->AddVariable("KS_legDR",        &b_KS_legDR);
+  m_jksReader->AddVariable("KS_angleXY",      &b_KS_angleXY);
+  m_jksReader->AddVariable("KS_angleXYZ",     &b_KS_angleXYZ);
+  m_jksReader->AddVariable("KS_chi2",         &b_KS_chi2);
+  m_jksReader->AddVariable("KS_dca",          &b_KS_dca);
+  m_jksReader->AddVariable("KS_dau1_chi2",    &b_KS_dau1_chi2);
+  m_jksReader->AddVariable("KS_dau1_ipsigXY", &b_KS_dau1_ipsigXY);
+  m_jksReader->AddVariable("KS_dau1_ipsigZ",  &b_KS_dau1_ipsigZ);
+  m_jksReader->AddVariable("KS_dau1_pt",      &b_KS_dau1_pt);
+  m_jksReader->AddVariable("KS_dau2_chi2",    &b_KS_dau2_chi2);
+  m_jksReader->AddVariable("KS_dau2_ipsigXY", &b_KS_dau2_ipsigXY);
+  m_jksReader->AddVariable("KS_dau2_ipsigZ",  &b_KS_dau2_ipsigZ);
+  m_jksReader->AddVariable("KS_dau2_pt",      &b_KS_dau2_pt);
+  m_jksReader->AddVariable("KS_best_bdt",     &b_KS_best_bdt);
+  m_jksReader->AddVariable("KS_x",            &b_KS_x);
   m_jksReader->BookMVA("JKS_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKS_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
-
 }

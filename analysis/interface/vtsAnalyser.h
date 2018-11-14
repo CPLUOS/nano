@@ -57,23 +57,23 @@ private:
   std::vector<genInfo> m_tqMC;   
   std::vector<genInfo> m_wqMC;
 
-  int b_matchedS_jidx;
-  int b_matchedS_idx,     b_matchedS_pdgId,     b_matchedS_status;
-  int b_matchedS_mom_idx, b_matchedS_mom_pdgId, b_matchedS_mom_status;
-  TLorentzVector b_matchedS_tlv;
+  int b_matched1_jidx;
+  int b_matched1_idx,     b_matched1_pdgId,     b_matched1_status;
+  int b_matched1_mom_idx, b_matched1_mom_pdgId, b_matched1_mom_status;
+  TLorentzVector b_matched1_tlv;
 
-  int b_matchedB_jidx;
-  int b_matchedB_idx,     b_matchedB_pdgId,     b_matchedB_status;
-  int b_matchedB_mom_idx, b_matchedB_mom_pdgId, b_matchedB_mom_status;
-  TLorentzVector b_matchedB_tlv;
+  int b_matched2_jidx;
+  int b_matched2_idx,     b_matched2_pdgId,     b_matched2_status;
+  int b_matched2_mom_idx, b_matched2_mom_pdgId, b_matched2_mom_status;
+  TLorentzVector b_matched2_tlv;
 
   float b_Jet_dr_closest_s, b_Jet_dr_closest_b;
   float b_SelJet_dr_closest_s, b_SelJet_dr_closest_b;
   float b_GenJet_dr_closest_s, b_GenJet_dr_closest_b;
 
-  bool b_GenSJet,             b_GenBJet,             b_GenBothJet,             b_RecSJet,             b_RecBJet,             b_RecBothJet;
-  bool b_GenSJetClosestToLep, b_GenBJetClosestToLep, b_GenBothJetClosestToLep, b_RecSJetClosestToLep, b_RecBJetClosestToLep, b_RecBothJetClosestToLep;
-  bool b_GenSJetIsHighest,    b_GenBJetIsHighest,    b_GenBothJetIsHighest,    b_RecSJetIsHighest,    b_RecBJetIsHighest,    b_RecBothJetIsHighest;
+  int b_GenSJet,             b_GenBJet,             b_RecSJet,             b_RecBJet;            
+  int b_GenSJetClosestToLep, b_GenBJetClosestToLep, b_RecSJetClosestToLep, b_RecBJetClosestToLep;
+  int b_GenSJetIsHighest,    b_GenBJetIsHighest,    b_RecSJetIsHighest,    b_RecBJetIsHighest;
 
   /* for GenAnalysis() */
   std::vector<int>   b_GenPart_isGenFrom_vec; std::vector<bool> b_GenPart_isGenFromTop_vec; std::vector<bool> b_GenPart_isGenFromW_vec; std::vector<bool> b_GenPart_isFromKstar_vec;
