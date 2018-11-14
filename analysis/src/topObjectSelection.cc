@@ -4,7 +4,12 @@ using std::vector;
 
 topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) :
   nanoBase(tree, had, hadTruth, isMC)
-{}
+{
+  m_JetMass = Jet_mass;
+  m_JetPt = Jet_pt;
+  m_JetEta = Jet_eta;
+  m_JetPhi = Jet_phi;
+}
 
 vector<TParticle> topObjectSelection::elecSelection() {
   vector<TParticle> elecs; 
@@ -122,11 +127,11 @@ vector<TParticle> topObjectSelection::jetSelection() {
   vector<TParticle> jets;
   //float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
-    if (Jet_pt[i] < cut_JetPt) continue;
-    if (std::abs(Jet_eta[i]) > cut_JetEta) continue;
+    if (m_JetPt[i] < cut_JetPt) continue;
+    if (std::abs(m_JetEta[i]) > cut_JetEta) continue;
     if (Jet_jetId[i] < cut_JetID) continue;
     TLorentzVector mom;
-    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
+    mom.SetPtEtaPhiM(m_JetPt[i], m_JetEta[i], m_JetPhi[i], m_JetMass[i]);
     bool hasOverLap = false;
     for (auto lep : recoleps){
         if (mom.TLorentzVector::DeltaR(lep) < cut_JetConeSizeOverlap) hasOverLap = true;
@@ -141,7 +146,7 @@ vector<TParticle> topObjectSelection::jetSelection() {
     BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
     if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
     //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
-    auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
+    auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , m_JetEta[i], m_JetPt[i], Jet_btagCSVV2[i]);
     b_btagweight *= bjetSF;
     for (UInt_t iu = 0; iu < 19; iu++) {
      // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
@@ -156,12 +161,12 @@ vector<TParticle> topObjectSelection::jetSelection() {
 vector<TParticle> topObjectSelection::bjetSelection() {
   vector<TParticle> bjets;
   for (UInt_t i = 0; i < nJet; ++i ) {
-    if (Jet_pt[i] < cut_BJetPt) continue;
-    if (std::abs(Jet_eta[i]) > cut_BJetEta) continue;
+    if (m_JetPt[i] < cut_BJetPt) continue;
+    if (std::abs(m_JetEta[i]) > cut_BJetEta) continue;
     if (Jet_jetId[i] < cut_BJetID) continue;
     if (cut_BJetTypeBTag[i] < cut_BJetBTagCut) continue;
     TLorentzVector mom;
-    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
+    mom.SetPtEtaPhiM(m_JetPt[i], m_JetEta[i], m_JetPhi[i], m_JetMass[i]);
     bool hasOverLap = false;
     for (auto lep : recoleps) {
       if (mom.TLorentzVector::DeltaR(lep) < cut_BJetConeSizeOverlap) hasOverLap = true;
