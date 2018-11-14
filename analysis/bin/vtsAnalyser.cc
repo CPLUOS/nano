@@ -142,7 +142,6 @@ int main(int argc, char* argv[])
         ana.setOutput(outFileName);
         ana.Loop();
         cout << inFileName << " : Analysis Complete " << endl;
-        
       }
     }
   }
