@@ -473,17 +473,16 @@ void vtsAnalyser::MatchingForMC() {
   TLorentzVector tq2_tlv = tq2.tlv;
 
   /* Select quarks from W->qq (not yet used) */
-  int wq1;
+  genInfo wq1; genInfo wq2;
   TLorentzVector wq1_tlv;
-  int wq2;
   TLorentzVector wq2_tlv;
   if (m_wqMC.size() != 0) {
     cout << "number of quark from W-boson : " << m_wqMC.size() << endl;
-    wq1 = m_wqMC[0].idx;
-    wq1_tlv.SetPtEtaPhiM(GenPart_pt[wq1], GenPart_eta[wq1], GenPart_phi[wq1], GenPart_mass[wq1]);
+    wq1 = m_wqMC[0];
+    wq1_tlv = wq1.tlv;
     if (m_wqMC.size() == 2) {
-      wq2 = m_wqMC[1].idx;
-      wq2_tlv.SetPtEtaPhiM(GenPart_pt[wq2], GenPart_eta[wq2], GenPart_phi[wq2], GenPart_mass[wq2]);
+      wq2 = m_wqMC[1];
+      wq2_tlv = wq2.tlv;
     }
   }
 
@@ -676,9 +675,9 @@ void vtsAnalyser::GenAnalysis() {
       for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
         TLorentzVector jet_tlv;
         jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-        auto dr = jet_tlv.DeltaR(gen_tlv);      auto x = GenPart_pt[i]/Jet_pt[j];
-        auto drMin1 = recPair1[j].dr; auto xMax1 = recPair1[j].x;
-        auto drMin2 = recPair2[j].dr; auto xMax2 = recPair2[j].x;
+        auto dr     = jet_tlv.DeltaR(gen_tlv); auto x     = GenPart_pt[i]/Jet_pt[j];
+        auto drMin1 = recPair1[j].dr;          auto xMax1 = recPair1[j].x;
+        auto drMin2 = recPair2[j].dr;          auto xMax2 = recPair2[j].x;
         if (isFrom != m_qjMapForMC[j]) continue;
         if (dr < drMin1) recPair1[j] = {i,dr,x};
         else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
@@ -691,9 +690,9 @@ void vtsAnalyser::GenAnalysis() {
       for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
         TLorentzVector jet_tlv;
         jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
-        auto dr = jet_tlv.DeltaR(gen_tlv); auto x = GenPart_pt[i]/GenJet_pt[j];
-        auto drMin1 = genPair1[j].dr; auto xMax1 = genPair1[j].x;
-        auto drMin2 = genPair2[j].dr; auto xMax2 = genPair2[j].x;
+        auto dr     = jet_tlv.DeltaR(gen_tlv); auto x     = GenPart_pt[i]/GenJet_pt[j];
+        auto drMin1 = genPair1[j].dr;          auto xMax1 = genPair1[j].x;
+        auto drMin2 = genPair2[j].dr;          auto xMax2 = genPair2[j].x;
         if (isFrom != m_qgjMapForMC[j]) continue;
         if (dr < drMin1) genPair1[j] = {i,dr,x};
         else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
@@ -921,7 +920,7 @@ void vtsAnalyser::FillJetTreeForTMVA() {
     if (m_recJet.size() == 0) return;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
     auto highest_first_idx = m_recJet[0].idx; auto highest_second_idx = m_recJet[1].idx;
-    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // dR(s,jet) ordering
+    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // dR(s,jet) ordering, if bbbar samples are used, then drsj will be also dR(b, jet)
     auto closest_s_idx = m_recJet[0].idx; auto closest_s_dr = m_recJet[0].drsj;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // dR(b,jet) ordering
     auto closest_b_idx = m_recJet[0].idx; auto closest_b_dr = m_recJet[0].drbj;
@@ -937,7 +936,10 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       auto j = selectedJet[ij].GetFirstMother();
       TLorentzVector jet_tlv; jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
 
-      if ((j == (int) closest_s_idx) && (fabs(closest_s_dr) <= m_jetConeSize)) b_isSJet = 1;
+      if ((j == (int) closest_s_idx) && (fabs(closest_s_dr) <= m_jetConeSize)) {
+        if (abs(m_qjMapForMC[closest_s_idx] == 3)) b_isSJet = 1;
+        else b_isBJet = 1; // if bbbar samples are used, then drsj will be also dR(b, jet)
+      }
       if ((j == (int) closest_b_idx) && (fabs(closest_b_dr) <= m_jetConeSize)) b_isBJet = 1;
       if ((j == (int) highest_first_idx) || (j == (int) highest_second_idx))   b_isHighest = 1;
       if ((j == (int) closest_lep1_idx)  || (j == (int) closest_lep2_idx))     b_isClosestToLep = 1;
