@@ -80,8 +80,7 @@ log = condor.log
 
 requirements = ( HasSingularity == true )
 accounting_group=group_cms
-+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/op
-ensciencegrid/osgvo-el6:latest"
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"
 +SingularityBind = "/cvmfs, /cms, /share"
 
 getenv     = True
