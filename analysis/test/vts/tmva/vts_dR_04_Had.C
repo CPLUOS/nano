@@ -113,40 +113,37 @@ int vts_dR_04_Had( TString myMethodList = "" )
   TFile *bbars_bsbar_pythia(0);       TFile *bbars_bsbar_herwig(0);
   TFile *bbars_bsbar_bbbar_pythia(0);
 
-//  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_pythia.root";
-//  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_herwig.root";
+  TString sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_2l_FxFx_sum_349.root";
+  TString sample_bbars_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
 
-  TString sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bbars_2l_FxFx_sum_349.root";
-  TString sample_bbars_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bsbar_2l_FxFx_sum_350.root";
+  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
 
-  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bsbar_2l_FxFx_sum_350.root";
-  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_bsbar_sum_349_350.root";
+  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_bsbar_herwigpp_sum_49.root";
 
-  TString sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bbars_bsbar_sum_349_350.root";
-  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bbars_bsbar_herwigpp_sum_49.root";
-
-  bbars_pythia = TFile::Open( sample_bbars_pythia );                          bbars_herwig = TFile::Open( sample_bbars_herwig );
-  bsbar_pythia = TFile::Open( sample_bsbar_pythia );                          bsbar_herwig = TFile::Open( sample_bsbar_herwig );
-  bbars_bsbar_pythia = TFile::Open( sample_bbars_bsbar_pythia );              bbars_bsbar_herwig = TFile::Open( sample_bbars_bsbar_herwig );
+  bbars_pythia = TFile::Open( sample_bbars_pythia );                          //bbars_herwig = TFile::Open( sample_bbars_herwig );
+  bsbar_pythia = TFile::Open( sample_bsbar_pythia );                          //bsbar_herwig = TFile::Open( sample_bsbar_herwig );
+  bbars_bsbar_pythia = TFile::Open( sample_bbars_bsbar_pythia );              //bbars_bsbar_herwig = TFile::Open( sample_bbars_bsbar_herwig );
 //  bbars_bsbar_bbbar_pythia = TFile::Open( sample_bbars_bsbar_bbbar_pythia );
 
   std::cout << "--- vts_dR_04_Had       : Using input file 1 : " << bbars_pythia->GetName() << std::endl;
-  std::cout << "--- vts_dR_04_Had       : Using input file 2 : " << bbars_herwig->GetName() << std::endl;
+//  std::cout << "--- vts_dR_04_Had       : Using input file 2 : " << bbars_herwig->GetName() << std::endl;
   std::cout << "--- vts_dR_04_Had       : Using input file 3 : " << bsbar_pythia->GetName() << std::endl;
-  std::cout << "--- vts_dR_04_Had       : Using input file 4 : " << bsbar_herwig->GetName() << std::endl;
+//  std::cout << "--- vts_dR_04_Had       : Using input file 4 : " << bsbar_herwig->GetName() << std::endl;
   std::cout << "--- vts_dR_04_Had       : Using input file 5 : " << bbars_bsbar_pythia->GetName() << std::endl;
-  std::cout << "--- vts_dR_04_Had       : Using input file 6 : " << bbars_bsbar_herwig->GetName() << std::endl;
+//  std::cout << "--- vts_dR_04_Had       : Using input file 6 : " << bbars_bsbar_herwig->GetName() << std::endl;
 //  std::cout << "--- vts_dR_04_Had       : Using input file 7 : " << bbars_bsbar_bbbar_pythia->GetName() << std::endl;
 
   // Register the training and test trees
   TTree *bbars_pythia_tree           = (TTree*)bbars_pythia->Get("MVA_had");
-  TTree *bbars_herwig_tree           = (TTree*)bbars_herwig->Get("MVA_had");
+//  TTree *bbars_herwig_tree           = (TTree*)bbars_herwig->Get("MVA_had");
   
   TTree *bsbar_pythia_tree           = (TTree*)bsbar_pythia->Get("MVA_had");
-  TTree *bsbar_herwig_tree           = (TTree*)bsbar_herwig->Get("MVA_had");
+//  TTree *bsbar_herwig_tree           = (TTree*)bsbar_herwig->Get("MVA_had");
 
   TTree *bbars_bsbar_pythia_tree     = (TTree*)bbars_bsbar_pythia->Get("MVA_had");
-  TTree *bbars_bsbar_herwig_tree     = (TTree*)bbars_bsbar_herwig->Get("MVA_had");
+//  TTree *bbars_bsbar_herwig_tree     = (TTree*)bbars_bsbar_herwig->Get("MVA_had");
 
   // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
   TString outfileName( "./output/vts_dR_04_Had.root" );
@@ -154,51 +151,24 @@ int vts_dR_04_Had( TString myMethodList = "" )
 
   TMVA::Factory *factory = new TMVA::Factory( "vts_dR_04_Had", outputFile,
                                               "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification" );
+
   TMVA::DataLoader *pp_real_vs_fake = new TMVA::DataLoader("pp_real_vs_fake");
-  TMVA::DataLoader *ph_real_vs_fake = new TMVA::DataLoader("ph_real_vs_fake");
-  TMVA::DataLoader *hp_real_vs_fake = new TMVA::DataLoader("hp_real_vs_fake");
-  TMVA::DataLoader *hh_real_vs_fake = new TMVA::DataLoader("hh_real_vs_fake");
 
   //    (TMVA::gConfig().GetVariablePlotting()).fTimesRMS = 8.0;
   //    (TMVA::gConfig().GetIONames()).fWeightFileDir = "myWeightDirectory";
   (TMVA::gConfig().GetVariablePlotting()).fMaxNumOfAllowedVariablesForScatterPlots = 99999;
   (TMVA::gConfig().GetVariablePlotting()).fNbinsXOfROCCurve = 1000;
 
-  // [all types of expressions that can also be parsed by TTree::Draw( "expression" )]
-
-  addHadVariable(pp_real_vs_fake); 
-//  addHadVariable(ph_real_vs_fake);
-//  addHadVariable(hp_real_vs_fake);
-//  addHadVariable(hh_real_vs_fake);
-
-  // global event weights per tree (see below for setting event-wise weights)
   Double_t signalWeight     = 1.0; Double_t backgroundWeight = 1.0;
-
-  // You can add an arbitrary number of signal or background trees
-  addTree(pp_real_vs_fake,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-//  addTree(ph_real_vs_fake,   bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-//  addTree(hp_real_vs_fake,   bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-//  addTree(hh_real_vs_fake,   bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-
-  //dataloader->SetBackgroundWeightExpression( "weight" );
 
   TCut cut_real = "nMatched == 2";
   TCut cut_fake = "nMatched != 2";
+  TString opt_pp = "nTrain_Signal=10000:nTrain_Background=672000:SplitMode=Random:NormMode=NumEvents:!V";
 
-  TString opt_pp = "nTrain_Signal=9100:nTrain_Background=672000:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_ph = "nTrain_Signal=13000:nTrain_Background=960000:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_hp = "nTrain_Signal=6000:nTrain_Background=572000:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_hh = "nTrain_Signal=4200:nTrain_Background=400000:SplitMode=Random:NormMode=NumEvents:!V";
-
+  addHadVariable(pp_real_vs_fake);
+  addTree(pp_real_vs_fake,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
   pp_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_pp ); 
-//  ph_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_ph );
-//  hp_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_hp ); 
-//  hh_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_hh ); 
-
   addMethod(Use, factory, pp_real_vs_fake);
-//  addMethod(Use, factory, ph_real_vs_fake);
-//  addMethod(Use, factory, hp_real_vs_fake);
-//  addMethod(Use, factory, hh_real_vs_fake);
 
   // For an example of the category classifier usage, see: vts_dR_04_HadCategory
   //
@@ -232,9 +202,6 @@ int vts_dR_04_Had( TString myMethodList = "" )
 
   delete factory;
   delete pp_real_vs_fake;
-  delete ph_real_vs_fake;
-  delete hp_real_vs_fake;
-  delete hh_real_vs_fake;
 
   // Launch the GUI for the root macros
   if (!gROOT->IsBatch()) TMVA::TMVAGui( outfileName );
