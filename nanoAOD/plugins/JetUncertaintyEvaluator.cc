@@ -1,4 +1,4 @@
-#include "JetMetUncertainty.h"
+#include "JetUncertaintyEvaluator.h"
 
 
 //#define debugMode
@@ -6,7 +6,7 @@ using namespace edm;
 using namespace std;
 
 
-JetMetUncertainty::JetMetUncertainty(const edm::ParameterSet &iConfig) : 
+JetUncertaintyEvaluator::JetUncertaintyEvaluator(const edm::ParameterSet &iConfig) : 
   src_(consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("src"))),
   rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
   payloadName_(iConfig.getParameter<std::string>("payloadName")),
@@ -17,20 +17,20 @@ JetMetUncertainty::JetMetUncertainty(const edm::ParameterSet &iConfig) :
 }
 
 
-void JetMetUncertainty::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void JetUncertaintyEvaluator::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.setUnknown();
   descriptions.addDefault(desc);
 }
 
 
-void JetMetUncertainty::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) {
+void JetUncertaintyEvaluator::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) {
   edm::Service<edm::RandomNumberGenerator> rng;
   rng_ = &rng->getEngine(lumi.index());
 }
 
 
-void JetMetUncertainty::produce(edm::Event &iEvent, const edm::EventSetup &iSetup) {
+void JetUncertaintyEvaluator::produce(edm::Event &iEvent, const edm::EventSetup &iSetup) {
   runOnMC_ = !iEvent.isRealData();
   
   Handle<pat::JetCollection> jets;
@@ -137,6 +137,6 @@ void JetMetUncertainty::produce(edm::Event &iEvent, const edm::EventSetup &iSetu
   iEvent.put(move(outJetCor));
 }
 
-DEFINE_FWK_MODULE(JetMetUncertainty);
+DEFINE_FWK_MODULE(JetUncertaintyEvaluator);
 
 

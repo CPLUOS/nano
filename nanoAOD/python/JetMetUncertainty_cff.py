@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from  PhysicsTools.NanoAOD.common_cff import *
 
-jetUncEvaluatorTable = cms.EDProducer("JetMetUncertainty",
+jetUncEvaluatorTable = cms.EDProducer("JetUncertaintyEvaluator",
   src = cms.InputTag("linkedObjects","jets"),
   rho = cms.InputTag('fixedGridRhoFastjetAll'), 
   payloadName  = cms.string('AK4PFchs'), 

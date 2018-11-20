@@ -1,5 +1,5 @@
-#ifndef JetMetUncertainty_H
-#define JetMetUncertainty_H
+#ifndef JetUncertaintyEvaluator_H
+#define JetUncertaintyEvaluator_H
 
 #include<memory>
 
@@ -41,9 +41,9 @@ using namespace edm;
 using namespace std;
 
 
-class JetMetUncertainty: public edm::stream::EDProducer<> {
+class JetUncertaintyEvaluator: public edm::stream::EDProducer<> {
 public:  
-  explicit JetMetUncertainty(const edm::ParameterSet &iConfig);
+  explicit JetUncertaintyEvaluator(const edm::ParameterSet &iConfig);
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
 private:
@@ -62,6 +62,6 @@ private:
   CLHEP::HepRandomEngine* rng_;
 };
 
-#endif // JetMetUncertainty_H
+#endif // JetUncertaintyEvaluater_H
 
 
