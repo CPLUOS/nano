@@ -76,6 +76,21 @@ public:
   virtual bool additionalConditionForJet(UInt_t nIdx) {return true;};
   virtual bool additionalConditionForBJet(UInt_t nIdx) {return true;};
   
+  // In uncertainty study we need to switch the kinematic variables of jets
+  // The following variables are for this switch
+  // In the topObjectSelection.cc these variables are used instead of Jet_pt, Jet_mass, and so on.
+  // In default, these are same as the original ones, but when a user wants to study systematic uncertainty 
+  // so that he/she needs to switch them to the evaluated ones, 
+  // just touching them in anlalyser class will be okay, and this is for it.
+  virtual void GetJetMassPt(UInt_t nIdx, 
+    Float_t &fJetMass, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi) 
+  {
+    fJetMass  = Jet_mass[ nIdx ];
+    fJetPt = Jet_pt[ nIdx ];
+    fJetEta = Jet_eta[ nIdx ];
+    fJetPhi = Jet_phi[ nIdx ];
+  }
+  
 public:
   std::vector<TParticle> muonSelection();
   std::vector<TParticle> elecSelection();
