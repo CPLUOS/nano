@@ -115,8 +115,8 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlow) h_cutFlow->Fill(2);
 
   //Triggers
-  b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
-  b_trig_e = HLT_Ele27_WPTight_Gsf;
+  b_trig_m = TrigForMu();
+  b_trig_e = TrigForEl();
   if ( !( b_trig_m || b_trig_e ) ) return b_step;
 
   // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
