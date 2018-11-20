@@ -47,6 +47,8 @@ protected:
 public:
 
   enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
+  
+  virtual int SetCutValues();
 
   virtual int EventSelection();
 
