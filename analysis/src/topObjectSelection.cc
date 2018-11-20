@@ -14,7 +14,6 @@ vector<TParticle> topObjectSelection::elecSelection() {
     if (cut_ElectronIDType != NULL && cut_ElectronIDType[i] < cut_ElectronIDCut) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( cut_ElectronSCEtaLower < std::abs(el_scEta) && std::abs(el_scEta) < cut_ElectronSCEtaUpper ) continue;
-    if ( Electron_pfRelIso03_all[ i ] > cut_ElectronRelIso03All ) continue;
     if ( !additionalConditionForElectron(i) ) continue;
     
     TLorentzVector mom;
@@ -60,7 +59,6 @@ vector<TParticle> topObjectSelection::vetoElecSelection() {
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( cut_VetoElectronSCEtaLower < std::abs(el_scEta) && 
                                       std::abs(el_scEta) < cut_VetoElectronSCEtaUpper ) continue;
-    if ( Electron_pfRelIso03_all[ i ] > cut_VetoElectronRelIso03All ) continue;
     if ( !additionalConditionForVetoElectron(i) ) continue;
     
     TLorentzVector mom;
