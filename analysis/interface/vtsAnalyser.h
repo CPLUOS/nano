@@ -15,7 +15,7 @@ public:
   void setOutput(std::string outputName);
   virtual void Loop();
 private:
-  Bool_t m_isGenericMC;
+  Bool_t m_isGenericMC = false;
 
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
@@ -153,6 +153,7 @@ private:
   void CollectVar();
 
   void ResetForTMVA();
+
   void FillJetTreeForTMVA();
   void FillHadTreeForTMVA();
   void SetMVAReader();
