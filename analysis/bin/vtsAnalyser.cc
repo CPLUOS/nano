@@ -938,8 +938,8 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       TLorentzVector jet_tlv; jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
 
       if ((j == (int) closest_s_idx) && (fabs(closest_s_dr) <= m_jetConeSize)) {
-        if (abs(m_qjMapForMC[closest_s_idx] == 3)) b_isSJet = 1;
-        else b_isBJet = 1; // if bbbar samples are used, then drsj will be also dR(b, jet)
+        if (abs(m_qjMapForMC[closest_s_idx]) == 3)     b_isSJet = 1;
+        else if (abs(m_qjMapForMC[closest_s_idx]) == 5) b_isBJet = 1; // if bbbar samples are used, then drsj will be also dR(b, jet)
       }
       if ((j == (int) closest_b_idx) && (fabs(closest_b_dr) <= m_jetConeSize)) b_isBJet = 1;
       if ((j == (int) highest_first_idx) || (j == (int) highest_second_idx))   b_isHighest = 1;
