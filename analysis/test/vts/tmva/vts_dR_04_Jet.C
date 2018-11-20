@@ -17,23 +17,50 @@
 #include "TMVA/TMVAGui.h"
 
 void addJetVariable(TMVA::DataLoader *dataloader) {
-  dataloader->AddVariable("pt", 'F');
-  dataloader->AddVariable("eta", 'F');
-  dataloader->AddVariable("phi", 'F');
-  dataloader->AddVariable("mass", 'F');
-  dataloader->AddVariable("c_x1", 'F');
-  dataloader->AddVariable("c_x2", 'F');
-  dataloader->AddVariable("c_x3", 'F');
-  dataloader->AddVariable("n_x1", 'F');
-  dataloader->AddVariable("n_x2", 'F');
-  dataloader->AddVariable("n_x3", 'F');
+  dataloader->AddVariable("pt",    'F');
+  dataloader->AddVariable("eta",   'F');
+  dataloader->AddVariable("phi",   'F');
+  dataloader->AddVariable("mass",  'F');
+  dataloader->AddVariable("c_x1",  'F');
+  dataloader->AddVariable("c_x2",  'F');
+  dataloader->AddVariable("c_x3",  'F');
+  dataloader->AddVariable("n_x1",  'F');
+  dataloader->AddVariable("n_x2",  'F');
+  dataloader->AddVariable("n_x3",  'F');
   dataloader->AddVariable("cmult", 'I');
   dataloader->AddVariable("nmult", 'I');
   dataloader->AddVariable("axis1", 'F');
   dataloader->AddVariable("axis2", 'F');
-  dataloader->AddVariable("ptD", 'F');
-  dataloader->AddVariable("area", 'F');
+  dataloader->AddVariable("ptD",   'F');
+  dataloader->AddVariable("area",  'F');
   dataloader->AddVariable("CSVV2", 'F'); 
+}
+
+void addHadVariablePP(TMVA::DataLoader *dataloader) {
+  dataloader->AddVariable("KS_d",                'F');
+  dataloader->AddVariable("KS_pt",               'F');
+  dataloader->AddVariable("KS_eta",              'F');
+  dataloader->AddVariable("KS_phi",              'F');
+  dataloader->AddVariable("KS_mass",             'F');
+  dataloader->AddVariable("KS_lxy",              'F');
+  dataloader->AddVariable("KS_lxySig",           'F');
+  dataloader->AddVariable("KS_l3D",              'F');
+  dataloader->AddVariable("KS_l3DSig",           'F');
+  dataloader->AddVariable("KS_legDR",            'F');
+  dataloader->AddVariable("KS_angleXY",          'F');
+  dataloader->AddVariable("KS_angleXYZ",         'F');
+  dataloader->AddVariable("KS_chi2",             'F');
+  dataloader->AddVariable("KS_dca",              'F');
+  dataloader->AddVariable("KS_dau1_chi2",        'F');
+  dataloader->AddVariable("KS_dau1_ipsigXY",     'F');
+  dataloader->AddVariable("KS_dau1_ipsigZ",      'F');
+  dataloader->AddVariable("KS_dau1_pt",          'F');
+  dataloader->AddVariable("KS_dau2_chi2",        'F');
+  dataloader->AddVariable("KS_dau2_ipsigXY",     'F');
+  dataloader->AddVariable("KS_dau2_ipsigZ",      'F');
+  dataloader->AddVariable("KS_dau2_pt",          'F');
+  dataloader->AddVariable("KS_best_bdt",         'F');
+  dataloader->AddVariable("KS_x", 'F');
 }
 
 void addTree(TMVA::DataLoader *dataloader, TTree* sig, TTree* bkg, Double_t sigW = 1.0, Double_t bkgW = 1.0) {
@@ -60,6 +87,74 @@ void addMethod(std::map<std::string,int> Use, TMVA::Factory *factory, TMVA::Data
                          "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
 }
 
+void setJKS(std::map<std::string,int> Use,
+            TMVA::Factory *factory,
+            TMVA::DataLoader *dataloader,
+            TTree* sigTrain,
+            TTree* bkgTrain,
+            float signalWeight = 1,
+            float backgroundWeight = 1,
+            TCut cut_sig = "isSJet",
+            TCut cut_bkg = "!isSJet",
+            TString opt = "SplitMode=Random:NormMode=NumEvents:!V") {
+  addJetVariable(dataloader);
+  if (string(dataloader->GetName()).find("pp_") != std::string::npos) addHadVariablePP(dataloader);
+  addTree(dataloader, sigTrain, bkgTrain, signalWeight, backgroundWeight);
+  dataloader->PrepareTrainingAndTestTree(cut_sig, cut_bkg, opt );
+  addMethod(Use, factory, dataloader);
+}
+void setJKS(std::map<std::string,int> Use, 
+            TMVA::Factory *factory, 
+            TMVA::DataLoader *dataloader, 
+            TTree* sigTrain, 
+            TTree* sigTest, 
+            TTree* bkgTrain, 
+            TTree* bkgTest, 
+            float signalWeight = 1, 
+            float backgroundWeight = 1, 
+            TCut cut_sig = "isSJet", 
+            TCut cut_bkg = "!isSJet", 
+            TString opt = "SplitMode=Random:NormMode=NumEvents:!V") {
+  addJetVariable(dataloader);
+  if (string(dataloader->GetName()).find("pp_") != std::string::npos) addHadVariablePP(dataloader);
+  addTree(dataloader, sigTrain, sigTest, bkgTrain, bkgTest, signalWeight, backgroundWeight);
+  dataloader->PrepareTrainingAndTestTree(cut_sig, cut_bkg, opt );
+  addMethod(Use, factory, dataloader);
+}
+
+void setJ(std::map<std::string,int> Use, 
+            TMVA::Factory *factory, 
+            TMVA::DataLoader *dataloader, 
+            TTree* sigTrain, 
+            TTree* bkgTrain, 
+            float signalWeight = 1, 
+            float backgroundWeight = 1, 
+            TCut cut_sig = "isSJet", 
+            TCut cut_bkg = "!isSJet", 
+            TString opt = "SplitMode=Random:NormMode=NumEvents:!V") {
+  addJetVariable(dataloader);
+  addTree(dataloader, sigTrain, bkgTrain, signalWeight, backgroundWeight);
+  dataloader->PrepareTrainingAndTestTree(cut_sig, cut_bkg, opt );
+  addMethod(Use, factory, dataloader);
+}
+void setJ(std::map<std::string,int> Use, 
+            TMVA::Factory *factory, 
+            TMVA::DataLoader *dataloader, 
+            TTree* sigTrain, 
+            TTree* sigTest,
+            TTree* bkgTrain,
+            TTree* bkgTest,
+            float signalWeight = 1,
+            float backgroundWeight = 1,
+            TCut cut_sig = "isSJet",
+            TCut cut_bkg = "!isSJet",
+            TString opt = "SplitMode=Random:NormMode=NumEvents:!V") {
+  addJetVariable(dataloader);
+  addTree(dataloader, sigTrain, sigTest, bkgTrain, bkgTest, signalWeight, backgroundWeight);
+  dataloader->PrepareTrainingAndTestTree(cut_sig, cut_bkg, opt );
+  addMethod(Use, factory, dataloader);
+}
+
 int vts_dR_04_Jet( TString myMethodList = "" )
 {
   // This loads the library
@@ -73,19 +168,10 @@ int vts_dR_04_Jet( TString myMethodList = "" )
   // Boosted Decision Trees
   Use["BDT"]             = 1; // uses Adaptive Boost
   Use["BDTG"]            = 1; // uses Gradient Boost
-  //
 
   std::map<std::string, int> Opt;
 
-  Opt["diffBkg"]         = 0;
-  Opt["diffGen"]         = 0;
-  Opt["diffSam"]         = 0;
-  Opt["pp"]              = 0;
-  Opt["ph"]              = 0;
-  Opt["hp"]              = 0;
-  Opt["hp"]              = 0;
-
-
+  //
   // ---------------------------------------------------------------
 
   std::cout << std::endl;
@@ -120,23 +206,18 @@ int vts_dR_04_Jet( TString myMethodList = "" )
   TFile *bbars_bsbar_pythia(0); TFile *bbars_bsbar_herwig(0);
   TFile *bbars_bsbar_bbbar_pythia(0);
 
-  TString sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180903/tt012j_bbars_2l_FxFx_sum_146.root";
-  TString sample_bbars_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180903/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
+//  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_pythia.root";
+//  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_herwig.root";
 
-  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180903/tt012j_bsbar_2l_FxFx_sum_146.root";
-  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180903/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_2l_FxFx_sum_630_combined.root";
+  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bsbar_2l_FxFx_sum_774_combined.root";
+  TString sample_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbbar_2l_FxFx_sum_201.root";
+  TString sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_bsbar_sum_630_774_combined.root";
+  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_bsbar_bbbar_sum_630_774_201_combined.root";
 
-  TString sample_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180903/tt012j_bbbar_2l_FxFx_sum_146.root";
-
-  TString sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180903/tt012j_bbars_bsbar_sum_146.root";
-  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20180903/tt012j_bbars_bsbar_herwigpp_sum_49.root";
-
-  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180903/tt012j_bbars_bsbar_bbbar_sum_146.root";
-
-  sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bbars_2l_FxFx_sum_349.root";
-  sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bsbar_2l_FxFx_sum_350.root";
-  sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bbars_bsbar_sum_349_350.root";
-  sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20180913/tt012j_bbars_bsbar_bbbar_sum_349_350_201.root";
+  TString sample_bbars_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181019/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181019/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181019/tt012j_bbars_bsbar_herwigpp_sum_49.root";
 
   bbars_pythia = TFile::Open( sample_bbars_pythia );             bbars_herwig = TFile::Open( sample_bbars_herwig );
   bsbar_pythia = TFile::Open( sample_bsbar_pythia );             bsbar_herwig = TFile::Open( sample_bsbar_herwig );
@@ -155,71 +236,60 @@ int vts_dR_04_Jet( TString myMethodList = "" )
 
   // Register the training and test trees
   TTree *bbars_pythia_tree           = (TTree*)bbars_pythia->Get("MVA_jet");
-  TTree *bbars_herwig_tree           = (TTree*)bbars_herwig->Get("MVA_jet");
-
   TTree *bsbar_pythia_tree           = (TTree*)bsbar_pythia->Get("MVA_jet");
-  TTree *bsbar_herwig_tree           = (TTree*)bsbar_herwig->Get("MVA_jet");
-
   TTree *bbbar_pythia_tree           = (TTree*)bbbar_pythia->Get("MVA_jet");
-
   TTree *bbars_bsbar_pythia_tree     = (TTree*)bbars_bsbar_pythia->Get("MVA_jet");
+  TTree *bbars_bsbar_bbbar_pythia_tree     = (TTree*)bbars_bsbar_bbbar_pythia->Get("MVA_jet");
+  
+  TTree *bbars_herwig_tree           = (TTree*)bbars_herwig->Get("MVA_jet");
+  TTree *bsbar_herwig_tree           = (TTree*)bsbar_herwig->Get("MVA_jet");
   TTree *bbars_bsbar_herwig_tree     = (TTree*)bbars_bsbar_herwig->Get("MVA_jet");
 
-  TTree *bbars_bsbar_bbbar_pythia_tree     = (TTree*)bbars_bsbar_bbbar_pythia->Get("MVA_jet");
-
   // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
-  TString outfileName( "vts_dR_04_Jet.root" );
+  TString outfileName( "./output/vts_dR_04_Jet.root" );
+//  TString outfileName( "vts_dR_04_Jet_20181022.root" );   
   TFile* outputFile = TFile::Open( outfileName, "RECREATE" );
 
   TMVA::Factory *factory = new TMVA::Factory( "vts_dR_04_Jet", outputFile,
-                                              "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification" );
+//                                              "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification" );
+                                              "!V:!Silent:Color:DrawProgressBar:Transformations=I:AnalysisType=Classification" );
+  /* JKS BDT */
+  TMVA::DataLoader *pp_combined_JKS_BDT_highest = new TMVA::DataLoader("pp_combined_JKS_BDT_highest");
+  TMVA::DataLoader *pp_combined_JKS_BDT_closest = new TMVA::DataLoader("pp_combined_JKS_BDT_closest");
+  TMVA::DataLoader *pp_combined_JKS_BDT         = new TMVA::DataLoader("pp_combined_JKS_BDT");
 
+  TMVA::DataLoader *pp_s_vs_b_JKS_BDT_highest = new TMVA::DataLoader("pp_s_vs_b_JKS_BDT_highest");
+  TMVA::DataLoader *pp_s_vs_b_JKS_BDT_closest = new TMVA::DataLoader("pp_s_vs_b_JKS_BDT_closest");
+  TMVA::DataLoader *pp_s_vs_b_JKS_BDT         = new TMVA::DataLoader("pp_s_vs_b_JKS_BDT");
+
+  TMVA::DataLoader *pp_s_vs_b_with_KS_highest   = new TMVA::DataLoader("pp_s_vs_bwith_KS_highest");
+  TMVA::DataLoader *pp_s_vs_non_with_KS_highest = new TMVA::DataLoader("pp_s_vs_non_with_KS_highest");
+  TMVA::DataLoader *pp_s_vs_all_with_KS_highest = new TMVA::DataLoader("pp_s_vs_all_with_KS_highest");
+  TMVA::DataLoader *pp_s_vs_b_with_KS_closest   = new TMVA::DataLoader("pp_s_vs_b_with_KS_closest");
+  TMVA::DataLoader *pp_s_vs_non_with_KS_closest = new TMVA::DataLoader("pp_s_vs_non_with_KS_closest");
+  TMVA::DataLoader *pp_s_vs_all_with_KS_closest = new TMVA::DataLoader("pp_s_vs_all_with_KS_closest");
+  TMVA::DataLoader *pp_s_vs_b_with_KS           = new TMVA::DataLoader("pp_s_vs_b_with_KS");
+  TMVA::DataLoader *pp_s_vs_non_with_KS         = new TMVA::DataLoader("pp_s_vs_non_with_KS");
+  TMVA::DataLoader *pp_s_vs_all_with_KS         = new TMVA::DataLoader("pp_s_vs_all_with_KS");
+
+  /* J BDT */
   TMVA::DataLoader *pp_combined_J_BDT_highest = new TMVA::DataLoader("pp_combined_J_BDT_highest");
   TMVA::DataLoader *pp_combined_J_BDT_closest = new TMVA::DataLoader("pp_combined_J_BDT_closest");
   TMVA::DataLoader *pp_combined_J_BDT         = new TMVA::DataLoader("pp_combined_J_BDT");
 
-  TMVA::DataLoader *pp_bWsW_bWbW_highest = new TMVA::DataLoader("pp_bWsW_bWbW_highest");
-  TMVA::DataLoader *pp_bWsW_bWbW_closest = new TMVA::DataLoader("pp_bWsW_bWbW_closest");
-  TMVA::DataLoader *pp_bWsW_bWbW         = new TMVA::DataLoader("pp_bWsW_bWbW");
+  TMVA::DataLoader *pp_s_vs_b_J_BDT_highest = new TMVA::DataLoader("pp_s_vs_b_J_BDT_highest");
+  TMVA::DataLoader *pp_s_vs_b_J_BDT_closest = new TMVA::DataLoader("pp_s_vs_b_J_BDT_closest");
+  TMVA::DataLoader *pp_s_vs_b_J_BDT         = new TMVA::DataLoader("pp_s_vs_b_J_BDT");
 
-  TMVA::DataLoader *pp_J_BDT_highest = new TMVA::DataLoader("pp_J_BDT_highest");
-  TMVA::DataLoader *pp_J_BDT_closest = new TMVA::DataLoader("pp_J_BDT_closest");
-  TMVA::DataLoader *pp_J_BDT         = new TMVA::DataLoader("pp_J_BDT");
-  TMVA::DataLoader *ph_J_BDT_highest = new TMVA::DataLoader("ph_J_BDT_highest");
-  TMVA::DataLoader *ph_J_BDT_closest = new TMVA::DataLoader("ph_J_BDT_closest");
-  TMVA::DataLoader *hp_J_BDT_highest = new TMVA::DataLoader("hp_J_BDT_highest");
-  TMVA::DataLoader *hp_J_BDT_closest = new TMVA::DataLoader("hp_J_BDT_closest");
-  TMVA::DataLoader *hh_J_BDT_highest = new TMVA::DataLoader("hh_J_BDT_highest");
-  TMVA::DataLoader *hh_J_BDT_closest = new TMVA::DataLoader("hh_J_BDT_closest");
-
-  TMVA::DataLoader *pp_s_vs_b_highest   = new TMVA::DataLoader("pp_s_vs_b_highest");
-  TMVA::DataLoader *pp_s_vs_non_highest = new TMVA::DataLoader("pp_s_vs_non_highest");
-  TMVA::DataLoader *pp_s_vs_all_highest = new TMVA::DataLoader("pp_s_vs_all_highest");
-  TMVA::DataLoader *pp_s_vs_b_closest   = new TMVA::DataLoader("pp_s_vs_b_closest");
-  TMVA::DataLoader *pp_s_vs_non_closest = new TMVA::DataLoader("pp_s_vs_non_closest");
-  TMVA::DataLoader *pp_s_vs_all_closest = new TMVA::DataLoader("pp_s_vs_all_closest");
-  TMVA::DataLoader *pp_s_vs_all         = new TMVA::DataLoader("pp_s_vs_all");
-
-  TMVA::DataLoader *ph_s_vs_b_highest   = new TMVA::DataLoader("ph_s_vs_b_highest");
-  TMVA::DataLoader *ph_s_vs_non_highest = new TMVA::DataLoader("ph_s_vs_non_highest");
-  TMVA::DataLoader *ph_s_vs_all_highest = new TMVA::DataLoader("ph_s_vs_all_highest");
-  TMVA::DataLoader *ph_s_vs_b_closest   = new TMVA::DataLoader("ph_s_vs_b_closest");
-  TMVA::DataLoader *ph_s_vs_non_closest = new TMVA::DataLoader("ph_s_vs_non_closest");
-  TMVA::DataLoader *ph_s_vs_all_closest = new TMVA::DataLoader("ph_s_vs_all_closest");
-
-  TMVA::DataLoader *hp_s_vs_b_highest   = new TMVA::DataLoader("hp_s_vs_b_highest");
-  TMVA::DataLoader *hp_s_vs_non_highest = new TMVA::DataLoader("hp_s_vs_non_highest");
-  TMVA::DataLoader *hp_s_vs_all_highest = new TMVA::DataLoader("hp_s_vs_all_highest");
-  TMVA::DataLoader *hp_s_vs_b_closest   = new TMVA::DataLoader("hp_s_vs_b_closest");
-  TMVA::DataLoader *hp_s_vs_non_closest = new TMVA::DataLoader("hp_s_vs_non_closest");
-  TMVA::DataLoader *hp_s_vs_all_closest = new TMVA::DataLoader("hp_s_vs_all_closest");
-
-  TMVA::DataLoader *hh_s_vs_b_highest   = new TMVA::DataLoader("hh_s_vs_b_highest");
-  TMVA::DataLoader *hh_s_vs_non_highest = new TMVA::DataLoader("hh_s_vs_non_highest");
-  TMVA::DataLoader *hh_s_vs_all_highest = new TMVA::DataLoader("hh_s_vs_all_highest");
-  TMVA::DataLoader *hh_s_vs_b_closest   = new TMVA::DataLoader("hh_s_vs_b_closest");
-  TMVA::DataLoader *hh_s_vs_non_closest = new TMVA::DataLoader("hh_s_vs_non_closest");
-  TMVA::DataLoader *hh_s_vs_all_closest = new TMVA::DataLoader("hh_s_vs_all_closest");
+  TMVA::DataLoader *pp_s_vs_b_highest         = new TMVA::DataLoader("pp_s_vs_b_highest");
+  TMVA::DataLoader *pp_s_vs_non_highest       = new TMVA::DataLoader("pp_s_vs_non_highest");
+  TMVA::DataLoader *pp_s_vs_all_highest       = new TMVA::DataLoader("pp_s_vs_all_highest");
+  TMVA::DataLoader *pp_s_vs_b_closest         = new TMVA::DataLoader("pp_s_vs_b_closest");
+  TMVA::DataLoader *pp_s_vs_non_closest       = new TMVA::DataLoader("pp_s_vs_non_closest");
+  TMVA::DataLoader *pp_s_vs_all_closest       = new TMVA::DataLoader("pp_s_vs_all_closest");
+  TMVA::DataLoader *pp_s_vs_b                 = new TMVA::DataLoader("pp_s_vs_b");
+  TMVA::DataLoader *pp_s_vs_non               = new TMVA::DataLoader("pp_s_vs_non");
+  TMVA::DataLoader *pp_s_vs_all               = new TMVA::DataLoader("pp_s_vs_all");
 
   //    (TMVA::gConfig().GetVariablePlotting()).fTimesRMS = 8.0;
   //    (TMVA::gConfig().GetIONames()).fWeightFileDir = "myWeightDirectory";
@@ -227,226 +297,79 @@ int vts_dR_04_Jet( TString myMethodList = "" )
   (TMVA::gConfig().GetVariablePlotting()).fNbinsXOfROCCurve = 1000;
 
   // global event weights per tree (see below for setting event-wise weights) 
-  Double_t signalWeight     = 1.0; Double_t backgroundWeight = 1.0;
+     Double_t signalWeight     = 1.0; Double_t backgroundWeight = 1.0;
 
-  //dataloader->SetBackgroundWeightExpression( "weight" );
+  /* Cuts for JKS >>>> KS_best_bdt >= 0.0726 : jet includes Real KS */
+  TCut cut_JKS_BDT_s_highest   = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0726 && isSJet && !isBJet";
+  TCut cut_JKS_BDT_b_highest   = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0726 && isBJet && !isSJet";
+  TCut cut_JKS_BDT_all_highest = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0726 && !isSJet";
 
-  TString opt_7 = "nTrain_Signal=30000:nTrain_Background=65000:SplitMode=Random:NormMode=NumEvents:!V";
+  TCut cut_JKS_BDT_s_closest   = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0726 && isSJet && !isBJet";
+  TCut cut_JKS_BDT_b_closest   = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0726 && isBJet && !isSJet";
+  TCut cut_JKS_BDT_all_closest = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0726 && !isSJet";
 
-  TCut cut_J_BDT_s_highest   = "isHighest && KS_idx_pp != -99 && KS_best_bdt_pp < 0.0508 && isSJet";
-  TCut cut_J_BDT_all_highest = "isHighest && KS_idx_pp != -99 && KS_best_bdt_pp < 0.0508 && !isSJet";
-  TCut cut_J_BDT_s_closest   = "isClosestToLep && KS_idx_pp != -99 && KS_best_bdt_pp < 0.0508 && isSJet";
-  TCut cut_J_BDT_all_closest = "isClosestToLep && KS_idx_pp != -99 && KS_best_bdt_pp < 0.0508 && !isSJet";
-  TCut cut_J_BDT_s           = "KS_idx_pp != -99 && KS_best_bdt_pp < 0.0508 && isSJet";
-  TCut cut_J_BDT_all         = "KS_idx_pp != -99 && KS_best_bdt_pp < 0.0508 && !isSJet";
+  TCut cut_JKS_BDT_s           = "KS_idx != -99 && KS_best_bdt >= 0.0726 && isSJet && !isBJet";
+  TCut cut_JKS_BDT_b           = "KS_idx != -99 && KS_best_bdt >= 0.0726 && isBJet && !isSJet";
+  TCut cut_JKS_BDT_all         = "KS_idx != -99 && KS_best_bdt >= 0.0726 && !isSJet";
 
-  TCut cut_s_highest   = "isHighest && isSJet";
-  TCut cut_b_highest   = "isHighest && isBJet";
+  /* Cuts for J >>>> KS_best_bdt < 0.0726 : jet includes Fake KS | KS_idx == -99 : KS isn't in the jet or there is no KS in a event */ 
+  TCut cut_J_BDT_s_highest   = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isSJet && !isBJet";
+  TCut cut_J_BDT_b_highest   = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isBJet && !isSJet";
+  TCut cut_J_BDT_all_highest = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && !isSJet";
+
+  TCut cut_J_BDT_s_closest   = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isSJet && !isBJet";
+  TCut cut_J_BDT_b_closest   = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isBJet && !isSJet";
+  TCut cut_J_BDT_all_closest = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && !isSJet";
+
+  TCut cut_J_BDT_s           = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isSJet && !isBJet";
+  TCut cut_J_BDT_b           = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isBJet && !isSJet";
+  TCut cut_J_BDT_all         = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && !isSJet";
+
+  TCut cut_s_highest   = "isHighest && isSJet && !isBJet";
+  TCut cut_b_highest   = "isHighest && isBJet && !isSJet";
   TCut cut_non_highest = "isHighest && !isSJet && !isBJet";
   TCut cut_all_highest = "isHighest && !isSJet";
-  TCut cut_s_closest   = "isClosestToLep && isSJet";
-  TCut cut_b_closest   = "isClosestToLep && isBJet";
+
+  TCut cut_s_closest   = "isClosestToLep && isSJet && !isBJet";
+  TCut cut_b_closest   = "isClosestToLep && isBJet && !isSJet";
   TCut cut_non_closest = "isClosestToLep && !isSJet && !isBJet";
   TCut cut_all_closest = "isClosestToLep && !isSJet";
-  TCut cut_s           = "isSJet";
+
+  TCut cut_s           = "isSJet && !isBJet";
+  TCut cut_b           = "isBJet && !isSJet";
   TCut cut_all         = "!isSJet";
 
-  addJetVariable(pp_combined_J_BDT);
-  addTree(pp_combined_J_BDT,         bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight);
-  pp_combined_J_BDT->PrepareTrainingAndTestTree(         cut_s,         cut_all,         opt_7 );
-  addMethod(Use, factory, pp_combined_J_BDT);
+  /* for 20181114 samples ratio of train/test is about 7:3 */
+  TString opt_JKS_BDT_nocondi = "nTrain_Signal=3100:nTrain_Background=7800:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_highest = "nTrain_Signal=2500:nTrain_Background=5500:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_closest = "nTrain_Signal=2200:nTrain_Background=4500:SplitMode=Random:NormMode=NumEvents:!V";
 
-  if (Opt["diffSam"]) {
-    if (Opt["pp"]) {
+  TString opt_JKS_BDT_bnocondi = "nTrain_Signal=3100:nTrain_Background=3700:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_bhighest = "nTrain_Signal=2500:nTrain_Background=3000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_bclosest = "nTrain_Signal=2200:nTrain_Background=2700:SplitMode=Random:NormMode=NumEvents:!V";
 
-      addJetVariable(pp_bWsW_bWbW_highest);
-      addJetVariable(pp_bWsW_bWbW_closest);
-      addJetVariable(pp_bWsW_bWbW);
-      addTree(pp_bWsW_bWbW_highest, bbars_bsbar_pythia_tree, bbbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_bWsW_bWbW_closest, bbars_bsbar_pythia_tree, bbbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_bWsW_bWbW,         bbars_bsbar_pythia_tree, bbbar_pythia_tree, signalWeight, backgroundWeight);
-      pp_bWsW_bWbW_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_all_highest, opt_7 );
-      pp_bWsW_bWbW_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_all_closest, opt_7 );
-      pp_bWsW_bWbW->PrepareTrainingAndTestTree(         cut_s,         cut_all,         opt_7 );
-      addMethod(Use, factory, pp_bWsW_bWbW_highest);
-      addMethod(Use, factory, pp_bWsW_bWbW_closest);
-      addMethod(Use, factory, pp_bWsW_bWbW);
-/*
-      addJetVariable(pp_combined_J_BDT_highest);
-      addJetVariable(pp_combined_J_BDT_closest);
-      addJetVariable(pp_combined_J_BDT);
-      addTree(pp_combined_J_BDT_highest, bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_combined_J_BDT_closest, bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_combined_J_BDT,         bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight);
-      pp_combined_J_BDT_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_all_highest, opt_7 );
-      pp_combined_J_BDT_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_all_closest, opt_7 );
-      pp_combined_J_BDT->PrepareTrainingAndTestTree(         cut_s,         cut_all,         opt_7 );
-      addMethod(Use, factory, pp_combined_J_BDT_highest);
-      addMethod(Use, factory, pp_combined_J_BDT_closest);
-      addMethod(Use, factory, pp_combined_J_BDT);
-*/
-    }
-  }
+  TString opt_J_BDT_nocondi = "nTrain_Signal=70000:nTrain_Background=170000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_highest = "nTrain_Signal=58500:nTrain_Background=110000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_closest = "nTrain_Signal=51000:nTrain_Background=90000:SplitMode=Random:NormMode=NumEvents:!V";
 
-  if (Opt["diffGen"]) {
-    if (Opt["pp"]) {
-      addJetVariable(pp_J_BDT_highest);
-      addJetVariable(pp_J_BDT_closest);
-      addJetVariable(pp_J_BDT);
-      addTree(pp_J_BDT_highest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_J_BDT_closest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_J_BDT,         bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      pp_J_BDT_highest->PrepareTrainingAndTestTree( cut_J_BDT_s_highest, cut_J_BDT_all_highest, opt_7 );
-      pp_J_BDT_closest->PrepareTrainingAndTestTree( cut_J_BDT_s_closest, cut_J_BDT_all_closest, opt_7 );
-      pp_J_BDT->PrepareTrainingAndTestTree(         cut_J_BDT_s,         cut_J_BDT_all,         opt_7 );
-      addMethod(Use, factory, pp_J_BDT_highest);
-      addMethod(Use, factory, pp_J_BDT_closest);
-      addMethod(Use, factory, pp_J_BDT);
-    }
-    if (Opt["ph"]) {
-      addJetVariable(ph_J_BDT_highest);
-      addJetVariable(ph_J_BDT_closest);
-      addTree(ph_J_BDT_highest, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(ph_J_BDT_closest, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      ph_J_BDT_highest->PrepareTrainingAndTestTree( cut_J_BDT_s_highest, cut_J_BDT_all_highest, opt_7 );
-      ph_J_BDT_closest->PrepareTrainingAndTestTree( cut_J_BDT_s_closest, cut_J_BDT_all_closest, opt_7 );
-      addMethod(Use, factory, ph_J_BDT_highest);
-      addMethod(Use, factory, ph_J_BDT_closest);
-    }
-    if (Opt["hp"]) {
-      addJetVariable(hp_J_BDT_highest);
-      addJetVariable(hp_J_BDT_closest);
-      addTree(hp_J_BDT_highest, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(hp_J_BDT_closest, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      hp_J_BDT_highest->PrepareTrainingAndTestTree( cut_J_BDT_s_highest, cut_J_BDT_all_highest, opt_7 );
-      hp_J_BDT_closest->PrepareTrainingAndTestTree( cut_J_BDT_s_closest, cut_J_BDT_all_closest, opt_7 );
-      addMethod(Use, factory, hp_J_BDT_highest);
-      addMethod(Use, factory, hp_J_BDT_closest);
-    }
-    if (Opt["hh"]) {
-      addJetVariable(hh_J_BDT_highest);
-      addJetVariable(hh_J_BDT_closest);
-      addTree(hh_J_BDT_highest, bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(hh_J_BDT_closest, bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      hh_J_BDT_highest->PrepareTrainingAndTestTree( cut_J_BDT_s_highest, cut_J_BDT_all_highest, opt_7 );
-      hh_J_BDT_closest->PrepareTrainingAndTestTree( cut_J_BDT_s_closest, cut_J_BDT_all_closest, opt_7 );
-      addMethod(Use, factory, hh_J_BDT_highest);
-      addMethod(Use, factory, hh_J_BDT_closest);
-    }
-  }
+  TString opt_J_BDT_bnocondi = "nTrain_Signal=70000:nTrain_Background=68000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_bhighest = "nTrain_Signal=58500:nTrain_Background=56000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_bclosest = "nTrain_Signal=51000:nTrain_Background=49000:SplitMode=Random:NormMode=NumEvents:!V";
 
-  if (Opt["diffBkg"]) {
-    if (Opt["pp"]) {
-      addJetVariable(pp_s_vs_b_highest); 
-      addJetVariable(pp_s_vs_non_highest); 
-      addJetVariable(pp_s_vs_all_highest);
-      addJetVariable(pp_s_vs_b_closest);
-      addJetVariable(pp_s_vs_non_closest);
-      addJetVariable(pp_s_vs_all_closest);
-      addJetVariable(pp_s_vs_all);
-      addTree(pp_s_vs_b_highest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_s_vs_non_highest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_s_vs_all_highest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_s_vs_b_closest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_s_vs_non_closest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_s_vs_all_closest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(pp_s_vs_all,         bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-/*
-      pp_s_vs_b_highest->PrepareTrainingAndTestTree(   cut_s_highest, cut_b_highest,   opt_7 );
-      pp_s_vs_non_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_non_highest, opt_7 );
-      pp_s_vs_all_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_all_highest, opt_7 );
-      pp_s_vs_b_closest->PrepareTrainingAndTestTree(   cut_s_closest, cut_b_closest,   opt_7 );
-      pp_s_vs_non_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_non_closest, opt_7 );
-      pp_s_vs_all_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_all_closest, opt_7 );
-*/
-      pp_s_vs_all->PrepareTrainingAndTestTree(         cut_s,         cut_all,         opt_7 );
-      addMethod(Use, factory, pp_s_vs_b_highest);
-      addMethod(Use, factory, pp_s_vs_non_highest);
-      addMethod(Use, factory, pp_s_vs_all_highest);
-      addMethod(Use, factory, pp_s_vs_b_closest);
-      addMethod(Use, factory, pp_s_vs_non_closest);
-      addMethod(Use, factory, pp_s_vs_all_closest);
-      addMethod(Use, factory, pp_s_vs_all);
-    }
-    if (Opt["ph"]) {
-      addJetVariable(ph_s_vs_b_highest);
-      addJetVariable(ph_s_vs_non_highest);
-      addJetVariable(ph_s_vs_all_highest);
-      addJetVariable(ph_s_vs_b_closest);
-      addJetVariable(ph_s_vs_non_closest);
-      addJetVariable(ph_s_vs_all_closest);
-      addTree(ph_s_vs_b_highest,   bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(ph_s_vs_non_highest, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(ph_s_vs_all_highest, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(ph_s_vs_b_closest,   bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(ph_s_vs_non_closest, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(ph_s_vs_all_closest, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      ph_s_vs_b_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_b_highest,     opt_7 );
-      ph_s_vs_non_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_non_highest, opt_7 );
-      ph_s_vs_all_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_all_highest, opt_7 );
-      ph_s_vs_b_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_b_closest,     opt_7 );
-      ph_s_vs_non_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_non_closest, opt_7 );
-      ph_s_vs_all_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_all_closest, opt_7 );
-      addMethod(Use, factory, ph_s_vs_b_highest);
-      addMethod(Use, factory, ph_s_vs_non_highest);
-      addMethod(Use, factory, ph_s_vs_all_highest);
-      addMethod(Use, factory, ph_s_vs_b_closest);
-      addMethod(Use, factory, ph_s_vs_non_closest);
-      addMethod(Use, factory, ph_s_vs_all_closest);
-    }
-    if (Opt["hp"]) {
-      addJetVariable(hp_s_vs_b_highest);
-      addJetVariable(hp_s_vs_non_highest);
-      addJetVariable(hp_s_vs_all_highest);
-      addJetVariable(hp_s_vs_b_closest);
-      addJetVariable(hp_s_vs_non_closest);
-      addJetVariable(hp_s_vs_all_closest);
-      addTree(hp_s_vs_b_highest,   bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(hp_s_vs_non_highest, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(hp_s_vs_all_highest, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(hp_s_vs_b_closest,   bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(hp_s_vs_non_closest, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      addTree(hp_s_vs_all_closest, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, bbars_bsbar_herwig_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
-      hp_s_vs_b_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_b_highest,     opt_7 );
-      hp_s_vs_non_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_non_highest, opt_7 );
-      hp_s_vs_all_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_all_highest, opt_7 );
-      hp_s_vs_b_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_b_closest,     opt_7 );
-      hp_s_vs_non_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_non_closest, opt_7 );
-      hp_s_vs_all_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_all_closest, opt_7 );
-      addMethod(Use, factory, hp_s_vs_b_highest);
-      addMethod(Use, factory, hp_s_vs_non_highest);
-      addMethod(Use, factory, hp_s_vs_all_highest);
-      addMethod(Use, factory, hp_s_vs_b_closest);
-      addMethod(Use, factory, hp_s_vs_non_closest);
-      addMethod(Use, factory, hp_s_vs_all_closest);
-    }
-    if (Opt["hh"]) {
-      addJetVariable(hh_s_vs_b_highest);
-      addJetVariable(hh_s_vs_non_highest);
-      addJetVariable(hh_s_vs_all_highest);
-      addJetVariable(hh_s_vs_b_closest);
-      addJetVariable(hh_s_vs_non_closest);
-      addJetVariable(hh_s_vs_all_closest);
-      addTree(hh_s_vs_b_highest,   bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(hh_s_vs_non_highest, bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(hh_s_vs_all_highest, bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(hh_s_vs_b_closest,   bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(hh_s_vs_non_closest, bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      addTree(hh_s_vs_all_closest, bbars_bsbar_herwig_tree, bbars_bsbar_herwig_tree, signalWeight, backgroundWeight);
-      hh_s_vs_b_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_b_highest,     opt_7 ); 
-      hh_s_vs_non_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_non_highest, opt_7 ); 
-      hh_s_vs_all_highest->PrepareTrainingAndTestTree( cut_s_highest, cut_all_highest, opt_7 );  
-      hh_s_vs_b_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_b_closest,     opt_7 );
-      hh_s_vs_non_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_non_closest, opt_7 );   
-      hh_s_vs_all_closest->PrepareTrainingAndTestTree( cut_s_closest, cut_all_closest, opt_7 ); 
-      addMethod(Use, factory, hh_s_vs_b_highest);
-      addMethod(Use, factory, hh_s_vs_non_highest);
-      addMethod(Use, factory, hh_s_vs_all_highest);
-      addMethod(Use, factory, hh_s_vs_b_closest);
-      addMethod(Use, factory, hh_s_vs_non_closest);
-      addMethod(Use, factory, hh_s_vs_all_closest);
-    }
-  }
+  setJKS(Use, factory, pp_combined_JKS_BDT_highest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_highest, cut_JKS_BDT_all_highest, opt_JKS_BDT_highest);
+  setJKS(Use, factory, pp_s_vs_b_JKS_BDT_highest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_highest, cut_JKS_BDT_b_highest,   opt_JKS_BDT_bhighest);
+  setJ(  Use, factory, pp_combined_J_BDT_highest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_highest,   cut_J_BDT_all_highest,   opt_J_BDT_highest);
+  setJ(  Use, factory, pp_s_vs_b_J_BDT_highest,     bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_highest,   cut_J_BDT_b_highest,     opt_J_BDT_bhighest);
+
+  setJKS(Use, factory, pp_combined_JKS_BDT_closest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_closest, cut_JKS_BDT_all_closest, opt_JKS_BDT_closest);
+  setJKS(Use, factory, pp_s_vs_b_JKS_BDT_closest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_closest, cut_JKS_BDT_b_closest,   opt_JKS_BDT_bclosest);
+  setJ(  Use, factory, pp_combined_J_BDT_closest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_closest,   cut_J_BDT_all_closest,   opt_J_BDT_closest);
+  setJ(  Use, factory, pp_s_vs_b_J_BDT_closest,     bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_closest,   cut_J_BDT_b_closest,     opt_J_BDT_bclosest);
+
+//  setJKS(Use, factory, pp_combined_JKS_BDT, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s, cut_JKS_BDT_all, opt_JKS_BDT_nocondi);
+//  setJKS(Use, factory, pp_s_vs_b_JKS_BDT,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s, cut_JKS_BDT_b,   opt_JKS_BDT_bnocondi);
+//  setJ(  Use, factory, pp_combined_J_BDT,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s,   cut_J_BDT_all,   opt_J_BDT_nocondi);
+//  setJ(  Use, factory, pp_s_vs_b_J_BDT,     bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s,   cut_J_BDT_b,     opt_J_BDT_bnocondi);
 
   // For an example of the category classifier usage, see: vts_dR_04_JetCategory
   //
@@ -479,43 +402,6 @@ int vts_dR_04_Jet( TString myMethodList = "" )
   std::cout << "==> vts_dR_04_Jet is done!" << std::endl;
 
   delete factory;
-  delete pp_bWsW_bWbW_highest;
-  delete pp_bWsW_bWbW_closest;
-  delete pp_bWsW_bWbW;        
-  delete pp_J_BDT_highest;
-  delete pp_J_BDT_closest;
-  delete pp_J_BDT;
-  delete ph_J_BDT_highest;
-  delete ph_J_BDT_closest;
-  delete hp_J_BDT_highest;
-  delete hp_J_BDT_closest;
-  delete hh_J_BDT_highest;
-  delete hh_J_BDT_closest;
-  delete pp_s_vs_b_highest;
-  delete pp_s_vs_non_highest;
-  delete pp_s_vs_all_highest;
-  delete pp_s_vs_b_closest;
-  delete pp_s_vs_non_closest;
-  delete pp_s_vs_all_closest;
-  delete pp_s_vs_all;
-  delete ph_s_vs_b_highest;
-  delete ph_s_vs_non_highest;
-  delete ph_s_vs_all_highest;
-  delete ph_s_vs_b_closest;
-  delete ph_s_vs_non_closest;
-  delete ph_s_vs_all_closest;
-  delete hp_s_vs_b_highest;
-  delete hp_s_vs_non_highest;
-  delete hp_s_vs_all_highest;
-  delete hp_s_vs_b_closest;
-  delete hp_s_vs_non_closest;
-  delete hp_s_vs_all_closest;
-  delete hh_s_vs_b_highest;
-  delete hh_s_vs_non_highest;
-  delete hh_s_vs_all_highest;
-  delete hh_s_vs_b_closest;
-  delete hh_s_vs_non_closest;
-  delete hh_s_vs_all_closest;
 
   // Launch the GUI for the root macros
   if (!gROOT->IsBatch()) TMVA::TMVAGui( outfileName );
