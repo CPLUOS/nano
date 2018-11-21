@@ -47,6 +47,9 @@ public:
   virtual int EventSelection();
 
   void Reset();
+  
+  virtual Bool_t TrigForEl() {return HLT_Ele27_WPTight_Gsf;}
+  virtual Bool_t TrigForMu() {return HLT_IsoTkMu24 || HLT_IsoMu24;}
 
   topEventSelectionSL(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false);
   topEventSelectionSL(TTree *tree=0, Bool_t isMC=false, Bool_t sle=false, Bool_t slm=false) : topEventSelectionSL(tree, 0, 0, isMC, sle, slm) {}
