@@ -115,8 +115,9 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlow) h_cutFlow->Fill(2);
 
   //Triggers
-  b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24;
-  b_trig_e = HLT_Ele27_WPTight_Gsf;
+  b_trig_m = TrigForMu();
+  b_trig_e = TrigForEl();
+  if ( !( b_trig_m || b_trig_e ) ) return b_step;
 
   // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
   
@@ -128,30 +129,10 @@ int topEventSelectionSL::EventSelection()
   //   if (!b_trig_e) return b_step;
   // }
 
-  //leptonS
-  b_mueffweight    = muonSF_.getScaleFactor(recolep, 13, 0);
-  b_mueffweight_up = muonSF_.getScaleFactor(recolep, 13, 1);
-  b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
-
-  b_eleffweight    = elecSF_.getScaleFactor(recolep, 11, 0);
-  b_eleffweight_up = elecSF_.getScaleFactor(recolep, 11, 1);
-  b_eleffweight_dn = elecSF_.getScaleFactor(recolep, 11, -1);
-
-  b_tri = b_tri_up = b_tri_dn = 0;
-  b_tri = 1; //computeTrigSF(recolep1, recolep2);
-  b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
-  b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
-
   b_met = MET_pt;
 
   auto muons = muonSelection();
   auto elecs = elecSelection();
-
-  auto bjets = bjetSelection();
-  b_nbjet = bjets.size();
-
-  auto jets = jetSelection();
-  b_njet = jets.size();
 
   if (muons.size() + elecs.size() != 1) return b_step;
   b_step = 1;
@@ -161,16 +142,29 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlowLep) h_cutFlowLep->Fill(1);
   
   if (muons.size() == 1) {
-      recolep = muons[0];
-      b_channel = CH_MU;
+    recolep = muons[0];
+    b_channel = CH_MU;
+    
+    b_mueffweight    = muonSF_.getScaleFactor(recolep, 13, 0);
+    b_mueffweight_up = muonSF_.getScaleFactor(recolep, 13, 1);
+    b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
   } else if (elecs.size() == 1) {
-      recolep = elecs[0];
-      b_channel = CH_EL;
+    recolep = elecs[0];
+    b_channel = CH_EL;
+    
+    b_eleffweight    = elecSF_.getScaleFactor(recolep, 11, 0);
+    b_eleffweight_up = elecSF_.getScaleFactor(recolep, 11, 1);
+    b_eleffweight_dn = elecSF_.getScaleFactor(recolep, 11, -1);
   }
 
   recolep.Momentum(b_lep);
-
+  b_lep_pid = recolep.GetPdgCode();
   recoleps.push_back(b_lep);
+
+  b_tri = b_tri_up = b_tri_dn = 0;
+  b_tri = 1; //computeTrigSF(recolep1, recolep2);
+  b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
+  b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
 
   // Veto Leptons
 
@@ -185,6 +179,12 @@ int topEventSelectionSL::EventSelection()
   b_step = 2;
   if (h_cutFlow) h_cutFlow->Fill(4);
   if (h_cutFlowLep) h_cutFlowLep->Fill(2);
+
+  auto bjets = bjetSelection();
+  b_nbjet = bjets.size();
+
+  auto jets = jetSelection();
+  b_njet = jets.size();
 
   if (b_njet > 0) {
     b_step = 3;
