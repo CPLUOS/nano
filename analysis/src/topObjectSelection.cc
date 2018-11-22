@@ -14,6 +14,7 @@ vector<TParticle> topObjectSelection::elecSelection() {
     if (cut_ElectronIDType != NULL && cut_ElectronIDType[i] < cut_ElectronIDCut) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( cut_ElectronSCEtaLower < std::abs(el_scEta) && std::abs(el_scEta) < cut_ElectronSCEtaUpper ) continue;
+    if ( Electron_pfRelIso03_all[ i ] > cut_ElectronRelIso03All ) continue;
     if ( !additionalConditionForElectron(i) ) continue;
     
     TLorentzVector mom;
@@ -59,6 +60,7 @@ vector<TParticle> topObjectSelection::vetoElecSelection() {
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
     if ( cut_VetoElectronSCEtaLower < std::abs(el_scEta) && 
                                       std::abs(el_scEta) < cut_VetoElectronSCEtaUpper ) continue;
+    if ( Electron_pfRelIso03_all[ i ] > cut_VetoElectronRelIso03All ) continue;
     if ( !additionalConditionForVetoElectron(i) ) continue;
     
     TLorentzVector mom;
@@ -119,8 +121,10 @@ vector<TParticle> topObjectSelection::genJetSelection() {
 }
 
 vector<TParticle> topObjectSelection::jetSelection() {
+  double csvWgtHF = 1.0, csvWgtLF = 1.0, csvWgtC = 1.0, csvWgtTotal = 1.0;
+  double csvWgtHF_up = 1.0, csvWgtLF_up = 1.0, csvWgtC_up = 1.0, csvWgtTotal_up = 1.0;
+  double csvWgtHF_dn = 1.0, csvWgtLF_dn = 1.0, csvWgtC_dn = 1.0, csvWgtTotal_dn = 1.0;
   vector<TParticle> jets;
-  //float Jet_SF_CSV[19] = {1.0,};
   for (UInt_t i = 0; i < nJet; ++i){
     Float_t fJetMass, fJetPt, fJetEta, fJetPhi;
     GetJetMassPt(i, fJetMass, fJetPt, fJetEta, fJetPhi);
@@ -141,17 +145,44 @@ vector<TParticle> topObjectSelection::jetSelection() {
     jet.SetMomentum(mom);
     jet.SetFirstMother(i);
     jets.push_back(jet);
-    BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
-    if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
-    //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
-    auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , fJetEta, fJetPt, Jet_btagCSVV2[i]);
-    b_btagweight *= bjetSF;
-    for (UInt_t iu = 0; iu < 19; iu++) {
-     // Jet_SF_CSV[iu] *= m_btagSF.getSF(jet, Jet_btagCSVV2[i], Jet_hadronFlavour[i], iu);
+    if (m_isMC) {
+      BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+      if (abs(Jet_hadronFlavour[i]) == 5) {
+        JF = BTagEntry::FLAV_B;
+        double iCSVWgtHF = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtHF_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtHF_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtHF != 0) csvWgtHF *= iCSVWgtHF;
+        if (iCSVWgtHF_up != 0) csvWgtHF_up *= iCSVWgtHF_up;
+        if (iCSVWgtHF_dn != 0) csvWgtHF_dn *= iCSVWgtHF_dn;
+      }
+      else if (abs(Jet_hadronFlavour[i]) == 4) {
+        JF = BTagEntry::FLAV_C;
+        double iCSVWgtC = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtC_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtC_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtC != 0) csvWgtC *= iCSVWgtC;
+        if (iCSVWgtC_up != 0) csvWgtC_up *= iCSVWgtC_up;
+        if (iCSVWgtC_dn != 0) csvWgtC_dn *= iCSVWgtC_dn;
+      }
+      else {
+        JF = BTagEntry::FLAV_UDSG;
+        double iCSVWgtLF = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtLF_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtLF_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtLF != 0) csvWgtLF *= iCSVWgtLF;
+        if (iCSVWgtLF_up != 0) csvWgtLF_up *= iCSVWgtLF_up;
+        if (iCSVWgtLF_dn != 0) csvWgtLF_dn *= iCSVWgtLF_dn;
+      } 
     }
   }
-  //for (UInt_t i =0; i<19; i++) b_csvweights.push_back(Jet_SF_CSV[i]);
-  //b_btagweight = Jet_SF_CSV[0];
+  csvWgtTotal = csvWgtHF * csvWgtC * csvWgtLF;  
+  csvWgtTotal_up = csvWgtHF_up * csvWgtC_up * csvWgtLF_up;  
+  csvWgtTotal_dn = csvWgtHF_dn * csvWgtC_dn * csvWgtLF_dn;  
+
+  b_btagweight = csvWgtTotal;
+  b_btagweight_up = csvWgtTotal_up;
+  b_btagweight_dn = csvWgtTotal_dn;
   
   return jets;
 }
