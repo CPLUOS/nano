@@ -147,6 +147,7 @@ void vtsAnalyser::Loop() {
   for (Long64_t iev=0; iev<nentries; iev++) {
     b_had_start = -1; b_had_end = -1;
     b_jet_start = -1; b_jet_end = -1;
+    m_ej = -1; m_jj = -2;
     fChain->GetEntry(iev);
     if (h_fChain) h_fChain->GetEntry(iev);
     if (ht_fChain) ht_fChain->GetEntry(iev);
@@ -171,7 +172,11 @@ void vtsAnalyser::Loop() {
     m_tree->Fill();
 //    cout << " jet entry chk : " << b_jet_start << " " << b_jet_end << endl;
 //    cout << " had entry chk : " << b_had_start << " " << b_had_end << endl;
+    if (m_ej == m_jj) {m_njj += 1; }
   }
+  cout << "ratio of isSJet + isHighest jet / matched1 jet : " << (float) m_nj / (float) m_nej << endl;
+  cout << "ratio of isSJet / matched1 jet :                 " << (float)m_njj/(float)m_nej << " / " << m_njj << " " << m_nej <<endl;
+  cout << "n. of mat1 , n. of isSJet, n. of isSJet + isHighest : " << m_nej << " " << m_nj2 << " " << m_nj << endl;
 }
 
 void vtsAnalyser::setOutput(std::string outFileName) {
@@ -224,6 +229,7 @@ void vtsAnalyser::MakeBranch() {
 
   m_jettrForTMVA->Branch("isSJet",         &b_isSJet,         "isSJet/I");
   m_jettrForTMVA->Branch("isBJet",         &b_isBJet,         "isBJet/I");
+  m_jettrForTMVA->Branch("isOverlap",      &b_isOverlap,      "isOverlap/I");
   m_jettrForTMVA->Branch("isHighest",      &b_isHighest,      "isHighest/I");
   m_jettrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
   m_jettrForTMVA->Branch("cmult",          &b_cmult,          "cmult/F");
@@ -311,13 +317,15 @@ void vtsAnalyser::MakeBranch() {
   BranchO(trig_m); BranchO(trig_m2); BranchO(trig_e); BranchO(trig_mm); BranchO(trig_em); BranchO(trig_ee);
 
   /* For MatchingForMC() */
-  BranchI(matched1_jidx);
+  BranchI(matched1_jidx);    BranchO(matched1_isOverlap);
   BranchI(matched1_idx);     BranchI(matched1_pdgId);     BranchI(matched1_status);
   BranchI(matched1_mom_idx); BranchI(matched1_mom_pdgId); BranchI(matched1_mom_status);
+  BranchF(matched1_dr);
   BranchTLV(matched1_tlv);
-  BranchI(matched2_jidx);
+  BranchI(matched2_jidx);    BranchO(matched2_isOverlap);
   BranchI(matched2_idx);     BranchI(matched2_pdgId);     BranchI(matched2_status);
   BranchI(matched2_mom_idx); BranchI(matched2_mom_pdgId); BranchI(matched2_mom_status);
+  BranchF(matched2_dr);
   BranchTLV(matched2_tlv);
   BranchF(Jet_dr_closest_s);    BranchF(Jet_dr_closest_b);
   BranchF(SelJet_dr_closest_s); BranchF(SelJet_dr_closest_b);
@@ -370,13 +378,15 @@ void vtsAnalyser::ResetBranch() {
   m_recJet.clear();     m_genJet.clear();
   m_closestRecJetForLep1.clear(); m_closestRecJetForLep2.clear(); 
   m_closestGenJetForLep1.clear(); m_closestGenJetForLep2.clear();
-  b_matched1_jidx    = -1;
+  b_matched1_jidx    = -1; b_matched1_isOverlap = -1;
   b_matched1_idx     = -1; b_matched1_pdgId     = -99; b_matched1_status     = -1;
   b_matched1_mom_idx = -1; b_matched1_mom_pdgId = -99; b_matched1_mom_status = -1;
+  b_matched1_dr      = -1;
   b_matched1_tlv.SetPtEtaPhiM(0,0,0,0);
-  b_matched2_jidx    = -1;
+  b_matched2_jidx    = -1; b_matched2_isOverlap = -1;
   b_matched2_idx     = -1; b_matched2_pdgId     = -99; b_matched2_status     = -1;
   b_matched2_mom_idx = -1; b_matched2_mom_pdgId = -99; b_matched2_mom_status = -1;
+  b_matched2_dr      = -1;
   b_matched2_tlv.SetPtEtaPhiM(0,0,0,0);
   b_Jet_dr_closest_s    = -1; b_Jet_dr_closest_b    = -1;
   b_SelJet_dr_closest_s = -1; b_SelJet_dr_closest_b = -1;
@@ -560,6 +570,7 @@ void vtsAnalyser::MatchingForMC() {
     if (m_recJet[0].drsj <= m_jetConeSize) {
       m_qjMapForMC[m_recJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s ==> if the sample used is ttbar->bWbW, then drsj will be also dR(jet, gen b-quark)
       b_matched1_jidx               = m_recJet[0].idx;
+      b_matched1_dr                 = m_recJet[0].drsj;
       b_matched1_idx                = tq1.idx;
       b_matched1_pdgId              = tq1.pdgId;
       b_matched1_status             = tq1.status;
@@ -582,8 +593,15 @@ void vtsAnalyser::MatchingForMC() {
     }
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // order by dR(jet, gen b-quark)
     if (m_recJet[0].drbj <= m_jetConeSize) {
-      m_qjMapForMC[m_recJet[0].idx] = tq2.pdgId; // if jet is inside dRCut == 0.4, then label the tag about b
+      if (m_qjMapForMC[m_recJet[0].idx] == tq1.pdgId) { 
+        b_matched1_isOverlap = 1; b_matched2_isOverlap = 1;
+        m_qjMapForMC[m_recJet[0].idx] = -1; // if dr(s,jet) and dr(b,jet) are overlaped, then give label -1
+      } else {
+        b_matched1_isOverlap = 0; b_matched2_isOverlap = 0;        
+        m_qjMapForMC[m_recJet[0].idx] = tq2.pdgId; // if jet is inside dRCut == 0.4, then label the tag about b
+      }
       b_matched2_jidx               = m_recJet[0].idx;
+      b_matched2_dr                 = m_recJet[0].drbj;
       b_matched2_idx                = tq2.idx;
       b_matched2_pdgId              = tq2.pdgId;
       b_matched2_status             = tq2.status;
@@ -597,6 +615,12 @@ void vtsAnalyser::MatchingForMC() {
       sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // order by jet pT
       if ((int)m_recJet[0].idx == Rec2Jidx || (int)m_recJet[1].idx == Rec2Jidx) b_RecBJetIsHighest += 1;
     }
+    if (b_matched1_isOverlap != 1 && b_matched1_jidx != -1)  {
+      cout << "matched1 : " << m_qjMapForMC[b_matched1_jidx] << " " << b_matched1_jidx << endl;
+      m_ej = b_matched1_jidx;
+      m_nej += 1;
+    }
+
   } else cout << ">>>>> Size of selectedJets is zero <<<<<" << endl;
 }
 
@@ -932,18 +956,24 @@ void vtsAnalyser::FillJetTreeForTMVA() {
 
     for (unsigned int ij=0; ij<selectedJet.size();++ij) {
       ResetForTMVA();
-      b_isSJet = 0; b_isBJet = 0; b_isHighest = 0; b_isClosestToLep = 0;
-
+      b_isSJet = 0; b_isBJet = 0; b_isOverlap = 0; b_isHighest = 0; b_isClosestToLep = 0;
+     
       auto j = selectedJet[ij].GetFirstMother();
       TLorentzVector jet_tlv; jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-
+      
       if ((j == (int) closest_s_idx) && (fabs(closest_s_dr) <= m_jetConeSize)) {
-        if (abs(m_qjMapForMC[closest_s_idx]) == 3)     b_isSJet = 1;
-        else if (abs(m_qjMapForMC[closest_s_idx]) == 5) b_isBJet = 1; // if bbbar samples are used, then drsj will be also dR(b, jet)
+        if (abs(m_qjMapForMC[closest_s_idx]) == 3)        b_isSJet = 1;
+        else if (abs(m_qjMapForMC[closest_s_idx]) == 5)   b_isBJet = 1; // if bbbar samples are used, then drsj will be also dR(b, jet)
+        else if (abs(m_qjMapForMC[closest_s_idx]) == -1)  b_isOverlap = 1; // if jet is matched both of two quarks, then isOverlap = 1 
       }
-      if ((j == (int) closest_b_idx) && (fabs(closest_b_dr) <= m_jetConeSize)) b_isBJet = 1;
+      if ((j == (int) closest_b_idx) && (fabs(closest_b_dr) <= m_jetConeSize)) {
+        if (abs(m_qjMapForMC[closest_b_idx]) == 5)        b_isBJet = 1;
+        else if (abs(m_qjMapForMC[closest_b_idx]) == -1)  b_isOverlap = 1; // if jet is matched both of two quarks, then isOverlap = 1
+      }
       if ((j == (int) highest_first_idx) || (j == (int) highest_second_idx))   b_isHighest = 1;
       if ((j == (int) closest_lep1_idx)  || (j == (int) closest_lep2_idx))     b_isClosestToLep = 1;
+      if (b_isSJet == 1) { cout << "isSJet : " << m_qjMapForMC[closest_s_idx] << " " << closest_s_idx << " " << j << endl; m_nj2 += 1; m_jj = j;}
+      if (b_isSJet == 1 && b_isHighest == 1) { cout << "isSJet + highest_jidx : " << j << endl; m_nj += 1; }
 
       /* distinguish fake isClosestToLep */
       if (j == (int) closest_lep1_idx) {
@@ -955,14 +985,15 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       TLorentzVector tlv_j; 
       tlv_j.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);      
     
-      cout << " [ " << ij << " / " << selectedJet.size() << " ] >>>>>> [ " << setw(10) << tlv_j.Pt() << " " << setw(10) << tlv_j.Eta() << " " << setw(10) << tlv_j.Phi() << " " << setw(10) << tlv_j.M() << " ] >>>>>> ( " << setw(3) << j << " " << setw(3) << m_qjMapForMC[j] << " " << setw(3) << b_isSJet << " " << setw(3) << b_isBJet << " " << setw(3) << b_isHighest << " " << setw(3) << b_isClosestToLep << " ) " << endl;
-
       b_cmult = (float)jetID_cmult[j];   b_nmult = (float)jetID_nmult[j];
       b_pt    = Jet_pt[j];               b_eta   = Jet_eta[j];              b_phi  = Jet_phi[j];              b_mass = Jet_mass[j];
       b_c_x1  = jetID_cpt1[j]/Jet_pt[j]; b_c_x2  = jetID_cpt2[j]/Jet_pt[j]; b_c_x3 = jetID_cpt3[j]/Jet_pt[j];
       b_n_x1  = jetID_npt1[j]/Jet_pt[j]; b_n_x2  = jetID_npt2[j]/Jet_pt[j]; b_n_x3 = jetID_npt3[j]/Jet_pt[j];
       b_axis1 = jetID_axis1[j];          b_axis2 = jetID_axis2[j];          b_ptD  = jetID_ptD[j];
       b_area  = Jet_area[j];             b_CSVV2 = Jet_btagCSVV2[j];
+      b_dr1   = closest_s_dr;            b_dr2   = closest_b_dr;
+
+      cout << " [ " << ij << " / " << selectedJet.size() << " ] In jet tree | Jet idx : " << j << " >>>>>> [ " << setw(10) << tlv_j.Pt() << " " << setw(10) << tlv_j.Eta() << " " << setw(10) << tlv_j.Phi() << " " << setw(10) << tlv_j.M() << " ] >>>>>> ( " << setw(3) << j << " " << setw(3) << m_qjMapForMC[j] << " " << setw(3) << b_isSJet << " " << setw(3) << b_isBJet << " " << setw(3) << b_isHighest << " " << setw(3) << b_isClosestToLep << " ) " << endl;
 
       /* Save jet daughter information */
       int ia = 0;
@@ -1071,7 +1102,7 @@ void vtsAnalyser::SetMVAReader() {
   m_hadReader->AddVariable("pt",           &b_Rec_pt);
   m_hadReader->AddVariable("eta",          &b_Rec_eta);
   m_hadReader->AddVariable("phi",          &b_Rec_phi);
-  m_hadReader->AddVariable("mass",         &b_Rec_mass);
+//  m_hadReader->AddVariable("mass",         &b_Rec_mass);
   m_hadReader->AddVariable("lxy",          &b_Rec_lxy);
   m_hadReader->AddVariable("lxySig",       &b_Rec_lxySig);
   m_hadReader->AddVariable("l3D",          &b_Rec_l3D);

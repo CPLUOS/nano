@@ -6,6 +6,9 @@
 class vtsAnalyser : public hadAnalyser {
 public:
   float m_jetConeSize = 0.4; float m_xCut = 0.2; unsigned int m_jetDauArrSize = 350;
+  int m_nj = 0; int m_nj2 = 0;
+  int m_ej = -1; int m_jj = -2;
+  int m_nej = 0; int m_njj = 0;
 
   vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
@@ -27,7 +30,8 @@ private:
   int b_nJet, b_nSelJet, b_nSelJetEv;
 
   /* for MatchingForMC() */
-  std::map<unsigned int, int> m_qjMapForMC; std::map<unsigned int, int> m_qgjMapForMC;
+  std::map<unsigned int, int> m_qjMapForMC;  // +-3 : jet matched to s-quark, +-5 : jet matched to b-quark, -1 : jet matched to two quarks (overlap)
+  std::map<unsigned int, int> m_qgjMapForMC;
   std::map<unsigned int, int> m_closestRecJetForLep1; std::map<unsigned int, int> m_closestRecJetForLep2; 
   std::map<unsigned int, int> m_closestGenJetForLep1; std::map<unsigned int, int> m_closestGenJetForLep2;
 
@@ -57,14 +61,16 @@ private:
   std::vector<genInfo> m_tqMC;   
   std::vector<genInfo> m_wqMC;
 
-  int b_matched1_jidx;
-  int b_matched1_idx,     b_matched1_pdgId,     b_matched1_status;
-  int b_matched1_mom_idx, b_matched1_mom_pdgId, b_matched1_mom_status;
+  int   b_matched1_jidx,    b_matched1_isOverlap;
+  int   b_matched1_idx,     b_matched1_pdgId,     b_matched1_status;
+  int   b_matched1_mom_idx, b_matched1_mom_pdgId, b_matched1_mom_status;
+  float b_matched1_dr;
   TLorentzVector b_matched1_tlv;
 
-  int b_matched2_jidx;
-  int b_matched2_idx,     b_matched2_pdgId,     b_matched2_status;
-  int b_matched2_mom_idx, b_matched2_mom_pdgId, b_matched2_mom_status;
+  int   b_matched2_jidx,    b_matched2_isOverlap;
+  int   b_matched2_idx,     b_matched2_pdgId,     b_matched2_status;
+  int   b_matched2_mom_idx, b_matched2_mom_pdgId, b_matched2_mom_status;
+  float b_matched2_dr;
   TLorentzVector b_matched2_tlv;
 
   float b_Jet_dr_closest_s, b_Jet_dr_closest_b;
@@ -115,13 +121,14 @@ private:
   float b_Rec_bdt_score;
 
   /* for FillJetTreeForTMVA() */
-  int   b_isSJet, b_isBJet, b_isHighest, b_isClosestToLep;
+  int   b_isSJet, b_isBJet, b_isOverlap, b_isHighest, b_isClosestToLep;
   float b_cmult,  b_nmult; // Data type was changed since JKS (and Jet) BDT require to provide variables for TMVA::reader as float
   float b_pt,     b_eta,    b_phi,       b_mass;
   float b_c_x1,   b_c_x2,   b_c_x3;
   float b_n_x1,   b_n_x2,   b_n_x3;
   float b_axis1,  b_axis2,  b_ptD,       b_area;
   float b_CSVV2;
+  float b_dr1,    b_dr2;
 
   float b_dau_pt[350], b_dau_eta[350], b_dau_phi[350];  
   int   b_dau_charge[350];
