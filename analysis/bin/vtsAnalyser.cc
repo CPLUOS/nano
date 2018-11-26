@@ -152,20 +152,19 @@ void vtsAnalyser::Loop() {
     if (h_fChain) h_fChain->GetEntry(iev);
     if (ht_fChain) ht_fChain->GetEntry(iev);
     cout << "event :     " << iev << endl;
-    cout << "isMC  :     " << m_isMC << endl;
-    cout << "isGeneric : " << m_isGenericMC << endl;
+    //cout << "isMC  :     " << m_isMC << endl;
+    //cout << "isGeneric : " << m_isGenericMC << endl;
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
     ResetBranch();
-    b_nJet = nJet;
-    b_nSelJet = jetSelection().size();
     EventSelection();
+    m_selectedJet = jetSelection();
+    b_nJet = nJet;
+    b_nSelJet = m_selectedJet.size();
     if (b_step >= 4) { // -1 : No event selection, 0 : PV cut, reco lepton cut and so on, 1~4 : step 1 ~ 4
       b_passedEvent = true; 
-      b_nSelJetEv = jetSelection().size();
+      b_nSelJetEv = m_selectedJet.size();
       MatchingForMC();
-      GenAnalysis();
       RecAnalysis();
-      JetAnalysis();
       CollectVar();
       FillJetTreeForTMVA();
     } else b_passedEvent = false; 
@@ -177,6 +176,7 @@ void vtsAnalyser::Loop() {
   cout << "ratio of isSJet + isHighest jet / matched1 jet : " << (float) m_nj / (float) m_nej << endl;
   cout << "ratio of isSJet / matched1 jet :                 " << (float)m_njj/(float)m_nej << " / " << m_njj << " " << m_nej <<endl;
   cout << "n. of mat1 , n. of isSJet, n. of isSJet + isHighest : " << m_nej << " " << m_nj2 << " " << m_nj << endl;
+  cout << "n. of overlap : " << m_nOverlap << endl;
 }
 
 void vtsAnalyser::setOutput(std::string outFileName) {
@@ -317,30 +317,22 @@ void vtsAnalyser::MakeBranch() {
   BranchO(trig_m); BranchO(trig_m2); BranchO(trig_e); BranchO(trig_mm); BranchO(trig_em); BranchO(trig_ee);
 
   /* For MatchingForMC() */
-  BranchI(matched1_jidx);    BranchO(matched1_isOverlap);
+  BranchI(matched1_jidx);    BranchI(matched1_isOverlap);
   BranchI(matched1_idx);     BranchI(matched1_pdgId);     BranchI(matched1_status);
   BranchI(matched1_mom_idx); BranchI(matched1_mom_pdgId); BranchI(matched1_mom_status);
-  BranchF(matched1_dr);
+  BranchF(matched1_dr);      BranchF(matched1_x);
   BranchTLV(matched1_tlv);
-  BranchI(matched2_jidx);    BranchO(matched2_isOverlap);
+  BranchI(matched2_jidx);    BranchI(matched2_isOverlap);
   BranchI(matched2_idx);     BranchI(matched2_pdgId);     BranchI(matched2_status);
   BranchI(matched2_mom_idx); BranchI(matched2_mom_pdgId); BranchI(matched2_mom_status);
-  BranchF(matched2_dr);
+  BranchF(matched2_dr);      BranchF(matched2_x);
   BranchTLV(matched2_tlv);
-  BranchF(Jet_dr_closest_s);    BranchF(Jet_dr_closest_b);
-  BranchF(SelJet_dr_closest_s); BranchF(SelJet_dr_closest_b);
-  BranchF(GenJet_dr_closest_s); BranchF(GenJet_dr_closest_b);
+  BranchF(Jet_dr_closest_1);    BranchF(Jet_dr_closest_2);
+  BranchF(SelJet_dr_closest_1); BranchF(SelJet_dr_closest_2);
+  BranchF(GenJet_dr_closest_1); BranchF(GenJet_dr_closest_2);
   BranchI(GenSJet);             BranchI(GenBJet);             BranchI(RecSJet);             BranchI(RecBJet);            
   BranchI(GenSJetClosestToLep); BranchI(GenBJetClosestToLep); BranchI(RecSJetClosestToLep); BranchI(RecBJetClosestToLep);  
   BranchI(GenSJetIsHighest);    BranchI(GenBJetIsHighest);    BranchI(RecSJetIsHighest);    BranchI(RecBJetIsHighest);   
-
-  /* For GenAnalysis() */
-  BranchVI(GenPart_isGenFrom_vec);    BranchVO(GenPart_isGenFromTop_vec);  BranchVO(GenPart_isGenFromW_vec);   BranchVO(GenPart_isFromKstar_vec);
-  BranchVF(GenPart_d_vec);            BranchVF(GenPart_pt_vec);            BranchVF(GenPart_eta_vec);          BranchVF(GenPart_phi_vec);          BranchVF(GenPart_mass_vec);
-  BranchVF(GenPart_x_closest_j_vec);  BranchVF(GenPart_dr_closest_j_vec);  BranchVF(GenPart_x_highest_j_vec);  BranchVF(GenPart_dr_highest_j_vec);
-  BranchVF(GenPart_x_closest_gj_vec); BranchVF(GenPart_dr_closest_gj_vec); BranchVF(GenPart_x_highest_gj_vec); BranchVF(GenPart_dr_highest_gj_vec);
-  BranchVI(GenPart_isClosestPair_xOrder_j_vec);  BranchVI(GenPart_isHighestPair_xOrder_j_vec); 
-  BranchVI(GenPart_isClosestPair_xOrder_gj_vec); BranchVI(GenPart_isHighestPair_xOrder_gj_vec);
 
   /* For RecAnalysis() */
   BranchVI(hadTruth_pdgId_vec);        BranchVI(hadTruth_nMatched_vec);      BranchVI(hadTruth_isFrom_vec);
@@ -354,9 +346,6 @@ void vtsAnalyser::MakeBranch() {
   BranchVF(hadTruth_x_closest_gj_vec); BranchVF(hadTruth_dr_closest_gj_vec); BranchVF(hadTruth_x_highest_gj_vec); BranchVF(hadTruth_dr_highest_gj_vec);
   BranchVI(hadTruth_isClosestPair_xOrder_j_vec);  BranchVI(hadTruth_isHighestPair_xOrder_j_vec);
   BranchVI(hadTruth_isClosestPair_xOrder_gj_vec); BranchVI(hadTruth_isHighestPair_xOrder_gj_vec);
-
-  /* For JetAnalysis() */
-  BranchVI(Jet_isCorrectMat);
 
   /* For CollectVar() */
   BranchF(MET_pt);   BranchF(MET_phi);  BranchF(MET_sumEt);
@@ -381,27 +370,19 @@ void vtsAnalyser::ResetBranch() {
   b_matched1_jidx    = -1; b_matched1_isOverlap = -1;
   b_matched1_idx     = -1; b_matched1_pdgId     = -99; b_matched1_status     = -1;
   b_matched1_mom_idx = -1; b_matched1_mom_pdgId = -99; b_matched1_mom_status = -1;
-  b_matched1_dr      = -1;
+  b_matched1_dr      = -1; b_matched1_x         = -1;
   b_matched1_tlv.SetPtEtaPhiM(0,0,0,0);
   b_matched2_jidx    = -1; b_matched2_isOverlap = -1;
   b_matched2_idx     = -1; b_matched2_pdgId     = -99; b_matched2_status     = -1;
   b_matched2_mom_idx = -1; b_matched2_mom_pdgId = -99; b_matched2_mom_status = -1;
-  b_matched2_dr      = -1;
+  b_matched2_dr      = -1; b_matched2_x         = -1;
   b_matched2_tlv.SetPtEtaPhiM(0,0,0,0);
-  b_Jet_dr_closest_s    = -1; b_Jet_dr_closest_b    = -1;
-  b_SelJet_dr_closest_s = -1; b_SelJet_dr_closest_b = -1;
-  b_GenJet_dr_closest_s = -1; b_GenJet_dr_closest_b = -1;
+  b_Jet_dr_closest_1    = -1; b_Jet_dr_closest_2    = -1;
+  b_SelJet_dr_closest_1 = -1; b_SelJet_dr_closest_2 = -1;
+  b_GenJet_dr_closest_1 = -1; b_GenJet_dr_closest_2 = -1;
   b_GenSJet             = -1; b_GenBJet             = -1; b_RecSJet             = -1; b_RecBJet             = -1;
   b_GenSJetClosestToLep = -1; b_GenBJetClosestToLep = -1; b_RecSJetClosestToLep = -1; b_RecBJetClosestToLep = -1;
   b_GenSJetIsHighest    = -1; b_GenBJetIsHighest    = -1; b_RecSJetIsHighest    = -1; b_RecBJetIsHighest    = -1;
-
-  /* For GenAnalysis() */
-  b_GenPart_isGenFrom_vec.clear();    b_GenPart_isGenFromTop_vec.clear();  b_GenPart_isGenFromW_vec.clear();   b_GenPart_isFromKstar_vec.clear();
-  b_GenPart_d_vec.clear();            b_GenPart_pt_vec.clear();            b_GenPart_eta_vec.clear();          b_GenPart_phi_vec.clear();          b_GenPart_mass_vec.clear();
-  b_GenPart_x_closest_j_vec.clear();  b_GenPart_dr_closest_j_vec.clear();  b_GenPart_x_highest_j_vec.clear();  b_GenPart_dr_highest_j_vec.clear();
-  b_GenPart_x_closest_gj_vec.clear(); b_GenPart_dr_closest_gj_vec.clear(); b_GenPart_x_highest_gj_vec.clear(); b_GenPart_dr_highest_gj_vec.clear();
-  b_GenPart_isClosestPair_xOrder_j_vec.clear();  b_GenPart_isHighestPair_xOrder_j_vec.clear();
-  b_GenPart_isClosestPair_xOrder_gj_vec.clear(); b_GenPart_isHighestPair_xOrder_gj_vec.clear();
 
   /* For RecAnalysis() */
   b_hadTruth_pdgId_vec.clear();        b_hadTruth_nMatched_vec.clear();      b_hadTruth_isFrom_vec.clear(); 
@@ -415,9 +396,6 @@ void vtsAnalyser::ResetBranch() {
   b_hadTruth_x_closest_gj_vec.clear(); b_hadTruth_dr_closest_gj_vec.clear(); b_hadTruth_x_highest_gj_vec.clear(); b_hadTruth_dr_highest_gj_vec.clear();
   b_hadTruth_isClosestPair_xOrder_j_vec.clear();  b_hadTruth_isHighestPair_xOrder_j_vec.clear();
   b_hadTruth_isClosestPair_xOrder_gj_vec.clear(); b_hadTruth_isHighestPair_xOrder_gj_vec.clear();
-
-  /* For JetAnalysis() */
-  b_Jet_isCorrectMat.clear();
 
   /* For CollectVar() */
   b_MET_pt = -1; b_MET_phi = -99; b_MET_sumEt = -1;
@@ -466,10 +444,9 @@ void vtsAnalyser::MatchingForMC() {
       for (unsigned int j=0; j<nGenJet; ++j) {
         m_genJet.push_back({(int) j, GenJet_pt[j], -1, -1, -1, -1});
       }
-      auto selectedJet = jetSelection();
-      if (selectedJet.size() != 0) {
-        for (unsigned int ij=0; ij<selectedJet.size();++ij) {
-          auto j = selectedJet[ij].GetFirstMother();
+      if (m_selectedJet.size() != 0) {
+        for (unsigned int ij=0; ij<m_selectedJet.size();++ij) {
+          auto j = m_selectedJet[ij].GetFirstMother();
           m_recJet.push_back({j, Jet_pt[j], -1, -1, -1, -1});
         }
       }
@@ -503,10 +480,10 @@ void vtsAnalyser::MatchingForMC() {
   for (unsigned int j=0; j<nGenJet; ++j) {
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
-    auto drs = tq1_tlv.DeltaR(jet_tlv); auto drb = tq2_tlv.DeltaR(jet_tlv);
+    auto dr1 = tq1_tlv.DeltaR(jet_tlv); auto dr2 = tq2_tlv.DeltaR(jet_tlv);
     auto drl1 = b_lep1.DeltaR(jet_tlv); auto drl2 = b_lep2.DeltaR(jet_tlv);
     if (drl1 < 0.4 || drl2 < 0.4) { ++noverlap; continue; }
-    m_genJet.push_back({(int) j, GenJet_pt[j], drs, drb, drl1, drl2});
+    m_genJet.push_back({(int) j, GenJet_pt[j], dr1, dr2, drl1, drl2});
   }
   if (noverlap > 2) std::cout << " >>>> BAD GENJET OVERLAP REMOVAL FOR EVENT <<<< " << std::endl;
   b_GenSJet = 0; b_GenBJet = 0; b_GenSJetClosestToLep = 0; b_GenBJetClosestToLep = 0; b_GenSJetIsHighest = 0; b_GenBJetIsHighest = 0; // Set up 0 value for distinguish the event to not-passed events (value -1)
@@ -519,9 +496,9 @@ void vtsAnalyser::MatchingForMC() {
   /* Find closest gen jet to s or b */
   /* and then save closest jet dr for s/b, Gen S(B) Jet, Gen S(B)Jet which is closest to l+ or l- and is in highest 2 pT jets */
   int Gen1Jidx = -1, Gen2Jidx = -1;
-  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // order by dR(gen jet, gen s-quark)
-  if (m_genJet[0].drsj <= m_jetConeSize) {
-    m_qgjMapForMC[m_genJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s ==> if the sample used is ttbar->bWbW, then drsj will be also dR(gen jet, gen b-quark)
+  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.dr1j < b.dr1j); } ); // order by dR(gen jet, gen s-quark)
+  if (m_genJet[0].dr1j <= m_jetConeSize) {
+    m_qgjMapForMC[m_genJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s ==> if the sample used is ttbar->bWbW, then dr1j will be also dR(gen jet, gen b-quark)
     Gen1Jidx = m_genJet[0].idx; // index of jet which has smallest dR(gen jet, gen quark1)
     if (abs(tq1.pdgId) == 3) { // count number of matched jet
       b_GenSJet += 1;
@@ -535,8 +512,8 @@ void vtsAnalyser::MatchingForMC() {
       if ((int)m_genJet[0].idx == Gen1Jidx || (int)m_genJet[1].idx == Gen1Jidx) b_GenBJetIsHighest += 1;
     }
   }
-  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // order by dR(gen jet, gen s-quark)
-  if (m_genJet[0].drbj <= m_jetConeSize) {
+  sort(m_genJet.begin(), m_genJet.end(), [] (jetInfo a, jetInfo b) { return (a.dr2j < b.dr2j); } ); // order by dR(gen jet, gen s-quark)
+  if (m_genJet[0].dr2j <= m_jetConeSize) {
     m_qgjMapForMC[m_genJet[0].idx] = tq2.pdgId; // if jet is inside dRCut == 0.4, then label the tag about b
     Gen2Jidx = m_genJet[0].idx; // index of jet which has smallest dR(gen jet, gen quark2)
     b_GenBJet += 1;
@@ -546,15 +523,14 @@ void vtsAnalyser::MatchingForMC() {
   }
 
   /* Gen Partcle & Selected Reco Jet Matching */
-  auto selectedJet = jetSelection();
-  if (selectedJet.size() != 0) {
-    for (unsigned int ij=0; ij<selectedJet.size();++ij) {
-      auto j = selectedJet[ij].GetFirstMother();
+  if (m_selectedJet.size() != 0) {
+    for (unsigned int ij=0; ij<m_selectedJet.size();++ij) {
+      auto j = m_selectedJet[ij].GetFirstMother();
       TLorentzVector jet_tlv;
       jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-      auto drs = tq1_tlv.DeltaR(jet_tlv); auto drb = tq2_tlv.DeltaR(jet_tlv);
+      auto dr1 = tq1_tlv.DeltaR(jet_tlv); auto dr2 = tq2_tlv.DeltaR(jet_tlv);
       auto drl1 = b_lep1.DeltaR(jet_tlv); auto drl2 = b_lep2.DeltaR(jet_tlv);
-      m_recJet.push_back({j, Jet_pt[j], drs, drb, drl1, drl2});
+      m_recJet.push_back({j, Jet_pt[j], dr1, dr2, drl1, drl2});
     }
     b_RecSJet = 0; b_RecBJet = 0; b_RecSJetClosestToLep = 0; b_RecBJetClosestToLep = 0; b_RecSJetIsHighest = 0; b_RecBJetIsHighest = 0; // Set up 0 value for distinguish the event to not-passed events (value -1)
     /* Find closest sel jet to l+ or l- */
@@ -566,11 +542,13 @@ void vtsAnalyser::MatchingForMC() {
     /* Find closest sel jet to s or b */ 
     /* and then save closest jet dr for s/b, Rec S(B) Jet, Rec S(B)Jet which is closest to l+ or l- and is in highest 2 pT jets */
     int Rec1Jidx = -1, Rec2Jidx = -1;
-    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // order by dR(jet, gen s-quark)
-    if (m_recJet[0].drsj <= m_jetConeSize) {
-      m_qjMapForMC[m_recJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s ==> if the sample used is ttbar->bWbW, then drsj will be also dR(jet, gen b-quark)
+    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.dr1j < b.dr1j); } ); // order by dR(jet, gen s-quark)
+    if (m_recJet[0].dr1j <= m_jetConeSize) {
+      m_qjMapForMC[m_recJet[0].idx] = tq1.pdgId; // if jet is inside dRCut == 0.4, then label the tag about s ==> if the sample used is ttbar->bWbW, then dr1j will be also dR(jet, gen b-quark)
+      cout << " s quark matching : " << m_recJet[0].idx << " " << m_qjMapForMC[m_recJet[0].idx] << endl;
       b_matched1_jidx               = m_recJet[0].idx;
-      b_matched1_dr                 = m_recJet[0].drsj;
+      b_matched1_dr                 = m_recJet[0].dr1j;
+      b_matched1_x                  = m_recJet[0].pt/tq1.tlv.Pt();
       b_matched1_idx                = tq1.idx;
       b_matched1_pdgId              = tq1.pdgId;
       b_matched1_status             = tq1.status;
@@ -591,17 +569,19 @@ void vtsAnalyser::MatchingForMC() {
         if ((int)m_recJet[0].idx == Rec1Jidx || (int)m_recJet[1].idx == Rec1Jidx) b_RecBJetIsHighest += 1;
       }
     }
-    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // order by dR(jet, gen b-quark)
-    if (m_recJet[0].drbj <= m_jetConeSize) {
+    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.dr2j < b.dr2j); } ); // order by dR(jet, gen b-quark)
+    if (m_recJet[0].dr2j <= m_jetConeSize) {
       if (m_qjMapForMC[m_recJet[0].idx] == tq1.pdgId) { 
         b_matched1_isOverlap = 1; b_matched2_isOverlap = 1;
-        m_qjMapForMC[m_recJet[0].idx] = -1; // if dr(s,jet) and dr(b,jet) are overlaped, then give label -1
+        m_qjMapForMC[m_recJet[0].idx] = -9; // if dr(s,jet) and dr(b,jet) are overlaped, then give label -1
       } else {
         b_matched1_isOverlap = 0; b_matched2_isOverlap = 0;        
         m_qjMapForMC[m_recJet[0].idx] = tq2.pdgId; // if jet is inside dRCut == 0.4, then label the tag about b
       }
+      cout << " b quark matching : " << m_recJet[0].idx << " " << m_qjMapForMC[m_recJet[0].idx] << " overLap? : " << b_matched2_isOverlap << endl;
       b_matched2_jidx               = m_recJet[0].idx;
-      b_matched2_dr                 = m_recJet[0].drbj;
+      b_matched2_dr                 = m_recJet[0].dr2j;
+      b_matched2_x                  = m_recJet[0].pt/tq2.tlv.Pt();
       b_matched2_idx                = tq2.idx;
       b_matched2_pdgId              = tq2.pdgId;
       b_matched2_status             = tq2.status;
@@ -616,10 +596,17 @@ void vtsAnalyser::MatchingForMC() {
       if ((int)m_recJet[0].idx == Rec2Jidx || (int)m_recJet[1].idx == Rec2Jidx) b_RecBJetIsHighest += 1;
     }
     if (b_matched1_isOverlap != 1 && b_matched1_jidx != -1)  {
-      cout << "matched1 : " << m_qjMapForMC[b_matched1_jidx] << " " << b_matched1_jidx << endl;
+      cout << "no overlap - matched1 : " << m_qjMapForMC[b_matched1_jidx] << " " << b_matched1_jidx << endl;
+      cout << "no overlap - matched2 : " << m_qjMapForMC[b_matched2_jidx] << " " << b_matched2_jidx << endl;
       m_ej = b_matched1_jidx;
       m_nej += 1;
     }
+    if (b_matched1_isOverlap == 1 || b_matched2_isOverlap == 1)  {
+      cout << "overlap - matched1 : " << m_qjMapForMC[b_matched1_jidx] << " " << b_matched1_jidx << endl;
+      cout << "overlap - matched2 : " << m_qjMapForMC[b_matched2_jidx] << " " << b_matched2_jidx << endl;
+      m_nOverlap += 1;
+    }
+
 
   } else cout << ">>>>> Size of selectedJets is zero <<<<<" << endl;
 }
@@ -664,107 +651,6 @@ bool vtsAnalyser::isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, 
 }
 
 struct jetks { unsigned int idx; double dr; double x; };
-
-void vtsAnalyser::GenAnalysis() {
-  std::vector<jetks> recPair1; std::vector<jetks> genPair1;
-  std::vector<jetks> recPair2; std::vector<jetks> genPair2;
-  int nGenKS = 0;
-  b_GenPart_dr_closest_j_vec.resize(nGenPart,-1);
-  b_GenPart_x_closest_j_vec.resize(nGenPart,-1);
-  b_GenPart_dr_closest_gj_vec.resize(nGenPart,-1);
-  b_GenPart_x_closest_gj_vec.resize(nGenPart,-1);
-  b_GenPart_dr_highest_j_vec.resize(nGenPart,-1);
-  b_GenPart_x_highest_j_vec.resize(nGenPart,-1);
-  b_GenPart_dr_highest_gj_vec.resize(nGenPart,-1);
-  b_GenPart_x_highest_gj_vec.resize(nGenPart,-1);
-  for (unsigned int i=0; i<nGenPart; ++i) {
-    if (abs(GenPart_pdgId[i]) != 310) continue;
-    ++nGenKS;
-    int count = 0; int isFrom = 0;
-    bool isFromTop = false; bool isFromW = false; bool isFromKstar = false;
-    TLorentzVector gen_tlv;
-    gen_tlv.SetPtEtaPhiM(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], GenPart_mass[i]);
-    isGenFrom(count, i, isFrom, isFromTop, isFromW, isFromKstar); // MotherTracking
-    b_GenPart_isFromKstar_vec.push_back(isFromKstar);
-    b_GenPart_isGenFrom_vec.push_back(isFrom);
-    b_GenPart_isGenFromTop_vec.push_back(isFromTop);
-    b_GenPart_isGenFromW_vec.push_back(isFromW);
-    b_GenPart_d_vec.push_back(GetD(GenPart_pt[i], GenPart_eta[i], GenPart_phi[i], GenPart_mass[i], gen_tlv.X(), gen_tlv.Y(), gen_tlv.Z()));
-    b_GenPart_pt_vec.push_back(GenPart_pt[i]);
-    b_GenPart_eta_vec.push_back(GenPart_eta[i]);
-    b_GenPart_phi_vec.push_back(GenPart_phi[i]);
-    b_GenPart_mass_vec.push_back(GenPart_mass[i]);
-
-    if (nJet !=0) {
-      recPair1.resize(nJet, {0,99,-1}); recPair2.resize(nJet, {0,99,-1});
-      for (unsigned int j=0; j<nJet; ++j) { // Loop for all of recoJet
-        TLorentzVector jet_tlv;
-        jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-        auto dr     = jet_tlv.DeltaR(gen_tlv); auto x     = GenPart_pt[i]/Jet_pt[j];
-        auto drMin1 = recPair1[j].dr;          auto xMax1 = recPair1[j].x;
-        auto drMin2 = recPair2[j].dr;          auto xMax2 = recPair2[j].x;
-        if (isFrom != m_qjMapForMC[j]) continue;
-        if (dr < drMin1) recPair1[j] = {i,dr,x};
-        else if (dr == drMin1 && x > xMax1) recPair1[j] = {i,dr,x};
-        if (x > xMax2) recPair2[j] = {i,dr,x};
-        else if (x == xMax2 && dr < drMin2) recPair2[j] = {i,dr,x};
-      }
-    }
-    if (nGenJet !=0) {
-      genPair1.resize(nGenJet, {0,99,-1}); genPair2.resize(nGenJet, {0,99,-1});
-      for (unsigned int j=0; j<nGenJet; ++j) { // Loop for all of recoJet
-        TLorentzVector jet_tlv;
-        jet_tlv.SetPtEtaPhiM(GenJet_pt[j], GenJet_eta[j], GenJet_phi[j], GenJet_mass[j]);
-        auto dr     = jet_tlv.DeltaR(gen_tlv); auto x     = GenPart_pt[i]/GenJet_pt[j];
-        auto drMin1 = genPair1[j].dr;          auto xMax1 = genPair1[j].x;
-        auto drMin2 = genPair2[j].dr;          auto xMax2 = genPair2[j].x;
-        if (isFrom != m_qgjMapForMC[j]) continue;
-        if (dr < drMin1) genPair1[j] = {i,dr,x};
-        else if (dr == drMin1 && x > xMax1) genPair1[j] = {i,dr,x};
-        if (x > xMax2) genPair2[j] = {i,dr,x};
-        else if (x == xMax2 && dr < drMin2) genPair2[j] = {i,dr,x};
-      }
-      b_GenPart_isClosestPair_xOrder_j_vec.push_back(i);  b_GenPart_isHighestPair_xOrder_j_vec.push_back(i);
-      b_GenPart_isClosestPair_xOrder_gj_vec.push_back(i); b_GenPart_isHighestPair_xOrder_gj_vec.push_back(i);
-    }
-  }
-  if (nGenKS !=0) {
-    /*  Save x and dr for the most closest(highest) KS for each jet */
-    if (nJet !=0) {
-      for (unsigned int j=0; j<nJet; ++j) {
-        int cRecIdx = recPair1[j].idx; int hRecIdx = recPair2[j].idx;
-        b_GenPart_dr_closest_j_vec[cRecIdx] = recPair1[j].dr;
-        b_GenPart_x_closest_j_vec[cRecIdx]  = recPair1[j].x;
-        b_GenPart_dr_highest_j_vec[hRecIdx] = recPair2[j].dr;
-        b_GenPart_x_highest_j_vec[hRecIdx]  = recPair2[j].x;
-      }
-      /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
-      std::sort(recPair1.begin(), recPair1.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-      int hRecIdx1 = recPair1[0].idx;
-      std::replace_if(b_GenPart_isClosestPair_xOrder_j_vec.begin(),  b_GenPart_isClosestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx1); }, -1); 
-      std::sort(recPair2.begin(), recPair2.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-      int hRecIdx2 = recPair2[0].idx;
-      std::replace_if(b_GenPart_isHighestPair_xOrder_j_vec.begin(),  b_GenPart_isHighestPair_xOrder_j_vec.end(),  [&] (int a) { return (a != hRecIdx2); }, -1);
-    }
-    if (nGenJet !=0) {
-      for (unsigned int j=0; j<nGenJet; ++j) {
-        int cGenIdx = genPair1[j].idx;int hGenIdx = genPair2[j].idx;
-        b_GenPart_dr_closest_gj_vec[cGenIdx] = genPair1[j].dr;
-        b_GenPart_x_closest_gj_vec[cGenIdx]  = genPair1[j].x;
-        b_GenPart_dr_highest_gj_vec[hGenIdx] = genPair2[j].dr;
-        b_GenPart_x_highest_gj_vec[hGenIdx]  = genPair2[j].x;
-      }
-      /* Give flag ( == index) for the most closest(highest) KS-jet pair per event by x ordering */
-      std::sort(genPair1.begin(), genPair1.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-      int hGenIdx1 = genPair1[0].idx;
-      std::replace_if(b_GenPart_isClosestPair_xOrder_gj_vec.begin(), b_GenPart_isClosestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx1); }, -1);
-      std::sort(genPair2.begin(), genPair2.end(), [] (jetks  a, jetks b) { return (a.x > b.x); } );
-      int hGenIdx2 = genPair2[0].idx;
-      std::replace_if(b_GenPart_isHighestPair_xOrder_gj_vec.begin(), b_GenPart_isHighestPair_xOrder_gj_vec.end(), [&] (int a) { return (a != hGenIdx2); }, -1);
-
-    }
-  }
-}
 
 void vtsAnalyser::RecAnalysis() {
   b_had_start = m_hadtrForTMVA->GetEntries();
@@ -891,25 +777,6 @@ void vtsAnalyser::RecAnalysis() {
   b_had_end = m_hadtrForTMVA->GetEntries();
 }
 
-void vtsAnalyser::JetAnalysis() {
-  /* GenJet */
-  
-
-  /* SelectedJet */
-
-
-  for (unsigned int i=0; i<nJet; ++i) {
-    if (Jet_pt[i] < 30.) continue;
-    if (abs(Jet_eta[i]) > 2.4) continue;
-    if (Jet_jetId[i] < 1) continue;
-    /* quark - jet matching check */
-    if (abs(Jet_partonFlavour[i]) == 3 || abs(Jet_partonFlavour[i]) == 5) {
-      if (Jet_partonFlavour[i] == m_qjMapForMC[i]) b_Jet_isCorrectMat.push_back(Jet_partonFlavour[i]);
-      else b_Jet_isCorrectMat.push_back(0);
-    }
-  }
-}
-
 void vtsAnalyser::CollectVar() {
   b_MET_pt = MET_pt;
   b_MET_phi = MET_phi;
@@ -939,41 +806,42 @@ void vtsAnalyser::ResetForTMVA() {
 }
 
 void vtsAnalyser::FillJetTreeForTMVA() {
-  auto selectedJet = jetSelection();
   b_jet_start =  m_jettrForTMVA->GetEntries();
-  if (selectedJet.size() != 0) {
+  if (m_selectedJet.size() != 0) {
     if (m_recJet.size() == 0) return;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
     auto highest_first_idx = m_recJet[0].idx; auto highest_second_idx = m_recJet[1].idx;
-    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // dR(s,jet) ordering, if bbbar samples are used, then drsj will be also dR(b, jet)
-    auto closest_s_idx = m_recJet[0].idx; auto closest_s_dr = m_recJet[0].drsj;
-    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // dR(b,jet) ordering
-    auto closest_b_idx = m_recJet[0].idx; auto closest_b_dr = m_recJet[0].drbj;
+    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.dr1j < b.dr1j); } ); // dR(s,jet) ordering, if bbbar samples are used, then dr1j will be also dR(b, jet)
+    auto closest_1_idx = m_recJet[0].idx; auto closest_1_dr = m_recJet[0].dr1j;
+    sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.dr2j < b.dr2j); } ); // dR(b,jet) ordering
+    auto closest_2_idx = m_recJet[0].idx; auto closest_2_dr = m_recJet[0].dr2j;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drl1j < b.drl1j); } ); // dR(lep1,jet) ordering
     auto closest_lep1_idx = m_recJet[0].idx;
     sort(m_recJet.begin(), m_recJet.end(), [] (jetInfo a, jetInfo b) { return (a.drl2j < b.drl2j); } ); // dR(lep2,jet) ordering
     auto closest_lep2_idx = m_recJet[0].idx;
 
-    for (unsigned int ij=0; ij<selectedJet.size();++ij) {
+    for (unsigned int ij=0; ij<m_selectedJet.size();++ij) {
       ResetForTMVA();
       b_isSJet = 0; b_isBJet = 0; b_isOverlap = 0; b_isHighest = 0; b_isClosestToLep = 0;
      
-      auto j = selectedJet[ij].GetFirstMother();
+      auto j = m_selectedJet[ij].GetFirstMother();
       TLorentzVector jet_tlv; jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
       
-      if ((j == (int) closest_s_idx) && (fabs(closest_s_dr) <= m_jetConeSize)) {
-        if (abs(m_qjMapForMC[closest_s_idx]) == 3)        b_isSJet = 1;
-        else if (abs(m_qjMapForMC[closest_s_idx]) == 5)   b_isBJet = 1; // if bbbar samples are used, then drsj will be also dR(b, jet)
-        else if (abs(m_qjMapForMC[closest_s_idx]) == -1)  b_isOverlap = 1; // if jet is matched both of two quarks, then isOverlap = 1 
+      if ((j == (int) closest_1_idx) && (fabs(closest_1_dr) <= m_jetConeSize)) {
+        if (abs(m_qjMapForMC[closest_1_idx]) == 3)      b_isSJet = 1;
+        else if (abs(m_qjMapForMC[closest_1_idx]) == 5) b_isBJet = 1; // if bbbar samples are used, then dr1j will be also dR(b, jet)
+        else if (m_qjMapForMC[closest_1_idx] == -9)     b_isOverlap = 1; // if jet is matched both of two quarks, then isOverlap = 1 
       }
-      if ((j == (int) closest_b_idx) && (fabs(closest_b_dr) <= m_jetConeSize)) {
-        if (abs(m_qjMapForMC[closest_b_idx]) == 5)        b_isBJet = 1;
-        else if (abs(m_qjMapForMC[closest_b_idx]) == -1)  b_isOverlap = 1; // if jet is matched both of two quarks, then isOverlap = 1
+      if ((j == (int) closest_2_idx) && (fabs(closest_2_dr) <= m_jetConeSize)) {
+        if (abs(m_qjMapForMC[closest_2_idx]) == 5)   b_isBJet = 1;
+        else if (m_qjMapForMC[closest_2_idx] == -9)  b_isOverlap = 1; // if jet is matched both of two quarks, then isOverlap = 1
       }
       if ((j == (int) highest_first_idx) || (j == (int) highest_second_idx))   b_isHighest = 1;
       if ((j == (int) closest_lep1_idx)  || (j == (int) closest_lep2_idx))     b_isClosestToLep = 1;
-      if (b_isSJet == 1) { cout << "isSJet : " << m_qjMapForMC[closest_s_idx] << " " << closest_s_idx << " " << j << endl; m_nj2 += 1; m_jj = j;}
+      if (b_isSJet == 1) { cout << "isSJet : " << m_qjMapForMC[closest_1_idx] << " " << closest_1_idx << " " << j << endl; m_nj2 += 1; m_jj = j;}
       if (b_isSJet == 1 && b_isHighest == 1) { cout << "isSJet + highest_jidx : " << j << endl; m_nj += 1; }
+      if (b_isBJet == 1) { cout << "isBJet : " << m_qjMapForMC[closest_2_idx] << " " << closest_2_idx << " " << j << endl; }
+      if (b_isBJet == 1 && b_isHighest == 1) { cout << "isBJet + highest_jidx : " << j << endl;  }
 
       /* distinguish fake isClosestToLep */
       if (j == (int) closest_lep1_idx) {
@@ -984,16 +852,15 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       }
       TLorentzVector tlv_j; 
       tlv_j.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);      
-    
       b_cmult = (float)jetID_cmult[j];   b_nmult = (float)jetID_nmult[j];
       b_pt    = Jet_pt[j];               b_eta   = Jet_eta[j];              b_phi  = Jet_phi[j];              b_mass = Jet_mass[j];
       b_c_x1  = jetID_cpt1[j]/Jet_pt[j]; b_c_x2  = jetID_cpt2[j]/Jet_pt[j]; b_c_x3 = jetID_cpt3[j]/Jet_pt[j];
       b_n_x1  = jetID_npt1[j]/Jet_pt[j]; b_n_x2  = jetID_npt2[j]/Jet_pt[j]; b_n_x3 = jetID_npt3[j]/Jet_pt[j];
       b_axis1 = jetID_axis1[j];          b_axis2 = jetID_axis2[j];          b_ptD  = jetID_ptD[j];
       b_area  = Jet_area[j];             b_CSVV2 = Jet_btagCSVV2[j];
-      b_dr1   = closest_s_dr;            b_dr2   = closest_b_dr;
+      b_dr1   = closest_1_dr;            b_dr2   = closest_2_dr;
 
-      cout << " [ " << ij << " / " << selectedJet.size() << " ] In jet tree | Jet idx : " << j << " >>>>>> [ " << setw(10) << tlv_j.Pt() << " " << setw(10) << tlv_j.Eta() << " " << setw(10) << tlv_j.Phi() << " " << setw(10) << tlv_j.M() << " ] >>>>>> ( " << setw(3) << j << " " << setw(3) << m_qjMapForMC[j] << " " << setw(3) << b_isSJet << " " << setw(3) << b_isBJet << " " << setw(3) << b_isHighest << " " << setw(3) << b_isClosestToLep << " ) " << endl;
+      cout << " [ " << ij << " / " << m_selectedJet.size() << " ] In jet tree | Jet idx : " << j << " >>>>>> [ " << setw(10) << tlv_j.Pt() << " " << setw(10) << tlv_j.Eta() << " " << setw(10) << tlv_j.Phi() << " " << setw(10) << tlv_j.M() << " ] >>>>>> ( " << setw(3) << j << " " << setw(3) << m_qjMapForMC[j] << " " << setw(3) << b_isSJet << " " << setw(3) << b_isBJet << " " << setw(3) << b_isHighest << " " << setw(3) << b_isClosestToLep << " ) " << endl;
 
       /* Save jet daughter information */
       int ia = 0;
