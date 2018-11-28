@@ -7,11 +7,6 @@ class vtsAnalyser : public hadAnalyser {
 public:
   float m_jetConeSize = 0.4; float m_xCut = 0.2; unsigned int m_jetDauArrSize = 350;
   std::vector<TParticle> m_selectedJet;
-  int m_nj = 0; int m_nj2 = 0;
-  int m_ej = -1; int m_jj = -2;
-  int m_nej = 0; int m_njj = 0;
-
-  int m_nOverlap = 0;
 
   vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
@@ -20,6 +15,7 @@ public:
 
   void setOutput(std::string outputName);
   virtual void Loop();
+
 private:
   Bool_t m_isGenericMC = false;
 
@@ -40,6 +36,7 @@ private:
 
   /// Additional information about global properties of the jet,
   /// relevant to our Vts analysis
+
   struct jetInfo {
     int idx; /// jet idx
     double pt; /// jet pt
@@ -48,6 +45,7 @@ private:
     double drl1j; /// DeltaR(lep1,jet)
     double drl2j; /// DeltaR(lep2,jet)
   };
+
   /// information about global properties of the gen quark
   struct genInfo {
     int idx; // gen idx
@@ -76,13 +74,9 @@ private:
   float b_matched2_dr,      b_matched2_x;
   TLorentzVector b_matched2_tlv;
 
-  float b_Jet_dr_closest_1,    b_Jet_dr_closest_2;
-  float b_SelJet_dr_closest_1, b_SelJet_dr_closest_2;
-  float b_GenJet_dr_closest_1, b_GenJet_dr_closest_2;
-
-  int b_GenSJet,             b_GenBJet,             b_RecSJet,             b_RecBJet;            
-  int b_GenSJetClosestToLep, b_GenBJetClosestToLep, b_RecSJetClosestToLep, b_RecBJetClosestToLep;
-  int b_GenSJetIsHighest,    b_GenBJetIsHighest,    b_RecSJetIsHighest,    b_RecBJetIsHighest;
+  int b_RecSJet,             b_RecBJet;            
+  int b_RecSJetClosestToLep, b_RecBJetClosestToLep;
+  int b_RecSJetIsHighest,    b_RecBJetIsHighest;
 
   /* for RecAnalysis() */
   std::vector<int>   b_hadTruth_pdgId_vec;        std::vector<int>   b_hadTruth_nMatched_vec;      std::vector<int>   b_hadTruth_isFrom_vec;
@@ -139,6 +133,8 @@ private:
   int b_had_start, b_had_end;
 
   /* functions */
+  void jetOrdering(TString param, std::vector<vtsAnalyser::jetInfo>& jets);
+
   void ResetBranch();
   void MakeBranch();
   void MatchingForMC();
