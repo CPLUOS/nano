@@ -31,12 +31,9 @@ private:
 
   //TMVA
   TMVA::Reader* bdtg;
-  TMVA::Reader* bdtg2;
-
 public :
   //set output file
   void setOutput(std::string outputName);
-  void collectTMVAvalues();
   void cmesonSelection();
 
   slmassAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t sle = false, Bool_t slm = false);
