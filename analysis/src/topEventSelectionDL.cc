@@ -3,11 +3,59 @@
 using std::vector;
 
 topEventSelectionDL::topEventSelectionDL(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t dl, Bool_t sle, Bool_t slm) :
-  topObjectSelection(tree, had, hadTruth, isMC, true, false),
-  m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm) {
+  topObjectSelection(tree, had, hadTruth, isMC),
+  m_isDL(dl), m_isSL_e(sle), m_isSL_m(slm) 
+{
+  SetCutValues();
 }
 
 topEventSelectionDL::~topEventSelectionDL() {
+}
+
+int topEventSelectionDL::SetCutValues() {
+  cut_ElectronPt = 20;
+  cut_ElectronEta = 2.4;
+  cut_ElectronIDType = Electron_cutBased;
+  cut_ElectronIDCut = 3;
+  cut_ElectronSCEtaLower = 1.4442;
+  cut_ElectronSCEtaUpper = 1.566;
+  cut_ElectronRelIso03All = 10000000000;
+  
+  cut_MuonIDType = Muon_tightId;
+  cut_MuonPt = 20;
+  cut_MuonEta = 2.4;
+  cut_MuonRelIso04All = 0.15;
+  
+  cut_VetoElectronPt = 20;
+  cut_VetoElectronEta = 2.4;
+  cut_VetoElectronIDType = Electron_cutBased;
+  cut_VetoElectronIDCut = 3;
+  cut_VetoElectronSCEtaLower = 1.4442;
+  cut_VetoElectronSCEtaUpper = 1.566;
+  cut_VetoElectronRelIso03All = 10000000000;
+  
+  cut_VetoMuonIDType = NULL;
+  cut_VetoMuonPt = 10;
+  cut_VetoMuonEta = 2.4;
+  cut_VetoMuonRelIso04All = 0.25;
+  
+  cut_GenJetPt = 30;
+  cut_GenJetEta = 2.4;
+  cut_GenJetConeSizeOverlap = 0.4;
+  
+  cut_JetID = 1;
+  cut_JetPt = 30;
+  cut_JetEta = 2.4;
+  cut_JetConeSizeOverlap = 0.4;
+  
+  cut_BJetID = 1;
+  cut_BJetPt = 30;
+  cut_BJetEta = 2.4;
+  cut_BJetConeSizeOverlap = 0.4;
+  cut_BJetTypeBTag = Jet_btagCSVV2;
+  cut_BJetBTagCut = 0.8484;
+  
+  return 0;
 }
 
 int topEventSelectionDL::EventSelection() {

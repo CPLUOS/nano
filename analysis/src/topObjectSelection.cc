@@ -2,23 +2,20 @@
 
 using std::vector;
 
-topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t _isDilep, Bool_t _isSemiLep) :
-  nanoBase(tree, had, hadTruth, isMC),
-  isDilep(_isDilep),
-  isSemiLep(_isSemiLep)
+topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) :
+  nanoBase(tree, had, hadTruth, isMC)
 {}
 
 vector<TParticle> topObjectSelection::elecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
-    if (Electron_pt[i] < 20) continue;
-    if (isSemiLep) { if (Electron_pt[i] <= 34) continue; }
-    if (std::abs(Electron_eta[i]) > 2.1) continue;
-    if (Electron_cutBased[i] < 4) continue; 
+    if (Electron_pt[i] < cut_ElectronPt) continue;
+    if (std::abs(Electron_eta[i]) > cut_ElectronEta) continue;
+    if (cut_ElectronIDType != NULL && cut_ElectronIDType[i] < cut_ElectronIDCut) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
-    if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
-    //if ( std::abs(el_scEta) >= 1.566 ) continue; // For AN-2017/083; it must be turned off when QCD-studying
-    if ( Electron_pfRelIso03_all[ i ] > 0.0588 ) continue;
+    if ( cut_ElectronSCEtaLower < std::abs(el_scEta) && std::abs(el_scEta) < cut_ElectronSCEtaUpper ) continue;
+    if ( Electron_pfRelIso03_all[ i ] > cut_ElectronRelIso03All ) continue;
+    if ( !additionalConditionForElectron(i) ) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
 
@@ -36,14 +33,12 @@ vector<TParticle> topObjectSelection::elecSelection() {
 vector<TParticle> topObjectSelection::muonSelection() {
   vector<TParticle> muons; 
   for (UInt_t i = 0; i < nMuon; ++i){
-    if (!Muon_tightId[i]) continue;
-    if (Muon_pt[i] < 20) continue;
-    if (isSemiLep) { if (Muon_pt[i] <=26) continue; }
-    if (std::abs(Muon_eta[i]) > 2.4) continue;
-    //if (isSemiLep) { if (std::abs(Muon_eta[i]) > 2.1) continue; }
-    if (Muon_pfRelIso04_all[i] > 0.06) continue;
-    if (!Muon_globalMu[i]) continue;
-    if (!Muon_isPFcand[i]) continue;
+    if (cut_MuonIDType != NULL && !cut_MuonIDType[i]) continue;
+    if (Muon_pt[i] < cut_MuonPt) continue;
+    if (std::abs(Muon_eta[i]) > cut_MuonEta) continue;
+    if (Muon_pfRelIso04_all[i] > cut_MuonRelIso04All) continue;
+    if ( !additionalConditionForMuon(i) ) continue;
+    
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
     auto muon = TParticle();
@@ -60,12 +55,15 @@ vector<TParticle> topObjectSelection::muonSelection() {
 vector<TParticle> topObjectSelection::vetoElecSelection() {
   vector<TParticle> elecs; 
   for (UInt_t i = 0; i < nElectron; ++i){
-    if (Electron_pt[i] < 15) continue;
-    if (std::abs(Electron_eta[i]) > 2.5) continue;
-    if (Electron_cutBased[i] < 1) continue; 
+    if (Electron_pt[i] < cut_VetoElectronPt) continue;
+    if (std::abs(Electron_eta[i]) > cut_VetoElectronEta) continue;
+    if (cut_VetoElectronIDType != NULL && cut_VetoElectronIDType[i] < cut_VetoElectronIDCut) continue; 
     float el_scEta = Electron_deltaEtaSC[i] + Electron_eta[i];
-    if ( std::abs(el_scEta) > 1.4442 &&  std::abs(el_scEta) < 1.566 ) continue;
-    if ( std::abs(el_scEta) >= 1.566 ) continue; // For AN-2017/083; it must be turned off when QCD-studying
+    if ( cut_VetoElectronSCEtaLower < std::abs(el_scEta) && 
+                                      std::abs(el_scEta) < cut_VetoElectronSCEtaUpper ) continue;
+    if ( Electron_pfRelIso03_all[ i ] > cut_VetoElectronRelIso03All ) continue;
+    if ( !additionalConditionForVetoElectron(i) ) continue;
+    
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
     auto elec = TParticle();
@@ -84,13 +82,12 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
     //if (!Muon_looseId[i]) continue;
 
     // https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2#Loose_Muon
-    if (!Muon_isPFcand[i]) continue;
-    if (!(Muon_globalMu[i] || Muon_trackerMu[i])) continue;
-
+    if (cut_VetoMuonIDType != NULL && !cut_VetoMuonIDType[i]) continue;
+    if (Muon_pt[i] < cut_VetoMuonPt) continue;
+    if (std::abs(Muon_eta[i]) > cut_VetoMuonEta) continue;
+    if (Muon_pfRelIso04_all[i] > cut_VetoMuonRelIso04All) continue;
+    if ( !additionalConditionForVetoMuon(i) ) continue;
     
-    if (Muon_pt[i] < 10) continue;
-    if (std::abs(Muon_eta[i]) > 2.4) continue;
-    if (Muon_pfRelIso04_all[i] > 0.2) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
     auto muon = TParticle();
@@ -105,15 +102,17 @@ vector<TParticle> topObjectSelection::vetoMuonSelection() {
 vector<TParticle> topObjectSelection::genJetSelection() {
   vector<TParticle> jets;
   for (UInt_t i = 0; i < nJet; ++i){
-    if (GenJet_pt[i] < 30) continue;
-    if (std::abs(GenJet_eta[i]) > 2.4) continue;
+    if (GenJet_pt[i] < cut_GenJetPt) continue;
+    if (std::abs(GenJet_eta[i]) > cut_GenJetEta) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(GenJet_pt[i], GenJet_eta[i], GenJet_phi[i], GenJet_mass[i]);
     bool hasOverLap = false;
     for (auto lep : recoleps){
-        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
+        if (mom.TLorentzVector::DeltaR(lep) < cut_GenJetConeSizeOverlap) hasOverLap = true;
     }
     if (hasOverLap) continue;
+    if ( !additionalConditionForGenJet(i) ) continue;
+    
     auto jet = TParticle();
     jet.SetMomentum(mom);
     jet.SetFirstMother(i);
@@ -123,99 +122,85 @@ vector<TParticle> topObjectSelection::genJetSelection() {
 }
 
 vector<TParticle> topObjectSelection::jetSelection() {
-   BTagEntry::JetFlavor JF;
-   vector<TParticle> jets;
-   //float Jet_SF_CSV[19] = {1.0,};
-   b_btagweight = 1.0;
-   for (UInt_t i = 0; i < nJet; ++i){
-      if (Jet_pt[i] < 30) continue; 
-      if (std::abs(Jet_eta[i]) > 2.4) continue;
-      if (Jet_jetId[i] < 1) continue; 
-      TLorentzVector mom; 
-      mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
-      bool hasOverLap = false;
-      for (auto lep : recoleps){
-       if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true; 
+  double csvWgtHF = 1.0, csvWgtLF = 1.0, csvWgtC = 1.0, csvWgtTotal = 1.0;
+  double csvWgtHF_up = 1.0, csvWgtLF_up = 1.0, csvWgtC_up = 1.0, csvWgtTotal_up = 1.0;
+  double csvWgtHF_dn = 1.0, csvWgtLF_dn = 1.0, csvWgtC_dn = 1.0, csvWgtTotal_dn = 1.0;
+  vector<TParticle> jets;
+  for (UInt_t i = 0; i < nJet; ++i){
+    if (Jet_pt[i] < cut_JetPt) continue;
+    if (std::abs(Jet_eta[i]) > cut_JetEta) continue;
+    if (Jet_jetId[i] < cut_JetID) continue;
+    TLorentzVector mom;
+    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
+    bool hasOverLap = false;
+    for (auto lep : recoleps){
+        if (mom.TLorentzVector::DeltaR(lep) < cut_JetConeSizeOverlap) hasOverLap = true;
+    }
+    if (hasOverLap) continue;
+    if ( !additionalConditionForJet(i) ) continue;
+    
+    auto jet = TParticle();
+    jet.SetMomentum(mom);
+    jet.SetFirstMother(i);
+    jets.push_back(jet);
+    if (m_isMC) {
+      BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
+      if (abs(Jet_hadronFlavour[i]) == 5) {
+        JF = BTagEntry::FLAV_B;
+        double iCSVWgtHF = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtHF_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtHF_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtHF != 0) csvWgtHF *= iCSVWgtHF;
+        if (iCSVWgtHF_up != 0) csvWgtHF_up *= iCSVWgtHF_up;
+        if (iCSVWgtHF_dn != 0) csvWgtHF_dn *= iCSVWgtHF_dn;
+      }
+      else if (abs(Jet_hadronFlavour[i]) == 4) {
+        JF = BTagEntry::FLAV_C;
+        double iCSVWgtC = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtC_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtC_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtC != 0) csvWgtC *= iCSVWgtC;
+        if (iCSVWgtC_up != 0) csvWgtC_up *= iCSVWgtC_up;
+        if (iCSVWgtC_dn != 0) csvWgtC_dn *= iCSVWgtC_dn;
+      }
+      else {
+        JF = BTagEntry::FLAV_UDSG;
+        double iCSVWgtLF = m_btagSF.eval_auto_bounds("central", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtLF_up = m_btagSF_up.eval_auto_bounds("up", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        double iCSVWgtLF_dn = m_btagSF_dn.eval_auto_bounds("down", JF, abs(Jet_eta[i]), Jet_pt[i], Jet_btagCSVV2[i]);
+        if (iCSVWgtLF != 0) csvWgtLF *= iCSVWgtLF;
+        if (iCSVWgtLF_up != 0) csvWgtLF_up *= iCSVWgtLF_up;
+        if (iCSVWgtLF_dn != 0) csvWgtLF_dn *= iCSVWgtLF_dn;
       } 
-      if (hasOverLap) continue;
-      auto jet = TParticle();
-      jet.SetMomentum(mom);
-      jet.SetFirstMother(i);
-      jets.push_back(jet);
-      b_btagCSVV2 = Jet_btagCSVV2[i];
-      //BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
-      //BTagEntry::JetFlavor JF;
-      if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B; 
-      //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
-      auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);  
-      b_btagweight *= bjetSF;
-   }
-   return jets;
-}
-//vector<TParticle> topObjectSelection::jetSelection(std::vector<Float_t> *csvVal) {
-//  vector<TParticle> jets;
-//  float Jet_SF_CSV[19] = {1.0,};
-//  for (UInt_t i = 0; i < nJet; ++i){
-//    // For AN-2017/083
-//    if ( !( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) ) {
-//      if (Jet_pt[i] < 40) continue;
-//    } else {
-//      if (Jet_pt[i] < 50) continue;
-//    }
-//    //if (Jet_pt[i] < 40) continue;
-//    //if (std::abs(Jet_eta[i]) > 4.7) continue;
-//    if (Jet_jetId[i] < 1) continue;
-//    TLorentzVector mom;
-//    mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
-//    bool hasOverLap = false;
-//    for (auto lep : recoleps){
-//        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
-//    }
-//    if (hasOverLap) continue;
-//    auto jet = TParticle();
-//    jet.SetMomentum(mom);
-//    jet.SetFirstMother(i);
-//    jets.push_back(jet);
-//    b_btagCSVV2 = Jet_btagCSVV2[i];
-//    //BTagEntry::JetFlavor JF = BTagEntry::FLAV_UDSG;
-//    //BTagEntry::JetFlavor JF;
-//    if (abs(Jet_hadronFlavour[i]) == 5) JF = BTagEntry::FLAV_B;
-//    //else if (abs(Jet_hadronFlavour[i]) == 4) JF = BTagEntry::FLAV_C;
-//    auto bjetSF = m_btagSF.eval_auto_bounds("central", JF , Jet_eta[i], Jet_pt[i], Jet_btagCSVV2[i]);
-//    b_btagweight *= bjetSF;
-//    if ( csvVal != NULL ) csvVal->push_back(Jet_btagCSVV2[ i ]);
-//  }
-//  
-//  return jets;
-//}
+    }
+  }
+  csvWgtTotal = csvWgtHF * csvWgtC * csvWgtLF;  
+  csvWgtTotal_up = csvWgtHF_up * csvWgtC_up * csvWgtLF_up;  
+  csvWgtTotal_dn = csvWgtHF_dn * csvWgtC_dn * csvWgtLF_dn;  
 
+  b_btagweight = csvWgtTotal;
+  b_btagweight_up = csvWgtTotal_up;
+  b_btagweight_dn = csvWgtTotal_dn;
+  
+  return jets;
+}
 
 vector<TParticle> topObjectSelection::bjetSelection() {
   vector<TParticle> bjets;
   for (UInt_t i = 0; i < nJet; ++i ) {
-    // For AN-2017/083
-    /*if ( !( 2.7 <= std::abs(Jet_eta[i]) && std::abs(Jet_eta[i]) < 3.0 ) ) {
-      if (Jet_pt[i] < 40) continue;
-    } else {
-      if (Jet_pt[i] < 50) continue;
-    }*/
-    // According to p. 9, AN-2017/083, one can find the following eta cut
-    if (std::abs(Jet_eta[i]) > 2.4) continue;
-    if (Jet_pt[i] < 40) continue;
-    if (Jet_jetId[i] < 1) continue;
-    //if (Jet_btagCSVV2[i] < 0.8484) continue;
-    //if (Jet_btagCSVV2[i] < 0.9535) continue;
-    // For AN-2017/083
-    // See p. 6, AN-2017/056, or 
-    // https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Boosted_event_topologies
-    if (Jet_btagCSVV2[i] < 0.9535) continue;
+    if (Jet_pt[i] < cut_BJetPt) continue;
+    if (std::abs(Jet_eta[i]) > cut_BJetEta) continue;
+    if (Jet_jetId[i] < cut_BJetID) continue;
+    if (cut_BJetTypeBTag[i] < cut_BJetBTagCut) continue;
     TLorentzVector mom;
     mom.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
     bool hasOverLap = false;
     for (auto lep : recoleps) {
-        if (mom.TLorentzVector::DeltaR(lep) < 0.4) hasOverLap = true;
+      if (mom.TLorentzVector::DeltaR(lep) < cut_BJetConeSizeOverlap) hasOverLap = true;
     }
     if (hasOverLap) continue;
+    if ( !additionalConditionForBJet(i) ) continue;
+    
     auto bjet = TParticle();
     bjet.SetMomentum(mom);
     bjet.SetFirstMother(i);

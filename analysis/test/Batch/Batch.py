@@ -119,6 +119,11 @@ universe   = vanilla
 
 log = condor.log
 
+requirements = ( HasSingularity == true )
+accounting_group=group_cms
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"
++SingularityBind = "/cvmfs, /cms, /share"
+
 getenv     = True
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT

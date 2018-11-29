@@ -3,7 +3,7 @@
 using std::vector;
 
 topEventSelectionSL::topEventSelectionSL(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t sle, Bool_t slm) :
-  topObjectSelection(tree, had, hadTruth, isMC, false, true),
+  topObjectSelection(tree, had, hadTruth, isMC),
   h_nevents(0),
   h_genweights(0),
   h_cutFlow(0),
@@ -12,10 +12,57 @@ topEventSelectionSL::topEventSelectionSL(TTree *tree, TTree *had, TTree *hadTrut
   m_isSL_e(sle),
   m_isSL_m(slm)
 {
+  SetCutValues();
 }
 
 topEventSelectionSL::~topEventSelectionSL()
 {
+}
+
+int topEventSelectionSL::SetCutValues() {
+  cut_ElectronPt = 30;
+  cut_ElectronEta = 2.4;
+  cut_ElectronIDType = Electron_cutBased;
+  cut_ElectronIDCut = 3;
+  cut_ElectronSCEtaLower = 1.4442;
+  cut_ElectronSCEtaUpper = 1.566;
+  cut_ElectronRelIso03All = 10000000000;
+  
+  cut_MuonIDType = Muon_tightId;
+  cut_MuonPt = 26;
+  cut_MuonEta = 2.1;
+  cut_MuonRelIso04All = 0.15;
+  
+  cut_VetoElectronPt = 20;
+  cut_VetoElectronEta = 2.4;
+  cut_VetoElectronIDType = Electron_cutBased;
+  cut_VetoElectronIDCut = 3;
+  cut_VetoElectronSCEtaLower = 1.4442;
+  cut_VetoElectronSCEtaUpper = 1.566;
+  cut_VetoElectronRelIso03All = 10000000000;
+  
+  cut_VetoMuonIDType = NULL;
+  cut_VetoMuonPt = 10;
+  cut_VetoMuonEta = 2.4;
+  cut_VetoMuonRelIso04All = 0.25;
+  
+  cut_GenJetPt = 30;
+  cut_GenJetEta = 2.4;
+  cut_GenJetConeSizeOverlap = 0.4;
+  
+  cut_JetID = 1;
+  cut_JetPt = 30;
+  cut_JetEta = 2.4;
+  cut_JetConeSizeOverlap = 0.4;
+  
+  cut_BJetID = 1;
+  cut_BJetPt = 30;
+  cut_BJetEta = 2.4;
+  cut_BJetConeSizeOverlap = 0.4;
+  cut_BJetTypeBTag = Jet_btagCSVV2;
+  cut_BJetBTagCut = 0.8484;
+  
+  return 0;
 }
 
 void topEventSelectionSL::Reset()
@@ -77,45 +124,17 @@ int topEventSelectionSL::EventSelection()
   if (h_cutFlow) h_cutFlow->Fill(2);
 
   //Triggers
-  b_trig_m_trk    = HLT_IsoTkMu24 ? 1 : 0;
-  b_trig_m_global = HLT_IsoMu24 ? 1 : 0;
+  b_trig_m = TrigForMu();
+  b_trig_e = TrigForEl();
+  if ( !( b_trig_m || b_trig_e ) ) return b_step;
 
   b_trig_m = HLT_IsoTkMu24 || HLT_IsoMu24 ? 1 : 0;
   //b_trig_e = HLT_Ele27_WPTight_Gsf ? 1:0;
   b_trig_e = HLT_Ele32_eta2p1_WPTight_Gsf ? 1 : 0;
   
-  //if ( !( b_trig_m > 0 || b_trig_e > 0 ) ) return b_step;
-
-  // TODO Check trigger requirements (TTbarXSecSynchronization page doesn't have yet)
-  
-  //if (b_channel == CH_MU) {
-  //  if (!b_trig_m) return b_step;
-  //}
-
-  //if (b_channel == CH_EL) {
-  //  if (!b_trig_e) return b_step;
-  //}
-  
-  //Bool_t IsoMu24 = false;
-  //Bool_t IsoTkMu24 = false;
-  
-  /*for ( UInt_t i = 0 ; i < nTrigObj ; i++ ) {
-    if ( TrigObj_id[ i ] != 13 ) continue;
-    if ( TrigObj_pt[ i ] < 24 ) continue;
-    Int_t bits = TrigObj_filterBits[ i ];
-    if ( bits & 0x2 ) IsoMu24 = true;
-    if ( bits & 0x1 ) IsoTkMu24 = true;  
-  }
-  
-  //if ( !( IsoMu24 || IsoTkMu24 ) ) return b_step;*/
-
-  b_tri = b_tri_up = b_tri_dn = 0;
-  b_tri = computeTrigSFForSL(recolep);
-  b_tri_up = computeTrigSFForSL(recolep,1);
-  b_tri_dn = computeTrigSFForSL(recolep,-1);
-  //( IsoMu24 || IsoTkMu24 ? 1.0 : 0.0 ); //computeTrigSF(recolep1, recolep2);
-  //computeTrigSF(recolep1, recolep2, 1);
-  //computeTrigSF(recolep1, recolep2, -1);
+  // if (b_channel == CH_EL) {
+  //   if (!b_trig_e) return b_step;
+  // }
 
   b_met = MET_pt;
   b_met_phi = MET_phi;
@@ -149,6 +168,11 @@ int topEventSelectionSL::EventSelection()
   recolep.Momentum(b_lep);
   b_lep_pid = recolep.GetPdgCode();
   recoleps.push_back(b_lep);
+
+  b_tri = b_tri_up = b_tri_dn = 0;
+  b_tri = 1; //computeTrigSF(recolep1, recolep2);
+  b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
+  b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
 
   // Veto Leptons
 
@@ -190,7 +214,13 @@ int topEventSelectionSL::EventSelection()
     m_jets.push_back(mom);
   }
 
-  if (b_njet >= 4) {
+  auto bjets = bjetSelection();
+  b_nbjet = bjets.size();
+
+  auto jets = jetSelection();
+  b_njet = jets.size();
+
+  if (b_njet > 0) {
     b_step = 3;
     if (h_cutFlow) h_cutFlow->Fill(5);
     if (h_cutFlowLep) h_cutFlowLep->Fill(3);

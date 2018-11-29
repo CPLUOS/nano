@@ -179,6 +179,12 @@ public :
    Float_t         jetID_npt3[35];   //[njetID]
    Int_t           jetID_cmult[35];   //[njetID]
    Int_t           jetID_nmult[35];   //[njetID]
+   Int_t           jetID_dauIdx1[35];
+   Int_t           jetID_dauIdx2[35];
+   Float_t         jetDau_pt[350];   
+   Float_t         jetDau_eta[350];  
+   Float_t         jetDau_phi[350];     
+   Float_t         jetDau_charge[350]; 
    UInt_t          nJet;
    Float_t         Jet_area[35];   //[nJet]
    Float_t         Jet_btagCMVA[35];   //[nJet]
@@ -1222,6 +1228,12 @@ public :
    TBranch        *b_jetID_npt3;   //!
    TBranch        *b_jetID_cmult;   //!
    TBranch        *b_jetID_nmult;   //!
+   TBranch        *b_jetID_dauIdx1;
+   TBranch        *b_jetID_dauIdx2;
+   TBranch        *b_jetDau_pt;
+   TBranch        *b_jetDau_eta;
+   TBranch        *b_jetDau_phi;
+   TBranch        *b_jetDau_charge;
    TBranch        *b_nJet;   //!
    TBranch        *b_Jet_area;   //!
    TBranch        *b_Jet_btagCMVA;   //!
@@ -2148,7 +2160,6 @@ Events::Events(TTree *tree, TTree *had, TTree *hadTruth) : fChain(0), h_fChain(0
 
 Events::~Events()
 {
-
   if (!fChain) return;
   delete fChain->GetCurrentFile();
   if (!h_fChain) {
@@ -2340,6 +2351,12 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
    fChain->SetBranchAddress("jetID_npt3", jetID_npt3, &b_jetID_npt3);
    fChain->SetBranchAddress("jetID_cmult", jetID_cmult, &b_jetID_cmult);
    fChain->SetBranchAddress("jetID_nmult", jetID_nmult, &b_jetID_nmult);
+   fChain->SetBranchAddress("jetID_dauIdx1", jetID_dauIdx1, &b_jetID_dauIdx1);
+   fChain->SetBranchAddress("jetID_dauIdx2", jetID_dauIdx2, &b_jetID_dauIdx2);
+   fChain->SetBranchAddress("jetDau_pt", jetDau_pt, &b_jetDau_pt);
+   fChain->SetBranchAddress("jetDau_eta", jetDau_eta, &b_jetDau_eta);
+   fChain->SetBranchAddress("jetDau_phi", jetDau_phi, &b_jetDau_phi);
+   fChain->SetBranchAddress("jetDau_charge", jetDau_charge, &b_jetDau_charge);
    fChain->SetBranchAddress("nJet", &nJet, &b_nJet);
    fChain->SetBranchAddress("Jet_area", Jet_area, &b_Jet_area);
    fChain->SetBranchAddress("Jet_btagCMVA", Jet_btagCMVA, &b_Jet_btagCMVA);
