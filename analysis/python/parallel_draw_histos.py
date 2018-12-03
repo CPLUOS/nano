@@ -1,6 +1,18 @@
 #!/usr/bin/env python
 
 
+################################################################################
+# 
+# Author: Byeonghak Ko (quark2930@hotmail.com; bko@cern.ch)
+# 
+# parallel_draw_histos.py
+# 
+# This file contains a class parallel_draw_histos, which parallelizes 
+#  drawings of ROOT histograms, especially using entrylist of ROOT::TTree class
+# 
+################################################################################
+
+
 import ROOT, json, os, sys, copy
 import time, datetime
 
