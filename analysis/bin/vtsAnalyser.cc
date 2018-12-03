@@ -213,7 +213,7 @@ void vtsAnalyser::MakeBranch() {
   m_hadtrForTMVA->Branch("dau1_chi2",    &b_Rec_dau1_chi2,    "dau1_chi2/F");
   m_hadtrForTMVA->Branch("dau1_ipsigXY", &b_Rec_dau1_ipsigXY, "dau1_ipsigXY/F");
   m_hadtrForTMVA->Branch("dau1_ipsigZ",  &b_Rec_dau1_ipsigZ,  "dau1_ipsigZ/F");
-  m_hadtrForTMVA->Branch("dau1_pt",      &b_Rec_dau2_pt,      "dau2_pt/F");
+  m_hadtrForTMVA->Branch("dau1_pt",      &b_Rec_dau1_pt,      "dau1_pt/F");
   m_hadtrForTMVA->Branch("dau2_chi2",    &b_Rec_dau2_chi2,    "dau2_chi2/F");
   m_hadtrForTMVA->Branch("dau2_ipsigXY", &b_Rec_dau2_ipsigXY, "dau2_ipsigXY/F");
   m_hadtrForTMVA->Branch("dau2_ipsigZ",  &b_Rec_dau2_ipsigZ,  "dau2_ipsigZ/F");
@@ -276,7 +276,7 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("KS_dau1_chi2",    &b_KS_dau1_chi2,    "KS_dau1_chi2/F");
   m_jettrForTMVA->Branch("KS_dau1_ipsigXY", &b_KS_dau1_ipsigXY, "KS_dau1_ipsigXY/F");
   m_jettrForTMVA->Branch("KS_dau1_ipsigZ",  &b_KS_dau1_ipsigZ,  "KS_dau1_ipsigZ/F");
-  m_jettrForTMVA->Branch("KS_dau1_pt",      &b_KS_dau2_pt,      "KS_dau2_pt/F");
+  m_jettrForTMVA->Branch("KS_dau1_pt",      &b_KS_dau1_pt,      "KS_dau1_pt/F");
   m_jettrForTMVA->Branch("KS_dau2_chi2",    &b_KS_dau2_chi2,    "KS_dau2_chi2/F");
   m_jettrForTMVA->Branch("KS_dau2_ipsigXY", &b_KS_dau2_ipsigXY, "KS_dau2_ipsigXY/F");
   m_jettrForTMVA->Branch("KS_dau2_ipsigZ",  &b_KS_dau2_ipsigZ,  "KS_dau2_ipsigZ/F");
@@ -631,9 +631,9 @@ void vtsAnalyser::RecAnalysis() {
     b_hadTruth_dau1_ipsigZ_vec.push_back(had_dau1_ipsigZ[i]);
     b_hadTruth_dau1_pt_vec.push_back(had_dau1_pt[i]);
     b_hadTruth_dau2_chi2_vec.push_back(had_dau2_chi2[i]);
-    b_hadTruth_dau2_ipsigXY_vec.push_back(had_dau1_ipsigXY[i]);
-    b_hadTruth_dau2_ipsigZ_vec.push_back(had_dau1_ipsigZ[i]);
-    b_hadTruth_dau2_pt_vec.push_back(had_dau1_pt[i]);
+    b_hadTruth_dau2_ipsigXY_vec.push_back(had_dau2_ipsigXY[i]);
+    b_hadTruth_dau2_ipsigZ_vec.push_back(had_dau2_ipsigZ[i]);
+    b_hadTruth_dau2_pt_vec.push_back(had_dau2_pt[i]);
 
     FillHadTreeForTMVA();
 
@@ -732,8 +732,8 @@ void vtsAnalyser::ResetForTMVA() {
   b_KS_d            = -99;   b_KS_pt           = -99;   b_KS_eta          = -99;   b_KS_phi          = -99;   b_KS_mass         = -99; 
   b_KS_lxy          = -99;   b_KS_lxySig       = -99;   b_KS_l3D          = -99;   b_KS_l3DSig       = -99;   b_KS_legDR        = -99; 
   b_KS_angleXY      = -99;   b_KS_angleXYZ     = -99;   b_KS_chi2         = -99;   b_KS_dca          = -99; 
-  b_KS_dau1_chi2    = -99;   b_KS_dau1_ipsigXY = -99;   b_KS_dau1_ipsigZ  = -99;   b_KS_dau1_pt      = -99;   b_KS_dau2_chi2    = -99; 
-  b_KS_dau2_ipsigXY = -99;   b_KS_dau2_ipsigZ  = -99;   b_KS_dau2_pt      = -99; 
+  b_KS_dau1_chi2    = -99;   b_KS_dau1_ipsigXY = -99;   b_KS_dau1_ipsigZ  = -99;   b_KS_dau1_pt      = -99;   
+  b_KS_dau2_chi2    = -99;   b_KS_dau2_ipsigXY = -99;   b_KS_dau2_ipsigZ  = -99;   b_KS_dau2_pt      = -99; 
   b_KS_dr           = -99;   b_KS_x            = -99;   b_KS_best_bdt     = -99; 
 }
 
