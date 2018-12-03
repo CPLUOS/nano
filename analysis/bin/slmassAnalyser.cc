@@ -60,8 +60,6 @@ int slmassAnalyser::SetCutValues(){
 
 }
 
-
-
 void slmassAnalyser::Loop() {
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
@@ -76,7 +74,6 @@ void slmassAnalyser::Loop() {
         m_tree->Fill();
     }
   }
-
 }
 
 int main(int argc, char* argv[]) {
@@ -114,8 +111,8 @@ int main(int argc, char* argv[]) {
     }
   }
   else {
-    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180607_115926/0000/nanoAOD_256.root", "read");
-    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_143635/0000/nanoAOD_256.root", "read");
+    TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180607_115926/0000/nanoAOD_256.root", "read");
+    //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_143635/0000/nanoAOD_256.root", "read");
     //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/SingleMuon/Run2016B-07Aug17_ver2-v1/180607_085033/0000/nanoAOD_430.root");
     //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v4/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180430_152541/0000/nanoAOD_256.root", "read");
     //TFile *f = TFile::Open("/xrootd/store/group/nanoAOD/run2_2016v5/WW_TuneCUETP8M1_13TeV-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/180610_143956/0000/nanoAOD_2.ro 
@@ -171,7 +168,7 @@ void slmassAnalyser::MakeBranch(TTree* t) {
   t->Branch("lep_pid", &b_lep_pid, "lep_pid/I");
   t->Branch("lep", "TLorentzVector", &b_lep); 
   t->Branch("had", "TLorentzVector", &b_had); 
-  t->Branch("mass_sum", &b_sum, "mass_sum/F"); 
+  t->Branch("mass_sum", &b_cme_sum, "mass_sum/F"); 
   t->Branch("tri", &b_tri, "tri/F");
   t->Branch("tri_up", &b_tri_up, "tri_up/F");
   t->Branch("tri_dn", &b_tri_dn, "tri_dn/F");
@@ -185,11 +182,8 @@ void slmassAnalyser::MakeBranch(TTree* t) {
   t->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   t->Branch("eleffweight", &b_eleffweight, "eleffweight/F");
   t->Branch("PV_npvs", &PV_npvs, "PV_npvs/I");
-  t->Branch("trig_m", &b_trig_m, "trig_m/I");
-  t->Branch("trig_e", &b_trig_e, "trig_e/I");
-  
-//t->Branch("had_vecSumDMLep", "TLoremtzVector", &b_had_vecSumDMLep);
-//t->Branch("had_sumM", &b_had_sumM, "had_sumM/F");
+  t->Branch("trig_m", &b_trig_m, "trig_m/O");
+  t->Branch("trig_e", &b_trig_e, "trig_e/O");
   //t->Branch("cme_nMatched", &b_cme_nMatched, "cme_nMatched/I");
   //t->Branch("cme_nTrueDau", &b_cme_nTrueDau, "cme_nTrueDau/I");
   t->Branch("cme_diffMass", &b_cme_diffMass, "cme_diffMass/F");
@@ -239,56 +233,63 @@ void slmassAnalyser::MakeBranch(TTree* t) {
 
 void slmassAnalyser::resetBranch() {
     Reset();
-    b_cme_cut = 0; 
-    b_cme_charge = 0; 
     b_had.SetPtEtaPhiM(0,0,0,0); 
 
-    b_cme_diffMass = -88;
-    b_cme_pdgId = 0;
-    b_cme_tmva = -2;
-    //b_cme_tmva_Jpsi = -2;
-    b_cme_mass = -88;
+    b_cme_cut = 0; 
+    b_cme_charge = 0; 
+    b_cme_pdgId = 0; 
     
-    b_cme_lxy = -88;
-    b_cme_l3DE = -88;
-    b_cme_l3DErr = -88;
-    b_cme_jetDR = -88;
-    b_cme_legDR = -88;
-    b_cme_nJet = -88;
-    b_cme_dca = -88;
-    b_cme_angleXYZ = -88;
-    b_cme_x = -88;
-    b_cme_y = -88;
-    b_cme_z = -88;
-    b_cme_chi2 = -88;
-    b_cme_jet_btagDeepB = -88;
-    b_cme_dau2_chi2 = -88;
-    b_cme_dau1_chi2 = -88;
-    b_cme_dau1_ipsigXY = -88;
-    b_cme_dau2_ipsigXY = -88;
-    b_cme_dau1_nHits = -88;
-    b_cme_dau2_nHits = -88;
-    b_cme_dau2_ipsigZ = -88;
-  
-    b_cme_lxyE = -88;
-    b_cme_l3D = -88;
-    b_cme_eta = -88;
-    b_cme_phi = -88;
-    b_cme_jet_btagCMVA = -88;
+    b_cme_tmva = -1;     
+    b_cme_diffMass = -88; 
+    b_cme_mass = -88; 
+    b_cme_sum = -88;
+    
+    b_cme_dau1_chi2 = -88; 
+    b_cme_dau1_nHits = -88; 
+    b_cme_dau1_pt = -88; 
+    b_cme_dau2_chi2 = -88; 
+    b_cme_dau2_nHits = -88;  
+    b_cme_dau2_pt = -88; 
+    b_cme_l3DE = -88; 
+    b_cme_dca = -88; 
+    b_cme_jetDR = -88; 
+    b_cme_legDR = -88; 
+    b_cme_chi2 = -88; 
     b_cme_jet_btagCSVV2 = -88;
+    
+
+    b_cme_x = -88; 
+    b_cme_y = -88; 
+    b_cme_z = -88; 
     b_cme_angleXY = -88;
-    b_cme_pt =-88;
-    b_cme_jet_btagDeepC = -88;
-    b_cme_dau1_ipsigZ =-88;
-    b_cme_dau1_pt =-88;
-    b_cme_dau2_pt =-88;
+   
+    tmp_l3DE = -88;
+    tmp_jetDR = -88;
+    tmp_legDR = -88; 
+    tmp_dca = -88; 
+    tmp_chi2 = -88; 
+    tmp_jet_btagCSVV2 = -88; 
+    tmp_mass = -88;
+    tmp_tmva = -88;
+
+    hadnum = -1;
 }
 
 void slmassAnalyser::cmesonSelection() {
-    UInt_t hadnum = 100001;
     Float_t max_tmva = -2.0f;
     if (nhad < 1) return;
     for (UInt_t k = 0; k < nhad; ++k) {
+         
+       //cout <<"---k :"<<k<<"---"<<std::endl;
+        tmp_l3DE = -88; 
+        tmp_jetDR = -88;
+        tmp_legDR = -88;
+        tmp_dca = -88;
+        tmp_chi2 = -88;
+        tmp_jet_btagCSVV2 = -88;
+        tmp_mass = -88;
+        tmp_tmva = -88;
+
         if (had_dau1_chi2[k] >4) continue;
         if (had_dau1_nHits[k] <3) continue;
         if (had_dau1_pt[k] <0.5) continue;
@@ -296,8 +297,7 @@ void slmassAnalyser::cmesonSelection() {
         if (had_dau2_nHits[k] <3) continue;
         if (had_dau2_pt[k] <0.5) continue;
         if (std::fabs(had_angleXY[k]) <0.95) continue;
-        if (std::fabs(had_x[k]) >8) continue;
-        if (std::fabs(had_y[k]) >8) continue;
+        if (std::hypot(had_x[k], had_y[k]) >8) continue;
         if (std::fabs(had_z[k]) >20) continue;
 
         if (had_l3DErr[k] <= 0) continue;
@@ -321,15 +321,21 @@ void slmassAnalyser::cmesonSelection() {
         
         tmp_mass = had_mass[k];
         tmp_tmva = bdtg->EvaluateMVA("BDTG");
+        //cout <<"-----Cut Pass----"<<std::endl;
+        //cout <<"Hadnum : "<< k <<std::endl;
+        //cout <<"tmva : "<<tmp_tmva<<std::endl;
         
         if (max_tmva < tmp_tmva){
             max_tmva = tmp_tmva;
             hadnum = k;    
         }
-        
     }     
-    //cout <<hadnum<<std::endl;
-    if (hadnum == 100001) return;
+    if (hadnum <0) return;
+    //cout <<"------INPut------"<<std::endl;
+    //cout <<"Hadnum : "<<hadnum<<std::endl;
+    //cout <<"tmva : "<<max_tmva<<std::endl;
+    //cout <<"=====EndEvent====="<<std::endl;
+    
     b_cme_cut = 1;
     b_cme_tmva = max_tmva;
     b_cme_diffMass = had_diffMass[hadnum];
@@ -360,7 +366,7 @@ void slmassAnalyser::cmesonSelection() {
 
     TLorentzVector sum_tlv;
     sum_tlv = b_lep + b_had;
-    b_sum = sum_tlv.M();
+    b_cme_sum = sum_tlv.M();
     if( b_lep_pid * b_cme_pdgId < 0 ){
    // cout <<"-----------------"<<std::endl;
    // cout <<b_lep_pid<<std::endl;
@@ -369,7 +375,6 @@ void slmassAnalyser::cmesonSelection() {
     b_cme_charge = -1; 
     }
     else {b_cme_charge = 1;}
-
 }
 
 
