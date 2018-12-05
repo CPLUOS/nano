@@ -1,4 +1,6 @@
 <use name="nano/external" />
+<use name="JetMETCorrections/Objects"/>
+<use name="JetMETCorrections/Modules"/>
 <use name="root"/>
 <use name="rootxml"/>
   <lib name="Eve"/>

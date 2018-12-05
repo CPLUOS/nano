@@ -5,6 +5,12 @@
 #include "nano/external/interface/TopTriggerSF.h"
 //#include "nano/external/interface/TTbarModeDefs.h"
 
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
+#include <TRandom3.h>
+
 class topObjectSelection : public nanoBase
 {
 protected:
@@ -14,7 +20,16 @@ protected:
   
   Float_t b_maxBDiscr_nonb;
   
+  UInt_t m_unFlag;
+  
+  JetCorrectionUncertainty *jecUnc;
+  
+  JME::JetResolution jetResObj;
+  JME::JetResolutionScaleFactor jetResSFObj;
+  TRandom3 *rndEngine;
+  
 public:
+  Float_t Jet_pt_jer_nom[35];
   // YOU MUST SET UP ALL IN THE BELOW!!!
   // (SetCutValues() will force you to do it)
   Float_t cut_ElectronPt;
@@ -73,8 +88,11 @@ public:
     return Muon_isPFcand[ nIdx ] && ( Muon_globalMu[ nIdx ] || Muon_trackerMu[ nIdx ] );
   };
   virtual bool additionalConditionForGenJet(UInt_t nIdx) {return true;};
-  virtual bool additionalConditionForJet(UInt_t nIdx) {return true;};
-  virtual bool additionalConditionForBJet(UInt_t nIdx) {return true;};
+  
+  virtual bool additionalConditionForJet(UInt_t nIdx, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi, Float_t &fJetMass) 
+    {return true;};
+  virtual bool additionalConditionForBJet(UInt_t nIdx, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi, Float_t &fJetMass) 
+    {return true;};
   
   // In uncertainty study we need to switch the kinematic variables of jets
   // The following variables are for this switch
@@ -83,13 +101,9 @@ public:
   // so that he/she needs to switch them to the evaluated ones, 
   // just touching them in anlalyser class will be okay, and this is for it.
   virtual void GetJetMassPt(UInt_t nIdx, 
-    Float_t &fJetMass, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi) 
-  {
-    fJetMass  = Jet_mass[ nIdx ];
-    fJetPt = Jet_pt[ nIdx ];
-    fJetEta = Jet_eta[ nIdx ];
-    fJetPhi = Jet_phi[ nIdx ];
-  }
+    Float_t &fJetMass, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi);
+  
+  Int_t GetMatchGenJet(UInt_t nIdxJet);
   
 public:
   std::vector<TParticle> muonSelection();
@@ -102,15 +116,33 @@ public:
 
   std::vector<TParticle> genJetSelection();
 
-  topObjectSelection(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false);
-  topObjectSelection(TTree *tree=0, Bool_t isMC=false) : topObjectSelection(tree, 0, 0, isMC) {}
-  ~topObjectSelection() {}
+  topObjectSelection(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, UInt_t unFlag = 0);
+  topObjectSelection(TTree *tree=0, Bool_t isMC=false, UInt_t unFlag = 0) : 
+    topObjectSelection(tree, 0, 0, isMC, unFlag) {}
+  ~topObjectSelection() {
+    if ( jecUnc != NULL ) delete jecUnc;
+    if ( rndEngine != NULL ) delete rndEngine;
+  }
   
   // In this function you need to set all the cut conditions in the above
   // If you do not set this function up (so that you didn't set the cuts), the compiler will deny your code, 
   // so you can be noticed that you forgot the setting up.
   // And you don't need to run this function indivisually; it will be run in the creator of this class.
   virtual int SetCutValues() = 0;
+  
+  enum {
+    OptBit_JER_Up = 0, 
+    OptBit_JER_Dn, 
+    OptBit_JES_Up, 
+    OptBit_JES_Dn
+  };
+  
+  enum {
+    OptFlag_JER_Up = ( 1 << OptBit_JER_Up ), 
+    OptFlag_JER_Dn = ( 1 << OptBit_JER_Dn ), 
+    OptFlag_JES_Up = ( 1 << OptBit_JES_Up ), 
+    OptFlag_JES_Dn = ( 1 << OptBit_JES_Dn )
+  };
 };
 
 #endif

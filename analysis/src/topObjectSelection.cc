@@ -2,9 +2,32 @@
 
 using std::vector;
 
-topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) :
-  nanoBase(tree, had, hadTruth, isMC)
-{}
+topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, UInt_t unFlag) : 
+  nanoBase(tree, had, hadTruth, isMC), m_unFlag(unFlag), jecUnc(NULL), rndEngine(NULL)
+{
+  if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn | OptFlag_JER_Up | OptFlag_JER_Dn ) ) != 0 ) {
+    std::string env = getenv("CMSSW_BASE");
+    
+    std::string strPathJetResSFObj = env + "/src/nano/analysis/data/jetunc/"
+      "Summer16_25nsV1_MC_SF_AK4PFchs.txt";
+    jetResSFObj = JME::JetResolutionScaleFactor(strPathJetResSFObj.c_str());
+    
+    std::string strPathJetResObj = env + "/src/nano/analysis/data/jetunc/"
+      "Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
+    jetResObj = JME::JetResolution(strPathJetResObj.c_str());
+    
+    rndEngine = new TRandom3(12345);
+    
+    if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 ) {
+      std::string strPathJecUnc = env + "/src/nano/analysis/data/jetunc/"
+        //"Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt";
+        "Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt";
+      
+      JetCorrectorParameters JetCorPar(strPathJecUnc, "Total");
+      jecUnc = new JetCorrectionUncertainty(JetCorPar);
+    }
+  }
+}
 
 vector<TParticle> topObjectSelection::elecSelection() {
   vector<TParticle> elecs; 
@@ -139,7 +162,7 @@ vector<TParticle> topObjectSelection::jetSelection() {
         if (mom.TLorentzVector::DeltaR(lep) < cut_JetConeSizeOverlap) hasOverLap = true;
     }
     if (hasOverLap) continue;
-    if ( !additionalConditionForJet(i) ) continue;
+    if ( !additionalConditionForJet(i, fJetPt, fJetEta, fJetPhi, fJetMass) ) continue;
     
     auto jet = TParticle();
     jet.SetMomentum(mom);
@@ -204,7 +227,7 @@ vector<TParticle> topObjectSelection::bjetSelection() {
       if (mom.TLorentzVector::DeltaR(lep) < cut_BJetConeSizeOverlap) hasOverLap = true;
     }
     if (hasOverLap) continue;
-    if ( !additionalConditionForBJet(i) ) continue;
+    if ( !additionalConditionForBJet(i, fJetPt, fJetEta, fJetPhi, fJetMass) ) continue;
     
     auto bjet = TParticle();
     bjet.SetMomentum(mom);
@@ -213,3 +236,93 @@ vector<TParticle> topObjectSelection::bjetSelection() {
   }
   return bjets;
 }
+
+
+// In uncertainty study we need to switch the kinematic variables of jets
+// The following variables are for this switch
+// In the topObjectSelection.cc these variables are used instead of Jet_pt, Jet_mass, and so on.
+// In default, these are same as the original ones, but when a user wants to study systematic uncertainty 
+// so that he/she needs to switch them to the evaluated ones, 
+// just touching them in anlalyser class will be okay, and this is for it.
+void topObjectSelection::GetJetMassPt(UInt_t nIdx, 
+  Float_t &fJetMass, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi) 
+{
+  Float_t fCorrFactor = 1.0;
+  
+  fJetMass = Jet_mass[ nIdx ];
+  fJetPt   = Jet_pt[ nIdx ];
+  fJetEta  = Jet_eta[ nIdx ];
+  fJetPhi  = Jet_phi[ nIdx ];
+  
+  if ( ( m_unFlag & ( OptFlag_JER_Up | OptFlag_JER_Dn | OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 ) {
+    // Evaluating the central part cJER of the factor
+    JME::JetParameters jetPars = {{JME::Binning::JetPt, fJetPt},
+                                  {JME::Binning::JetEta, fJetEta},
+                                  {JME::Binning::Rho, fixedGridRhoFastjetAll}};
+    
+    // We need corresponding genJet
+    //Int_t nIdxGen = Jet_genJetIdx[ nIdx ];
+    Int_t nIdxGen = GetMatchGenJet(nIdx);
+    const double genJetPt = GenJet_pt[ nIdxGen ];
+    
+    const double jetRes = jetResObj.getResolution(jetPars); // Note: this is relative resolution.
+    const double cJER = jetResSFObj.getScaleFactor(jetPars, 
+      ( ( m_unFlag & ( OptFlag_JER_Up | OptFlag_JER_Dn ) ) == 0 ? Variation::NOMINAL : 
+        ( ( m_unFlag & OptFlag_JER_Up ) != 0 ? Variation::UP : Variation::DOWN ) ));
+    
+    // JER (nominal and up and down) - apply scaling method if matched genJet is found,
+    //       apply gaussian smearing method if unmatched
+    /*if ( nIdxGen >= 0 && //deltaR(genJet->p4(), jet.p4()) < 0.2 && // From CATTool
+         std::abs(genJetPt - fJetPt) < jetRes * 3 * fJetPt ) 
+      fCorrFactor = std::max(0., (genJetPt + ( fJetPt - genJetPt ) * cJER) / fJetPt);*/
+    if ( nIdxGen >= 0 ) {
+      fCorrFactor = ( genJetPt + ( fJetPt - genJetPt ) * cJER ) / fJetPt;
+    } else {
+      // Different from the postprocess tool, but it might not be important
+      const double smear = rndEngine->Gaus(0, 1);
+      fCorrFactor = ( cJER <= 1 ? 1 : 1 + smear * jetRes * sqrt(cJER * cJER - 1) );
+    }
+    
+    if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 ) { // JES
+      // The evaluator needs pT and eta of the current jet
+      jecUnc->setJetPt(fCorrFactor * fJetPt);
+      jecUnc->setJetEta(fJetEta);
+      
+      if ( ( m_unFlag & OptFlag_JES_Up ) != 0 ) {
+        fCorrFactor *= 1 + jecUnc->getUncertainty(true);
+      } else {
+        fCorrFactor *= 1 - jecUnc->getUncertainty(true);
+      }
+    }
+  }
+  
+  fJetMass *= fCorrFactor;
+  fJetPt   *= fCorrFactor;
+}
+
+
+Int_t topObjectSelection::GetMatchGenJet(UInt_t nIdxJet) {
+  UInt_t i;
+  
+  Float_t dRFound = 999;
+  UInt_t nIdxFound = 999;
+  
+  for ( i = 0 ; i < nGenJet ; i++ ) {
+    Float_t dDEta = Jet_eta[ nIdxJet ] - GenJet_eta[ i ];
+    Float_t dDPhi = Jet_phi[ nIdxJet ] - GenJet_phi[ i ];
+    
+    while ( dDPhi >  3.141592 ) dDPhi -= 2 * 3.141592;
+    while ( dDPhi < -3.141592 ) dDPhi += 2 * 3.141592;
+    
+    Float_t dR = sqrt(dDEta * dDEta + dDPhi * dDPhi);
+    
+    if ( dRFound > dR ) {
+      dRFound = dR;
+      nIdxFound = i;
+    }
+  }
+ 
+  return ( dRFound < 0.4 ? (Int_t)nIdxFound : -1 );
+}
+
+
