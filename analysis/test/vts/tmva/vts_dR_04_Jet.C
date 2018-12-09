@@ -209,15 +209,15 @@ int vts_dR_04_Jet( TString myMethodList = "" )
 //  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_pythia.root";
 //  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_herwig.root";
 
-  TString sample_bbars_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_2l_FxFx_sum_630_combined.root";
-  TString sample_bsbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bsbar_2l_FxFx_sum_774_combined.root";
-  TString sample_bbbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbbar_2l_FxFx_sum_201.root";
-  TString sample_bbars_bsbar_pythia       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_sum_630_774_combined.root";
-  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_bbbar_sum_630_774_201_combined.root";
+  TString sample_bbars_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_2l_FxFx_sum_630_combined.root";
+  TString sample_bsbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bsbar_2l_FxFx_sum_774_combined.root";
+  TString sample_bbbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbbar_2l_FxFx_sum_201.root";
+  TString sample_bbars_bsbar_pythia       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_bsbar_sum_630_774_combined.root";
+  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_bsbar_bbbar_sum_630_774_201_combined.root";
 
-  TString sample_bbars_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
-  TString sample_bsbar_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
-  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_herwigpp_sum_49.root";
+  TString sample_bbars_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bsbar_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_bsbar_herwigpp_sum_49_49.root";
 
   bbars_pythia = TFile::Open( sample_bbars_pythia );             bbars_herwig = TFile::Open( sample_bbars_herwig );
   bsbar_pythia = TFile::Open( sample_bsbar_pythia );             bsbar_herwig = TFile::Open( sample_bsbar_herwig );
