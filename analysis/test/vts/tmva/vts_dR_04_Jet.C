@@ -209,15 +209,15 @@ int vts_dR_04_Jet( TString myMethodList = "" )
 //  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_pythia.root";
 //  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/bsbar_herwig.root";
 
-  TString sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_2l_FxFx_sum_630_combined.root";
-  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bsbar_2l_FxFx_sum_774_combined.root";
-  TString sample_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbbar_2l_FxFx_sum_201.root";
-  TString sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_bsbar_sum_630_774_combined.root";
-  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_bsbar_bbbar_sum_630_774_201_combined.root";
+  TString sample_bbars_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_2l_FxFx_sum_630_combined.root";
+  TString sample_bsbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bsbar_2l_FxFx_sum_774_combined.root";
+  TString sample_bbbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbbar_2l_FxFx_sum_201.root";
+  TString sample_bbars_bsbar_pythia       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_bsbar_sum_630_774_combined.root";
+  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_bsbar_bbbar_sum_630_774_201_combined.root";
 
-  TString sample_bbars_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181019/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
-  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181019/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
-  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181019/tt012j_bbars_bsbar_herwigpp_sum_49.root";
+  TString sample_bbars_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bsbar_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181204/tt012j_bbars_bsbar_herwigpp_sum_49_49.root";
 
   bbars_pythia = TFile::Open( sample_bbars_pythia );             bbars_herwig = TFile::Open( sample_bbars_herwig );
   bsbar_pythia = TFile::Open( sample_bsbar_pythia );             bsbar_herwig = TFile::Open( sample_bsbar_herwig );
@@ -299,31 +299,31 @@ int vts_dR_04_Jet( TString myMethodList = "" )
   // global event weights per tree (see below for setting event-wise weights) 
      Double_t signalWeight     = 1.0; Double_t backgroundWeight = 1.0;
 
-  /* Cuts for JKS >>>> KS_best_bdt >= 0.0726 : jet includes Real KS */
-  TCut cut_JKS_BDT_s_highest   = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0726 && isSJet && !isBJet";
-  TCut cut_JKS_BDT_b_highest   = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0726 && isBJet && !isSJet";
-  TCut cut_JKS_BDT_all_highest = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0726 && !isSJet";
+  /* Cuts for JKS >>>> KS_best_bdt >= 0.0783 : jet includes Real KS || 20181120 bbars_bsbar_bbbar sample*/ 
+  TCut cut_JKS_BDT_s_highest   = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0783 && isSJet && !isBJet";
+  TCut cut_JKS_BDT_b_highest   = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0783 && isBJet && !isSJet";
+  TCut cut_JKS_BDT_all_highest = "isHighest && KS_idx != -99 && KS_best_bdt >= 0.0783 && !isSJet";
 
-  TCut cut_JKS_BDT_s_closest   = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0726 && isSJet && !isBJet";
-  TCut cut_JKS_BDT_b_closest   = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0726 && isBJet && !isSJet";
-  TCut cut_JKS_BDT_all_closest = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0726 && !isSJet";
+  TCut cut_JKS_BDT_s_closest   = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0783 && isSJet && !isBJet";
+  TCut cut_JKS_BDT_b_closest   = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0783 && isBJet && !isSJet";
+  TCut cut_JKS_BDT_all_closest = "isClosestToLep && KS_idx != -99 && KS_best_bdt >= 0.0783 && !isSJet";
 
-  TCut cut_JKS_BDT_s           = "KS_idx != -99 && KS_best_bdt >= 0.0726 && isSJet && !isBJet";
-  TCut cut_JKS_BDT_b           = "KS_idx != -99 && KS_best_bdt >= 0.0726 && isBJet && !isSJet";
-  TCut cut_JKS_BDT_all         = "KS_idx != -99 && KS_best_bdt >= 0.0726 && !isSJet";
+  TCut cut_JKS_BDT_s           = "KS_idx != -99 && KS_best_bdt >= 0.0783 && isSJet && !isBJet";
+  TCut cut_JKS_BDT_b           = "KS_idx != -99 && KS_best_bdt >= 0.0783 && isBJet && !isSJet";
+  TCut cut_JKS_BDT_all         = "KS_idx != -99 && KS_best_bdt >= 0.0783 && !isSJet";
 
-  /* Cuts for J >>>> KS_best_bdt < 0.0726 : jet includes Fake KS | KS_idx == -99 : KS isn't in the jet or there is no KS in a event */ 
-  TCut cut_J_BDT_s_highest   = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isSJet && !isBJet";
-  TCut cut_J_BDT_b_highest   = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isBJet && !isSJet";
-  TCut cut_J_BDT_all_highest = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && !isSJet";
+  /* Cuts for J >>>> KS_best_bdt < 0.0783 : jet includes Fake KS | KS_idx == -99 : KS isn't in the jet or there is no KS in a event */ 
+  TCut cut_J_BDT_s_highest   = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && isSJet && !isBJet";
+  TCut cut_J_BDT_b_highest   = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && isBJet && !isSJet";
+  TCut cut_J_BDT_all_highest = "isHighest && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && !isSJet";
 
-  TCut cut_J_BDT_s_closest   = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isSJet && !isBJet";
-  TCut cut_J_BDT_b_closest   = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isBJet && !isSJet";
-  TCut cut_J_BDT_all_closest = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && !isSJet";
+  TCut cut_J_BDT_s_closest   = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && isSJet && !isBJet";
+  TCut cut_J_BDT_b_closest   = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && isBJet && !isSJet";
+  TCut cut_J_BDT_all_closest = "isClosestToLep && (KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && !isSJet";
 
-  TCut cut_J_BDT_s           = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isSJet && !isBJet";
-  TCut cut_J_BDT_b           = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && isBJet && !isSJet";
-  TCut cut_J_BDT_all         = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0726 ) ) && !isSJet";
+  TCut cut_J_BDT_s           = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && isSJet && !isBJet";
+  TCut cut_J_BDT_b           = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && isBJet && !isSJet";
+  TCut cut_J_BDT_all         = "(KS_idx == -99 || ( KS_best_bdt >= -1. && KS_best_bdt < 0.0783 ) ) && !isSJet";
 
   TCut cut_s_highest   = "isHighest && isSJet && !isBJet";
   TCut cut_b_highest   = "isHighest && isBJet && !isSJet";
@@ -339,32 +339,32 @@ int vts_dR_04_Jet( TString myMethodList = "" )
   TCut cut_b           = "isBJet && !isSJet";
   TCut cut_all         = "!isSJet";
 
-  /* for 20181114 samples ratio of train/test is about 7:3 */
-  TString opt_JKS_BDT_nocondi = "nTrain_Signal=3100:nTrain_Background=7800:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_JKS_BDT_highest = "nTrain_Signal=2500:nTrain_Background=5500:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_JKS_BDT_closest = "nTrain_Signal=2200:nTrain_Background=4500:SplitMode=Random:NormMode=NumEvents:!V";
+  /* for 20181120 bbars_bsbar_bbbar samples ratio of train/test is about 7:3 */
+  TString opt_JKS_BDT_nocondi = "nTrain_Signal=3100:nTrain_Background=78000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_highest = "nTrain_Signal=2500:nTrain_Background=6000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_closest = "nTrain_Signal=2200:nTrain_Background=5000:SplitMode=Random:NormMode=NumEvents:!V";
 
-  TString opt_JKS_BDT_bnocondi = "nTrain_Signal=3100:nTrain_Background=3700:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_JKS_BDT_bhighest = "nTrain_Signal=2500:nTrain_Background=3000:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_JKS_BDT_bclosest = "nTrain_Signal=2200:nTrain_Background=2700:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_bnocondi = "nTrain_Signal=3100:nTrain_Background=37000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_bhighest = "nTrain_Signal=2500:nTrain_Background=3500:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_JKS_BDT_bclosest = "nTrain_Signal=2200:nTrain_Background=3000:SplitMode=Random:NormMode=NumEvents:!V";
 
-  TString opt_J_BDT_nocondi = "nTrain_Signal=70000:nTrain_Background=170000:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_J_BDT_highest = "nTrain_Signal=58500:nTrain_Background=110000:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_J_BDT_closest = "nTrain_Signal=51000:nTrain_Background=90000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_nocondi = "nTrain_Signal=70000:nTrain_Background=1700000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_highest = "nTrain_Signal=58500:nTrain_Background=125000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_closest = "nTrain_Signal=51000:nTrain_Background=100000:SplitMode=Random:NormMode=NumEvents:!V";
 
-  TString opt_J_BDT_bnocondi = "nTrain_Signal=70000:nTrain_Background=68000:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_J_BDT_bhighest = "nTrain_Signal=58500:nTrain_Background=56000:SplitMode=Random:NormMode=NumEvents:!V";
-  TString opt_J_BDT_bclosest = "nTrain_Signal=51000:nTrain_Background=49000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_bnocondi = "nTrain_Signal=70000:nTrain_Background=680000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_bhighest = "nTrain_Signal=58500:nTrain_Background=65000:SplitMode=Random:NormMode=NumEvents:!V";
+  TString opt_J_BDT_bclosest = "nTrain_Signal=51000:nTrain_Background=58000:SplitMode=Random:NormMode=NumEvents:!V";
 
-  setJKS(Use, factory, pp_combined_JKS_BDT_highest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_highest, cut_JKS_BDT_all_highest, opt_JKS_BDT_highest);
-  setJKS(Use, factory, pp_s_vs_b_JKS_BDT_highest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_highest, cut_JKS_BDT_b_highest,   opt_JKS_BDT_bhighest);
-  setJ(  Use, factory, pp_combined_J_BDT_highest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_highest,   cut_J_BDT_all_highest,   opt_J_BDT_highest);
-  setJ(  Use, factory, pp_s_vs_b_J_BDT_highest,     bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_highest,   cut_J_BDT_b_highest,     opt_J_BDT_bhighest);
+  setJKS(Use, factory, pp_combined_JKS_BDT_highest, bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_highest, cut_JKS_BDT_all_highest, opt_JKS_BDT_highest);
+  setJKS(Use, factory, pp_s_vs_b_JKS_BDT_highest,   bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_highest, cut_JKS_BDT_b_highest,   opt_JKS_BDT_bhighest);
+  setJ(  Use, factory, pp_combined_J_BDT_highest,   bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_highest,   cut_J_BDT_all_highest,   opt_J_BDT_highest);
+  setJ(  Use, factory, pp_s_vs_b_J_BDT_highest,     bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_highest,   cut_J_BDT_b_highest,     opt_J_BDT_bhighest);
 
-  setJKS(Use, factory, pp_combined_JKS_BDT_closest, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_closest, cut_JKS_BDT_all_closest, opt_JKS_BDT_closest);
-  setJKS(Use, factory, pp_s_vs_b_JKS_BDT_closest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_closest, cut_JKS_BDT_b_closest,   opt_JKS_BDT_bclosest);
-  setJ(  Use, factory, pp_combined_J_BDT_closest,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_closest,   cut_J_BDT_all_closest,   opt_J_BDT_closest);
-  setJ(  Use, factory, pp_s_vs_b_J_BDT_closest,     bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_closest,   cut_J_BDT_b_closest,     opt_J_BDT_bclosest);
+  setJKS(Use, factory, pp_combined_JKS_BDT_closest, bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_closest, cut_JKS_BDT_all_closest, opt_JKS_BDT_closest);
+  setJKS(Use, factory, pp_s_vs_b_JKS_BDT_closest,   bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s_closest, cut_JKS_BDT_b_closest,   opt_JKS_BDT_bclosest);
+  setJ(  Use, factory, pp_combined_J_BDT_closest,   bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_closest,   cut_J_BDT_all_closest,   opt_J_BDT_closest);
+  setJ(  Use, factory, pp_s_vs_b_J_BDT_closest,     bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight, cut_J_BDT_s_closest,   cut_J_BDT_b_closest,     opt_J_BDT_bclosest);
 
 //  setJKS(Use, factory, pp_combined_JKS_BDT, bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s, cut_JKS_BDT_all, opt_JKS_BDT_nocondi);
 //  setJKS(Use, factory, pp_s_vs_b_JKS_BDT,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight, cut_JKS_BDT_s, cut_JKS_BDT_b,   opt_JKS_BDT_bnocondi);
