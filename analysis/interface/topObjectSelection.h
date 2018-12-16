@@ -29,7 +29,6 @@ protected:
   TRandom3 *rndEngine;
   
 public:
-  Float_t Jet_pt_jer_nom[35];
   // YOU MUST SET UP ALL IN THE BELOW!!!
   // (SetCutValues() will force you to do it)
   Float_t cut_ElectronPt;

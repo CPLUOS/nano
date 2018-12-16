@@ -254,7 +254,8 @@ void topObjectSelection::GetJetMassPt(UInt_t nIdx,
   fJetEta  = Jet_eta[ nIdx ];
   fJetPhi  = Jet_phi[ nIdx ];
   
-  if ( ( m_unFlag & ( OptFlag_JER_Up | OptFlag_JER_Dn | OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 ) {
+  //if ( m_isMC && ( m_unFlag & ( OptFlag_JER_Up | OptFlag_JER_Dn | OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 )
+  if ( m_isMC ) {
     // Evaluating the central part cJER of the factor
     JME::JetParameters jetPars = {{JME::Binning::JetPt, fJetPt},
                                   {JME::Binning::JetEta, fJetEta},
@@ -272,11 +273,11 @@ void topObjectSelection::GetJetMassPt(UInt_t nIdx,
     
     // JER (nominal and up and down) - apply scaling method if matched genJet is found,
     //       apply gaussian smearing method if unmatched
-    /*if ( nIdxGen >= 0 && //deltaR(genJet->p4(), jet.p4()) < 0.2 && // From CATTool
-         std::abs(genJetPt - fJetPt) < jetRes * 3 * fJetPt ) 
-      fCorrFactor = std::max(0., (genJetPt + ( fJetPt - genJetPt ) * cJER) / fJetPt);*/
-    if ( nIdxGen >= 0 ) {
-      fCorrFactor = ( genJetPt + ( fJetPt - genJetPt ) * cJER ) / fJetPt;
+    if ( nIdxGen >= 0 && //deltaR(genJet->p4(), jet.p4()) < 0.2 && // From CATTool
+         std::abs(genJetPt - fJetPt) < jetRes * 3 * fJetPt ) {
+      fCorrFactor = std::max(0., (genJetPt + ( fJetPt - genJetPt ) * cJER) / fJetPt);
+    /*if ( nIdxGen >= 0 ) 
+      fCorrFactor = ( genJetPt + ( fJetPt - genJetPt ) * cJER ) / fJetPt;*/
     } else {
       // Different from the postprocess tool, but it might not be important
       const double smear = rndEngine->Gaus(0, 1);
