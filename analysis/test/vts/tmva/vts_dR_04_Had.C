@@ -113,19 +113,21 @@ int vts_dR_04_Had( TString myMethodList = "" )
   TFile *bbars_bsbar_pythia(0);       TFile *bbars_bsbar_herwig(0);
   TFile *bbars_bsbar_bbbar_pythia(0);
 
-  TString sample_bbars_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_2l_FxFx_sum_349.root";
-  TString sample_bbars_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bbars_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_2l_FxFx_sum_349.root";
+  TString sample_bbars_herwig             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
 
-  TString sample_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bsbar_2l_FxFx_sum_350.root";
-  TString sample_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bsbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bsbar_2l_FxFx_sum_350.root";
+  TString sample_bsbar_herwig             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
 
-  TString sample_bbars_bsbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_bsbar_sum_349_350.root";
-  TString sample_bbars_bsbar_herwig = "/xrootd/store/user/wjjang/test/sum_tt012j/20181113/tt012j_bbars_bsbar_herwigpp_sum_49.root";
+  TString sample_bbars_bsbar_pythia       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_sum_349_350.root";
+  TString sample_bbars_bsbar_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_herwigpp_sum_49.root";
+
+  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_bbbar_sum_349_350_201.root";
 
   bbars_pythia = TFile::Open( sample_bbars_pythia );                          //bbars_herwig = TFile::Open( sample_bbars_herwig );
   bsbar_pythia = TFile::Open( sample_bsbar_pythia );                          //bsbar_herwig = TFile::Open( sample_bsbar_herwig );
   bbars_bsbar_pythia = TFile::Open( sample_bbars_bsbar_pythia );              //bbars_bsbar_herwig = TFile::Open( sample_bbars_bsbar_herwig );
-//  bbars_bsbar_bbbar_pythia = TFile::Open( sample_bbars_bsbar_bbbar_pythia );
+  bbars_bsbar_bbbar_pythia = TFile::Open( sample_bbars_bsbar_bbbar_pythia );
 
   std::cout << "--- vts_dR_04_Had       : Using input file 1 : " << bbars_pythia->GetName() << std::endl;
 //  std::cout << "--- vts_dR_04_Had       : Using input file 2 : " << bbars_herwig->GetName() << std::endl;
@@ -133,7 +135,7 @@ int vts_dR_04_Had( TString myMethodList = "" )
 //  std::cout << "--- vts_dR_04_Had       : Using input file 4 : " << bsbar_herwig->GetName() << std::endl;
   std::cout << "--- vts_dR_04_Had       : Using input file 5 : " << bbars_bsbar_pythia->GetName() << std::endl;
 //  std::cout << "--- vts_dR_04_Had       : Using input file 6 : " << bbars_bsbar_herwig->GetName() << std::endl;
-//  std::cout << "--- vts_dR_04_Had       : Using input file 7 : " << bbars_bsbar_bbbar_pythia->GetName() << std::endl;
+  std::cout << "--- vts_dR_04_Had       : Using input file 7 : " << bbars_bsbar_bbbar_pythia->GetName() << std::endl;
 
   // Register the training and test trees
   TTree *bbars_pythia_tree           = (TTree*)bbars_pythia->Get("MVA_had");
@@ -144,6 +146,8 @@ int vts_dR_04_Had( TString myMethodList = "" )
 
   TTree *bbars_bsbar_pythia_tree     = (TTree*)bbars_bsbar_pythia->Get("MVA_had");
 //  TTree *bbars_bsbar_herwig_tree     = (TTree*)bbars_bsbar_herwig->Get("MVA_had");
+
+  TTree *bbars_bsbar_bbbar_pythia_tree = (TTree*)bbars_bsbar_bbbar_pythia->Get("MVA_had");
 
   // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
   TString outfileName( "./output/vts_dR_04_Had.root" );
@@ -163,10 +167,11 @@ int vts_dR_04_Had( TString myMethodList = "" )
 
   TCut cut_real = "nMatched == 2";
   TCut cut_fake = "nMatched != 2";
-  TString opt_pp = "nTrain_Signal=10000:nTrain_Background=672000:SplitMode=Random:NormMode=NumEvents:!V";
+  // It's for 20181120 samples
+  TString opt_pp = "nTrain_Signal=12000:nTrain_Background=870000:SplitMode=Random:NormMode=NumEvents:!V";
 
   addHadVariable(pp_real_vs_fake);
-  addTree(pp_real_vs_fake,   bbars_bsbar_pythia_tree, bbars_bsbar_pythia_tree, signalWeight, backgroundWeight);
+  addTree(pp_real_vs_fake,   bbars_bsbar_bbbar_pythia_tree, bbars_bsbar_bbbar_pythia_tree, signalWeight, backgroundWeight);
   pp_real_vs_fake->PrepareTrainingAndTestTree( cut_real, cut_fake, opt_pp ); 
   addMethod(Use, factory, pp_real_vs_fake);
 

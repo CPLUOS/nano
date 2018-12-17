@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import ROOT, nano.analysis.CMS_lumi, json, os, getopt, sys
 from nano.analysis.histoHelper import *
-from ROOT import TLorentzVector
+from ROOT import *
 #import DYestimation
 ROOT.gROOT.SetBatch(True)
 
@@ -11,18 +11,30 @@ CMS_lumi.lumi_sqrtS = "%.1f fb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
 datalumi = datalumi*1000
 version = os.environ['CMSSW_VERSION']
 
+mcFiles_topMass = [
+               'ZZ',
+               'WW',
+               'WZ',
+               'WJets',
+               "SingleTop_tW",
+               "SingleTbar_tW",
+               'DYJets',
+               'DYJets_10to50',
+               'TT_powheg',
+             ]  # MC used for topMass
+
 mcFiles_vts_dyjet = [
                      'DYJets',
                      'DYJets_10to50',
-#                     'DYJets_MG',
+                     'DYJets_MG',
 #                     'DYJets_MG_10to50',
                     ]
 mcFiles_vts_ttbar = [
-#                     'TT_powheg',
-#                     'TTJets_aMC',
-                     'TTJets_DiLept_MG',
+                     'TT_powheg', #
+                     'TTJets_aMC', #
+                     'TTJets_DiLept_MG', #
                      'TTJets_DiLept',
-#                     'TTJets_aMC_ext1',
+#                     'TTJets_aMC_ext1', #
                      'TT_powheg_mtop1665',
                      'TT_powheg_mtop1695',
                      'TT_powheg_mtop1715',
@@ -35,7 +47,7 @@ mcFiles_vts_single = [
                       'SingleTbar_tW',
                       'SingleTop_tW_noHadron',
                       'SingleTbar_tW_noHadron',
-#                      'SingleTop_t-channel',
+                      'SingleTop_t-channel', #
                       'SingleTbar_t-channel',
                       'SingleTop_s-channel'
                      ]
@@ -87,7 +99,7 @@ mcFiles_vts_2 = [
 
                   'tZq_ToLL',
 
-#                  'DYToLL_2J',
+                  'DYToLL_2J', #
 
                   'GluGlu_ZZTo4mu',
                   'GluGlu_ZZTo4e',
@@ -110,7 +122,7 @@ mcFiles_vts_2 = [
                   'DYJetsToLL_M-50_HT-400to600_ext1',
                   'DYJetsToLL_M-50_HT-600to800',
                   'DYJetsToLL_M-50_HT-800to1200',
-                  'DYJetsToLL_M-50_HT-1200to2500',
+                  'DYJetsToLL_M-50_HT-1200to2500', #
                   'DYJetsToLL_M-50_HT-2500toInf',
 
                   'EWKZ2Jets_ZToLL',
@@ -119,7 +131,7 @@ mcFiles_vts_2 = [
                   'EWKWMinus2Jets_WToLNu',
 
                   'QCD_HT50to100',
-#                  'QCD_HT100to200',
+                  'QCD_HT100to200', #
                   'QCD_HT200to300',
                   'QCD_HT300to500',
                   'QCD_HT500to700',
@@ -140,9 +152,9 @@ mcFiles_vts_2 = [
                   'WWJJToLNuLNu_EWK',
                   'WZJJ_EWK',
 
-#                  'WToLNu_0J',
-#                  'WToLNu_1J',
-#                  'WToLNu_2J',
+                  'WToLNu_0J', #
+                  'WToLNu_1J', #
+                  'WToLNu_2J', #
 
                   'QCD_Pt-15to20_MuEnriched',
                   'QCD_Pt-20to30_MuEnriched',
@@ -159,40 +171,55 @@ mcFiles_vts_2 = [
                   'QCD_Pt-20to30_EMEnriched',
                   'QCD_Pt-30to50_EMEnriched',
                   'QCD_Pt-50to80_EMEnriched',
-#                  'QCD_Pt-80to120_EMEnriched',
-#                  'QCD_Pt-120to170_EMEnriched',
+                  'QCD_Pt-80to120_EMEnriched', #
+                  'QCD_Pt-120to170_EMEnriched', #
                   'QCD_Pt-170to300_EMEnriched',
                   'QCD_Pt-300toInf_EMEnriched'
                 ]
 
 
-mcfilelist = mcFiles_vts_dyjet + mcFiles_vts_ttbar + mcFiles_vts_single+ mcFiles_vts_diboson + mcFiles_vts_diboson_2 + mcFiles_vts_triboson + mcFiles_vts_wjets + mcFiles_vts_2
+#mcfilelist = mcFiles_vts_dyjet + mcFiles_vts_ttbar + mcFiles_vts_single+ mcFiles_vts_diboson + mcFiles_vts_diboson_2 + mcFiles_vts_triboson + mcFiles_vts_wjets + mcFiles_vts_2
+
+mcfilelist = mcFiles_vts_diboson + mcFiles_vts_diboson_2 + mcFiles_vts_wjets + mcFiles_vts_single + mcFiles_vts_dyjet + mcFiles_vts_ttbar + mcFiles_vts_triboson + mcFiles_vts_2
+#mcfilelist = mcFiles_topMass
+
+#mcfilelist = ['tsW']
+#mcfilelist =[]
 
 dataFiles = [
              'SingleMuon_Run2016', 'SingleElectron_Run2016',
              'DoubleMuon_Run2016', 'DoubleEG_Run2016',
              'MuonEG_Run2016'
             ]
-rdfilelist = [data+period for period in ["B","C","D","E","F","G","H"] for data in dataFiles]
+rdfilelist = [data+period for data in dataFiles for period in ["B","C","D","E","F","G","H"]]
+rdfilelist = ['ch_fullme','ch_fullee','ch_fullmm']
+#rdfilelist = []
 
-rootfileDir = "/xrootd_user/wjjang/xrootd/sum/run2_2016v5/20180927/"
+rootfileDir = "/xrootd_user/wjjang/xrootd/sum/run2_2016v5/20181008/"
+rdfileDir = "/xrootd_user/wjjang/xrootd/run2_2016v5/"
 
 channel_name = ['MuEl', 'ElEl', 'MuMu']
+
+mc_nev = 0
+rd_nev = 0
 
 datasets = json.load(open("%s/src/nano/nanoAOD/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
 #default
 step = 4
-channel = 0
+channel = 2 # 1: MuEl | 2: ElEl | 3: MuMu
 #cut = 'vecSumLepSV.M()>0&&ncmeson>0&&tri!=0&&cmeson_pdgId==421&&cmeson_lxy>0.1&&cmeson_l3D>0'
 #cut = 'ncmeson>0&&tri!=0&&cmeson_pdgId==443&&cmeson_lxy>0.1&&cmeson_l3D>0.15'
 #cut = 'tri !=0&&bjet.Pt()>30&&dilep.Pt()>20&&jet2.Pt()>30&&jet1.Pt()>30'
 #cut = 'tri !=0&&abs(cme_pdgId)==443&&cme_tmva_bdtg>0.5'
 #cut = 'nbjet<4&&njet<7&&tri !=0&&(lep1.Eta()<1.4442||1.566<lep1.Eta())&&(lep2.Eta()<1.4442||1.566<lep2.Eta())'
-cut = 'step >= 4'
-weight = '1'#'genweight*puweight*eleffweight*mueffweight*tri'#*topPtWeight'
+cut = 'tri != 0' #'(passedEvent || !passedEvent)'
+#weight = 'genweight*puweight*eleffweight*mueffweight*tri'#*topPtWeight'
+weight = 'genweight*puweight*mueffweight*tri'#*topPtWeight'
+
 #plotvar = 'njet'
 plotvar = 'dilep.M()'
+#plotvar = 'dilep.Pt()'
 #binning = [20,2.8,3.4]
 #binning = [20,1.7,2.2]
 #binning = [60,1,1000]
@@ -200,6 +227,7 @@ plotvar = 'dilep.M()'
 #binning = [60, 1.7, 2.0]
 binning = [60, 20, 320]
 x_name = 'Invariant mass(ll) [GeV]'
+#x_name = 'Transverse momentum(ll) [GeV]'
 #x_name = 'Missing Energy [GeV]'
 #x_name = 'Invariant mass of J/#psi [GeV]'
 #x_name = 'mass_{J/#psi} [GeV]'
@@ -278,6 +306,8 @@ for imc,mcname in enumerate(mcfilelist):
     print rfname
     tfile = ROOT.TFile(rfname)
     wentries = tfile.Get("nevents").Integral()
+#    wentries = tfile.Get("event").GetEntries()
+    mc_nev += wentries
     scale = scale/wentries
     print "wentries:%s, scale:%s"%(wentries,scale)
     mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)    
@@ -319,23 +349,46 @@ for imc,mcname in enumerate(mcfilelist):
 if dolog == True:
    minp = 0.05
    maxp = 1000000000
-
-
-
-
-
-
+rd_nev = 0
 #data histo
-if channel != 0:
-    rfname = rootfileDir + rdfilelist[channel-1] +"_sum.root"
-    rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, rd_tcut)
+rdhistlist = []
+if channel != 0: # 1 : me , 2 : ee, 3 : mm
+    path = os.listdir("/xrootd_user/wjjang/xrootd/run2_2016v5/")
+    for sample in path:
+        rd_dir = os.listdir("/xrootd_user/wjjang/xrootd/run2_2016v5/"+sample+"/")
+        if channel == 1 :
+            if sample.find("SingleElectron") == -1 and sample.find("SingleMuon") == -1 and sample.find("MuonEG") == -1 :
+                continue
+        if channel == 2 :
+            if sample.find("SingleElectron") == -1 and sample.find("DoubleEG") == -1 :
+                continue
+        if channel == 3 :
+            if sample.find("SingleMuon") == -1 and sample.find("DoubleMuon") == -1 :
+                continue
+        print(" >>>>>>>>>> rd plotting .... : " + sample + " <<<<<<<<<< ")
+        for i, rd_file in enumerate(rd_dir) :
+            rfname = "/xrootd_user/wjjang/xrootd/run2_2016v5/"+sample+"/"+rd_file
+#            print(rfname)
+#            rd_nev = rd_nev + TFile(rfname).Get("event").GetEntries()
+            if i == 0 :
+                rdh = makeTH1(rfname, tname, 'data', binning, plotvar, rd_tcut)
+            else :
+                rdh.Add(makeTH1(rfname, tname, 'data', binning, plotvar, rd_tcut))
+        rdhistlist.append(rdh)
 else:
     rdhist = mchistList[0].Clone()
     rdhist.Reset()
     for i, rdfile in enumerate(rdfilelist):
         rfname = rootfileDir + rdfile +"_sum.root"
+#        rfname = "/xrootd_user/wjjang/xrootd/run2_2016v5/SingleElectron_Run2016B/rd_nanoAOD_100.root"
         rdtcut = 'channel==%d&&%s&&%s'%((i+1),stepch_tcut,cut)
         rdhist.Add(makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut))
+
+rdhist = rdhistlist[0]
+for i, h in enumerate(rdhistlist):
+    if i != 0 :
+        rdhist.Add(rdhistlist[i])
+
 
 rdhist.SetMinimum(minp)
 rdhist.SetMaximum(maxp)
@@ -364,6 +417,7 @@ for mchist in mchistList:
 
 print "Integral (MC) : ", step, channel, fIntMC
 print "Integral (data) : ", step, channel, rdhist.Integral()
+#print ("total entries for MC : ", mc_nev, " | total entries for RD : ", rd_nev)
 
 canv.SaveAs(outfile)        
 print outfile
