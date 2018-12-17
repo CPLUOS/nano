@@ -72,6 +72,9 @@ public:
   Float_t  cut_BJetConeSizeOverlap;
   Float_t *cut_BJetTypeBTag; // For example, set it as cut_BJetTypeBTag = Jet_btagCSVV2;
   Float_t  cut_BJetBTagCut;
+  
+  Float_t m_fDRcone_JER;
+  Float_t m_fResFactorMathcer;
 
 public: 
   // Tip: If you want to use your own additional cut with the existing cut, 
@@ -102,7 +105,7 @@ public:
   virtual void GetJetMassPt(UInt_t nIdx, 
     Float_t &fJetMass, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi);
   
-  Int_t GetMatchGenJet(UInt_t nIdxJet);
+  Int_t GetMatchGenJet(UInt_t nIdxJet, Float_t fResolution);
   
 public:
   std::vector<TParticle> muonSelection();

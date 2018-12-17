@@ -5,7 +5,8 @@ using std::vector;
 topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, UInt_t unFlag) : 
   nanoBase(tree, had, hadTruth, isMC), m_unFlag(unFlag), jecUnc(NULL), rndEngine(NULL)
 {
-  if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn | OptFlag_JER_Up | OptFlag_JER_Dn ) ) != 0 ) {
+  //if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn | OptFlag_JER_Up | OptFlag_JER_Dn ) ) != 0 )
+  if ( m_isMC ) {
     std::string env = getenv("CMSSW_BASE");
     
     std::string strPathJetResSFObj = env + "/src/nano/analysis/data/jetunc/"
@@ -27,6 +28,9 @@ topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth,
       jecUnc = new JetCorrectionUncertainty(JetCorPar);
     }
   }
+  
+  m_fDRcone_JER = 0.4; // For AK4 jets
+  m_fResFactorMathcer = 3; // According to https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
 }
 
 vector<TParticle> topObjectSelection::elecSelection() {
@@ -261,23 +265,23 @@ void topObjectSelection::GetJetMassPt(UInt_t nIdx,
                                   {JME::Binning::JetEta, fJetEta},
                                   {JME::Binning::Rho, fixedGridRhoFastjetAll}};
     
-    // We need corresponding genJet
-    //Int_t nIdxGen = Jet_genJetIdx[ nIdx ];
-    Int_t nIdxGen = GetMatchGenJet(nIdx);
-    const double genJetPt = GenJet_pt[ nIdxGen ];
-    
     const double jetRes = jetResObj.getResolution(jetPars); // Note: this is relative resolution.
     const double cJER = jetResSFObj.getScaleFactor(jetPars, 
       ( ( m_unFlag & ( OptFlag_JER_Up | OptFlag_JER_Dn ) ) == 0 ? Variation::NOMINAL : 
         ( ( m_unFlag & OptFlag_JER_Up ) != 0 ? Variation::UP : Variation::DOWN ) ));
     
+    // We need corresponding genJet
+    //Int_t nIdxGen = Jet_genJetIdx[ nIdx ];
+    Int_t nIdxGen = GetMatchGenJet(nIdx, fJetPt * jetRes);
+    const double genJetPt = GenJet_pt[ nIdxGen ];
+    
     // JER (nominal and up and down) - apply scaling method if matched genJet is found,
     //       apply gaussian smearing method if unmatched
-    if ( nIdxGen >= 0 && //deltaR(genJet->p4(), jet.p4()) < 0.2 && // From CATTool
-         std::abs(genJetPt - fJetPt) < jetRes * 3 * fJetPt ) {
-      fCorrFactor = std::max(0., (genJetPt + ( fJetPt - genJetPt ) * cJER) / fJetPt);
-    /*if ( nIdxGen >= 0 ) 
-      fCorrFactor = ( genJetPt + ( fJetPt - genJetPt ) * cJER ) / fJetPt;*/
+    /*if ( nIdxGen >= 0 && //deltaR(genJet->p4(), jet.p4()) < 0.2 && // From CATTool
+         std::abs(genJetPt - fJetPt) < jetRes * 3 * fJetPt ) 
+      fCorrFactor = std::max(0., (genJetPt + ( fJetPt - genJetPt ) * cJER) / fJetPt);*/
+    if ( nIdxGen >= 0 ) {
+      fCorrFactor = ( genJetPt + ( fJetPt - genJetPt ) * cJER ) / fJetPt;
     } else {
       // Different from the postprocess tool, but it might not be important
       const double smear = rndEngine->Gaus(0, 1);
@@ -302,10 +306,10 @@ void topObjectSelection::GetJetMassPt(UInt_t nIdx,
 }
 
 
-Int_t topObjectSelection::GetMatchGenJet(UInt_t nIdxJet) {
+Int_t topObjectSelection::GetMatchGenJet(UInt_t nIdxJet, Float_t fResolution) {
   UInt_t i;
   
-  Float_t dRFound = 999;
+  Float_t dRFound = m_fDRcone_JER;
   UInt_t nIdxFound = 999;
   
   for ( i = 0 ; i < nGenJet ; i++ ) {
@@ -317,13 +321,16 @@ Int_t topObjectSelection::GetMatchGenJet(UInt_t nIdxJet) {
     
     Float_t dR = sqrt(dDEta * dDEta + dDPhi * dDPhi);
     
+    if ( dR >= m_fDRcone_JER * 0.5 ) continue;
     if ( dRFound > dR ) {
+      if ( std::abs(Jet_pt[ nIdxJet ] - GenJet_pt[ i ]) >= m_fResFactorMathcer * fResolution ) continue;
+      
       dRFound = dR;
       nIdxFound = i;
     }
   }
  
-  return ( dRFound < 0.4 ? (Int_t)nIdxFound : -1 );
+  return ( dRFound < m_fDRcone_JER ? (Int_t)nIdxFound : -1 );
 }
 
 
