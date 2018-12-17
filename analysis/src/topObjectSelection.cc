@@ -9,18 +9,18 @@ topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth,
   if ( m_isMC ) {
     std::string env = getenv("CMSSW_BASE");
     
-    std::string strPathJetResSFObj = env + "/src/nano/analysis/data/jetunc/"
+    std::string strPathJetResSFObj = env + "/src/nano/analysis/data/jer/"
       "Summer16_25nsV1_MC_SF_AK4PFchs.txt";
     jetResSFObj = JME::JetResolutionScaleFactor(strPathJetResSFObj.c_str());
     
-    std::string strPathJetResObj = env + "/src/nano/analysis/data/jetunc/"
+    std::string strPathJetResObj = env + "/src/nano/analysis/data/jer/"
       "Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
     jetResObj = JME::JetResolution(strPathJetResObj.c_str());
     
     rndEngine = new TRandom3(12345);
     
     if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 ) {
-      std::string strPathJecUnc = env + "/src/nano/analysis/data/jetunc/"
+      std::string strPathJecUnc = env + "/src/nano/analysis/data/jer/"
         //"Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt";
         "Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt";
       
