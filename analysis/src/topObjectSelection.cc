@@ -1,4 +1,3 @@
-#include "DataFormats/Math/interface/deltaR.h"
 #include "nano/analysis/interface/topObjectSelection.h"
 
 using std::vector;
@@ -309,19 +308,18 @@ void topObjectSelection::GetJetMassPt(UInt_t nIdx,
 Int_t topObjectSelection::GetMatchGenJet(UInt_t nIdxJet, Float_t fResolution) {
   UInt_t i;
   
-  Float_t dEta, dPhi, dR;
-  Float_t dRFound = m_fDRcone_JER;
+  double dEta, dPhi, dR;
+  double dRFound = m_fDRcone_JER;
   UInt_t nIdxFound = 999;
   
   for ( i = 0 ; i < nGenJet ; i++ ) {
     dEta = Jet_eta[ nIdxJet ] - GenJet_eta[ i ];
-    dPhi = std::abs(Jet_eta[ nIdxJet ] - GenJet_eta[ i ]);
-    while ( dPhi > 3.14159265359 ) dPhi -= 2 * 3.14159265359;
+    dPhi = std::abs(Jet_phi[ nIdxJet ] - GenJet_phi[ i ]);
+    if ( dPhi > (double)M_PI ) dPhi -= (double)( 2 * M_PI );
     
-    //dR = deltaR(Jet_eta[ nIdxJet ], Jet_phi[ nIdxJet ], GenJet_eta[ i ], GenJet_phi[ i ]);
-    dR = sqrt(dEta * dEta + dPhi * dPhi);
+    dR = std::sqrt(dEta * dEta + dPhi * dPhi);
     
-    if ( dR >= m_fDRcone_JER * 0.5 ) continue;
+    if ( dR >= (double)m_fDRcone_JER * 0.5 ) continue;
     if ( dRFound > dR ) {
       if ( std::abs(Jet_pt[ nIdxJet ] - GenJet_pt[ i ]) >= m_fResFactorMathcer * fResolution ) continue;
       
@@ -330,7 +328,7 @@ Int_t topObjectSelection::GetMatchGenJet(UInt_t nIdxJet, Float_t fResolution) {
     }
   }
  
-  return ( dRFound < 0.75 * m_fDRcone_JER ? (Int_t)nIdxFound : -1 );
+  return ( dRFound < 0.75 * (double)m_fDRcone_JER ? (Int_t)nIdxFound : -1 );
 }
 
 

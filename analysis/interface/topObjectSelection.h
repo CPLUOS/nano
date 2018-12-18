@@ -5,9 +5,6 @@
 #include "nano/external/interface/TopTriggerSF.h"
 //#include "nano/external/interface/TTbarModeDefs.h"
 
-//#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-//#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
-//#include "JetMETCorrections/Modules/interface/JetResolution.h"
 #include "nano/external/interface/JetCorrectionUncertainty.h"
 #include "nano/external/interface/JetCorrectorParameters.h"
 #include "nano/external/interface/JetResolution.h"
