@@ -1,6 +1,6 @@
 // 
 // This code is from copying 
-//   https://github.com/cms-sw/cmssw/blob/CMSSW_9_4_X/CondFormats/JetMETObjects/interface/JetResolutionObject.h
+//   https://github.com/cms-sw/cmssw/blob/CMSSW_9_4_X/CondFormats/JetMETObjects/src/JetResolutionObject.cc
 //   in a2f9cbb commit
 // Copied by Byeonghak Ko
 //
