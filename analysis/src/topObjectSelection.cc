@@ -309,12 +309,17 @@ void topObjectSelection::GetJetMassPt(UInt_t nIdx,
 Int_t topObjectSelection::GetMatchGenJet(UInt_t nIdxJet, Float_t fResolution) {
   UInt_t i;
   
-  Float_t dR;
+  Float_t dEta, dPhi, dR;
   Float_t dRFound = m_fDRcone_JER;
   UInt_t nIdxFound = 999;
   
   for ( i = 0 ; i < nGenJet ; i++ ) {
-    dR = deltaR(Jet_eta[ nIdxJet ], Jet_phi[ nIdxJet ], GenJet_eta[ i ], GenJet_phi[ i ]);
+    dEta = Jet_eta[ nIdxJet ] - GenJet_eta[ i ];
+    dPhi = std::abs(Jet_eta[ nIdxJet ] - GenJet_eta[ i ]);
+    while ( dPhi > 3.14159265359 ) dPhi -= 2 * 3.14159265359;
+    
+    //dR = deltaR(Jet_eta[ nIdxJet ], Jet_phi[ nIdxJet ], GenJet_eta[ i ], GenJet_phi[ i ]);
+    dR = sqrt(dEta * dEta + dPhi * dPhi);
     
     if ( dR >= m_fDRcone_JER * 0.5 ) continue;
     if ( dRFound > dR ) {
