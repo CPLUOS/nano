@@ -22,16 +22,8 @@ def customise(process, doHadron=True, fastSim=False):
         # DATA
         process.NANOAODoutput.fileName = fileName
         jecFile = 'Summer16_07Aug2017All_V10_DATA'
-    
-    process.RandomNumberGeneratorService.jetUncEvaluatorTable = cms.PSet(
-      engineName = cms.untracked.string('TRandom3'),
-      initialSeed = cms.untracked.uint32(1),
-    )
-    
+        
     customiseMuons(process)
-    
-    process.load('nano.nanoAOD.JetMetUncertainty_cff')
-    process.nanoAOD_step += process.jetUncEvaluatorTable
     
     process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
     if doHadron:
@@ -73,7 +65,7 @@ def customise(process, doHadron=True, fastSim=False):
         )
     process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
     print "JEC based on", process.jec.connect
-    
+        
     process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
     process.MessageLogger.cerr.FwkSummary.reportEvery = cms.untracked.int32(1000)
     
