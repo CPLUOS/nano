@@ -15,4 +15,4 @@ script:
   - wget https://cern.ch/iawatson/mc_test_v5.root
   - wget https://cern.ch/iawatson/data_test_v5.root
   - docker exec -it cmssw bash -c 'yum --disablerepo=osg install -y unzip'
-  - docker exec -it cmssw bash -c 'cd ~/CMSSW_9_4_6/src && ls && source /opt/cms/cmsset_default.sh; eval `scram runtime -sh` && wget https://github.com/cms-jet/JRDatabase/raw/master/textFiles/Summer16_25nsV1_MC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt -P nano/analysis/data/jer && wget https://github.com/cms-jet/JRDatabase/raw/master/textFiles/Summer16_25nsV1_MC/Summer16_25nsV1_MC_SF_AK4PFchs.txt -P nano/analysis/data/jer && wget https://github.com/cms-jet/JECDatabase/raw/master/textFiles/Summer16_23Sep2016V4_MC/Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt nano/analysis/data/jer && cd nano && getFiles && testAnalyser'
+  - docker exec -it cmssw bash -c 'cd ~/CMSSW_9_4_6/src && ls && source /opt/cms/cmsset_default.sh; eval `scram runtime -sh` && cd nano && getFiles && testAnalyser'
