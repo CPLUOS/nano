@@ -27,7 +27,7 @@ namespace edm {
 #endif
 
 
-namespace JME {
+namespace JMENano {
     class JetResolution {
         public:
             JetResolution(const std::string& filename);

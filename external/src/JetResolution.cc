@@ -21,7 +21,7 @@
 #include "nano/external/interface/JetResolution.h" // MODIFIED
 #endif
 
-namespace JME {
+namespace JMENano {
 
     JetResolution::JetResolution(const std::string& filename) {
         m_object = std::make_shared<JetResolutionObject>(filename);

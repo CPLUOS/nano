@@ -23,8 +23,8 @@ protected:
   
   JetCorrectionUncertainty *jecUnc;
   
-  JME::JetResolution jetResObj;
-  JME::JetResolutionScaleFactor jetResSFObj;
+  JMENano::JetResolution jetResObj;
+  JMENano::JetResolutionScaleFactor jetResSFObj;
   TRandom3 *rndEngine;
   
 public:

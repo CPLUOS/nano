@@ -11,11 +11,11 @@ topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth,
     
     std::string strPathJetResSFObj = env + "/src/nano/analysis/data/jer/"
       "Summer16_25nsV1_MC_SF_AK4PFchs.txt";
-    jetResSFObj = JME::JetResolutionScaleFactor(strPathJetResSFObj.c_str());
+    jetResSFObj = JMENano::JetResolutionScaleFactor(strPathJetResSFObj.c_str());
     
     std::string strPathJetResObj = env + "/src/nano/analysis/data/jer/"
       "Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
-    jetResObj = JME::JetResolution(strPathJetResObj.c_str());
+    jetResObj = JMENano::JetResolution(strPathJetResObj.c_str());
     
     rndEngine = new TRandom3(12345);
     
@@ -261,9 +261,9 @@ void topObjectSelection::GetJetMassPt(UInt_t nIdx,
   //if ( m_isMC && ( m_unFlag & ( OptFlag_JER_Up | OptFlag_JER_Dn | OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 )
   if ( m_isMC ) {
     // Evaluating the central part cJER of the factor
-    JME::JetParameters jetPars = {{JME::Binning::JetPt, fJetPt},
-                                  {JME::Binning::JetEta, fJetEta},
-                                  {JME::Binning::Rho, fixedGridRhoFastjetAll}};
+    JMENano::JetParameters jetPars = {{JMENano::Binning::JetPt, fJetPt},
+                                  {JMENano::Binning::JetEta, fJetEta},
+                                  {JMENano::Binning::Rho, fixedGridRhoFastjetAll}};
     
     const double jetRes = jetResObj.getResolution(jetPars); // Note: this is relative resolution.
     const double cJER = jetResSFObj.getScaleFactor(jetPars, 
