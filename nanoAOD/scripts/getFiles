@@ -9,3 +9,8 @@ mv  nanoData-master/* $CMSSW_BASE/src/nano/analysis/data/
 rm -rf nanoData-master 
 rm -rf master.zip
 
+wget https://github.com/cms-jet/JRDatabase/raw/master/textFiles/Summer16_25nsV1_MC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt -P $CMSSW_BASE/src/nano/analysis/data/jer
+wget https://github.com/cms-jet/JRDatabase/raw/master/textFiles/Summer16_25nsV1_MC/Summer16_25nsV1_MC_SF_AK4PFchs.txt -P $CMSSW_BASE/src/nano/analysis/data/jer
+wget https://github.com/cms-jet/JECDatabase/raw/master/textFiles/Summer16_23Sep2016V4_MC/Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt -P $CMSSW_BASE/src/nano/analysis/data/jer
+
+
