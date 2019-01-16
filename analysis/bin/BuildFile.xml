@@ -16,12 +16,21 @@
   <flags CXXFLAGS="-lTMVA"/>
 </bin>
 
+<bin name="slmassAnalyser" file="slmassAnalyser.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+</bin>
+
 <bin name="vtsAnalyser" file="vtsAnalyser.cc">
   <use name="root"/>
   <use name="rootxml"/>
   <lib name="Eve"/>
   <lib name="EG"/>
   <use name="nano/analysis"/>
+  <flags CXXFLAGS="-lTMVA"/>
 </bin>
 
 <bin name="slCalibAnalyser" file="slCalibAnalyser.cc">
@@ -34,6 +43,15 @@
 </bin>
 
 <bin name="singletopAnalyser" file="singletopAnalyser.cc">
+  <use name="root"/>
+  <use name="rootxml"/>
+  <lib name="Eve"/>
+  <lib name="EG"/>
+  <use name="nano/analysis"/>
+  <flags CXXFLAGS="-g" />
+</bin>
+
+<bin name="dmAnalysis" file="dmAnalysis.cc">
   <use name="root"/>
   <use name="rootxml"/>
   <lib name="Eve"/>

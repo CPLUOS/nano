@@ -17,7 +17,7 @@ protected:
   //Variables
   TLorentzVector b_lep1, b_lep2, b_dilep, b_jet1, b_jet2;
   TParticle recolep1, recolep2;
-  int b_lep1_pid, b_lep2_pid;
+  int b_lep1_pid, b_lep2_pid, b_lep1_idx, b_lep2_idx;
   float b_jet1_CSVInclV2, b_jet2_CSVInclV2;
 
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
@@ -47,6 +47,8 @@ protected:
 public:
 
   enum TTLLChannel { CH_NOLL = 0, CH_MUEL, CH_ELEL, CH_MUMU };
+  
+  virtual int SetCutValues();
 
   virtual int EventSelection();
 

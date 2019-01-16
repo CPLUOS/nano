@@ -43,7 +43,7 @@ public:
   RoccoR* m_rocCor;
   MuonScaleFactorEvaluator m_muonSF;
   ElecScaleFactorEvaluator m_elecSF;
-  BTagCalibrationReader m_btagSF;
+  BTagCalibrationReader m_btagSF, m_btagSF_up, m_btagSF_dn;
 
   Bool_t m_isMC;
 };
