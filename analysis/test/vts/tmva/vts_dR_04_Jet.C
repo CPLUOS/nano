@@ -338,7 +338,6 @@ int vts_dR_04_Jet( TString myMethodList = "" )
   TMVA::DataLoader *all_wo_KS_s_vs_b_highest = new TMVA::DataLoader("all_wo_KS_s_vs_b_highest");
   TMVA::DataLoader *all_wo_KS_s_vs_b_highBDT = new TMVA::DataLoader("all_wo_KS_s_vs_b_highBDT");
 
-
   //    (TMVA::gConfig().GetVariablePlotting()).fTimesRMS = 8.0;
   //    (TMVA::gConfig().GetIONames()).fWeightFileDir = "myWeightDirectory";
   (TMVA::gConfig().GetVariablePlotting()).fMaxNumOfAllowedVariablesForScatterPlots = 99999;
