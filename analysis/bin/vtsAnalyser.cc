@@ -804,8 +804,6 @@ void vtsAnalyser::FillJetTreeForTMVA() {
       b_axis1 = jetID_axis1[j];          b_axis2 = jetID_axis2[j];          b_ptD     = jetID_ptD[j];
       b_area  = Jet_area[j];             b_CSVV2 = Jet_btagCSVV2[j];
 
-      cout << " [ " << ij << " / " << m_selectedJet.size() << " ] In jet tree | Jet idx : " << j << " >>>>>> [ " << setw(10) << tlv_j.Pt() << " " << setw(10) << tlv_j.Eta() << " " << setw(10) << tlv_j.Phi() << " " << setw(10) << tlv_j.M() << " ] >>>>>> ( " << setw(3) << j << " " << setw(3) << m_qjMapForMC[j] << " " << setw(3) << b_isSJet << " " << setw(3) << b_isBJet << " " << setw(3) << b_isHighest << " " << setw(3) << b_isClosestToLep << " " << setw(3) << b_isHighBDT << " ) " << endl;
-
       /* Save jet daughter information */
       int ia = 0;
       for (auto didx = jetID_dauIdx1[j]; didx < jetID_dauIdx2[j]; ++didx) {
