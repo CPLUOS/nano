@@ -21,6 +21,7 @@ private:
 
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
+
   TMVA::Reader *m_jetSelReader;
   TMVA::Reader *m_hadReader;
   TMVA::Reader *m_jetReader;
@@ -30,6 +31,7 @@ private:
 
   bool b_passedEvent;
   int  b_iEvent, b_iRun, b_iLuminosityBlock, b_nJet, b_nSelJet, b_nSelJetEv;
+
 
   /* for MatchingForMC() */
   std::map<unsigned int, int> m_qjMapForMC;  // +-3 : jet matched to s-quark, +-5 : jet matched to b-quark, -1 : jet matched to two quarks (overlap)

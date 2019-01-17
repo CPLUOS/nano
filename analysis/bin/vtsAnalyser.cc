@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
       if (string(inFileName).find("Run2016") == std::string::npos && (string(inFileName).find("Run2017") == std::string::npos) && (string(inFileName).find("Run2018") == std::string::npos) ) isMC = true;
       if (string(inFileName).find("NANOAOD") != std::string::npos) isGenericMC = false;
       else isGenericMC = true;
+
       if (!isMC) { /* Read Data */
         Bool_t isDL = false;
         if (string(inFileName).find("DoubleMuon") != std::string::npos)     isDL = true;
@@ -253,10 +254,8 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("dau_eta",     &b_dau_eta,     "dau_eta[350]/F");
   m_jettrForTMVA->Branch("dau_phi",     &b_dau_phi,     "dau_phi[350]/F");
   m_jettrForTMVA->Branch("dau_charge",  &b_dau_charge,  "dau_charge[350]/I");
-
   m_jettrForTMVA->Branch("Jet_bdt_score",       &b_Jet_bdt_score,       "Jet_bdt_score/F");
   m_jettrForTMVA->Branch("JKS_bdt_score",       &b_JKS_bdt_score,       "JKS_bdt_score/F");
-
   m_jettrForTMVA->Branch("KS_idx"     ,     &b_KS_idx,          "KS_idx/I");
   m_jettrForTMVA->Branch("KS_nMatched",     &b_KS_nMatched,     "KS_nMatched/I");
   m_jettrForTMVA->Branch("KS_isFrom",       &b_KS_isFrom,       "KS_isFrom/I");
@@ -487,7 +486,6 @@ void vtsAnalyser::MatchingForMC() {
       jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
       auto dr1  = tq1_tlv.DeltaR(jet_tlv); auto dr2  = tq2_tlv.DeltaR(jet_tlv);
       auto drl1 = b_lep1.DeltaR(jet_tlv);  auto drl2 = b_lep2.DeltaR(jet_tlv);
-
       /* Evaluate jets according to Jet selection BDT */
       r_pt = Jet_pt[j]; r_eta = Jet_eta[j]; r_phi = Jet_phi[j]; r_mass = Jet_mass[j];
       if (drl1 < drl2) { r_drl = drl1; r_inmass = (jet_tlv + b_lep1).M(); }

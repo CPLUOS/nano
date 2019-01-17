@@ -32,6 +32,7 @@ vts_term_bWbW      = (vtb**2)**2
 
 
 f = ROOT.TFile("/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/output/vts_dR_04_Jet.root")
+
 t = f.Get(str(sys.argv[1])+"/Method_BDT/BDT")
 #t = f.Get("pp_combined_JKS_BDT_highest/Method_BDT/BDT")
 #t = f.Get("pp_combined_J_BDT_highest/Method_BDT/BDT")
