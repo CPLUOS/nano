@@ -21,12 +21,17 @@ private:
 
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
+
+  TMVA::Reader *m_jetSelReader;
   TMVA::Reader *m_hadReader;
   TMVA::Reader *m_jetReader;
   TMVA::Reader *m_jksReader;
 
+  Float_t r_pt = -9; Float_t r_eta = -9; Float_t r_phi = -9; Float_t r_mass = -9; Float_t r_drl = -9; Float_t r_inmass = -9; // these are for m_jetSelReader
+
   bool b_passedEvent;
-  int b_nJet, b_nSelJet, b_nSelJetEv;
+  int  b_iEvent, b_iRun, b_iLuminosityBlock, b_nJet, b_nSelJet, b_nSelJetEv;
+
 
   /* for MatchingForMC() */
   std::map<unsigned int, int> m_qjMapForMC;  // +-3 : jet matched to s-quark, +-5 : jet matched to b-quark, -1 : jet matched to two quarks (overlap)
@@ -44,6 +49,7 @@ private:
     double dr2j; /// DeltaR(b,jet)
     double drl1j; /// DeltaR(lep1,jet)
     double drl2j; /// DeltaR(lep2,jet)
+    double bdt;   /// Jet Selection BDT score
   };
 
   /// information about global properties of the gen quark
@@ -105,14 +111,13 @@ private:
   float b_Rec_bdt_score;
 
   /* for FillJetTreeForTMVA() */
-  int   b_isSJet, b_isBJet, b_isOverlap, b_isHighest, b_isClosestToLep;
+  int   b_isSJet, b_isBJet,  b_isOverlap, b_isHighest, b_isClosestToLep, b_isHighBDT;
   float b_cmult,  b_nmult; // Data type was changed since JKS (and Jet) BDT require to provide variables for TMVA::reader as float
-  float b_pt,     b_eta,    b_phi,       b_mass;
-  float b_c_x1,   b_c_x2,   b_c_x3;
-  float b_n_x1,   b_n_x2,   b_n_x3;
-  float b_axis1,  b_axis2,  b_ptD,       b_area;
+  float b_pt,     b_eta,     b_phi,       b_mass;
+  float b_c_x1,   b_c_x2,    b_c_x3;
+  float b_n_x1,   b_n_x2,    b_n_x3;
+  float b_axis1,  b_axis2,   b_ptD,       b_area;
   float b_CSVV2;
-  float b_dr1,    b_dr2;
 
   float b_dau_pt[350], b_dau_eta[350], b_dau_phi[350];  
   int   b_dau_charge[350];
@@ -121,12 +126,12 @@ private:
   float b_Jet_bdt_score,       b_JKS_bdt_score;
 
   int   b_KS_idx,              b_KS_nMatched,         b_KS_isFrom;
-  bool  b_KS_isHadFromTop,     b_KS_isHadFromW,       b_KS_isHadFromS,  b_KS_isHadFromC, b_KS_isHadFromB;
-  float b_KS_d,                b_KS_pt,               b_KS_eta,         b_KS_phi,        b_KS_mass;
-  float b_KS_lxy,              b_KS_lxySig,           b_KS_l3D,         b_KS_l3DSig,     b_KS_legDR;
-  float b_KS_angleXY,          b_KS_angleXYZ,         b_KS_chi2,        b_KS_dca;
-  float b_KS_dau1_chi2,        b_KS_dau1_ipsigXY,     b_KS_dau1_ipsigZ, b_KS_dau1_pt;
-  float b_KS_dau2_chi2,        b_KS_dau2_ipsigXY,     b_KS_dau2_ipsigZ, b_KS_dau2_pt;
+  bool  b_KS_isHadFromTop,     b_KS_isHadFromW,       b_KS_isHadFromS,       b_KS_isHadFromC, b_KS_isHadFromB;
+  float b_KS_d,                b_KS_pt,               b_KS_eta,              b_KS_phi,        b_KS_mass;
+  float b_KS_lxy,              b_KS_lxySig,           b_KS_l3D,              b_KS_l3DSig,     b_KS_legDR;
+  float b_KS_angleXY,          b_KS_angleXYZ,         b_KS_chi2,             b_KS_dca;
+  float b_KS_dau1_chi2,        b_KS_dau1_ipsigXY,     b_KS_dau1_ipsigZ,      b_KS_dau1_pt;
+  float b_KS_dau2_chi2,        b_KS_dau2_ipsigXY,     b_KS_dau2_ipsigZ,      b_KS_dau2_pt;
   float b_KS_dr,               b_KS_x,                b_KS_best_bdt;
  
   int b_jet_start, b_jet_end; 
