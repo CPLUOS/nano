@@ -3,34 +3,8 @@
 using std::vector;
 
 topObjectSelection::topObjectSelection(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, UInt_t unFlag) : 
-  nanoBase(tree, had, hadTruth, isMC), m_unFlag(unFlag), jecUnc(NULL), rndEngine(NULL)
+  nanoBase(tree, had, hadTruth, isMC), m_unFlag(unFlag)
 {
-  //if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn | OptFlag_JER_Up | OptFlag_JER_Dn ) ) != 0 )
-  if ( m_isMC ) {
-    std::string env = getenv("CMSSW_BASE");
-    
-    std::string strPathJetResSFObj = env + "/src/nano/analysis/data/jer/"
-      "Summer16_25nsV1_MC_SF_AK4PFchs.txt";
-    jetResSFObj = JMENano::JetResolutionScaleFactor(strPathJetResSFObj.c_str());
-    
-    std::string strPathJetResObj = env + "/src/nano/analysis/data/jer/"
-      "Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
-    jetResObj = JMENano::JetResolution(strPathJetResObj.c_str());
-    
-    rndEngine = new TRandom3(12345);
-    
-    if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 ) {
-      std::string strPathJecUnc = env + "/src/nano/analysis/data/jer/"
-        //"Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt";
-        "Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt";
-      
-      JetCorrectorParameters JetCorPar(strPathJecUnc, "Total");
-      jecUnc = new JetCorrectionUncertainty(JetCorPar);
-    }
-  }
-  
-  m_fDRcone_JER = 0.4; // For AK4 jets
-  m_fResFactorMathcer = 3; // According to https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
 }
 
 vector<TParticle> topObjectSelection::elecSelection() {
@@ -154,7 +128,7 @@ vector<TParticle> topObjectSelection::jetSelection() {
   vector<TParticle> jets;
   for (UInt_t i = 0; i < nJet; ++i){
     Float_t fJetMass, fJetPt, fJetEta, fJetPhi;
-    GetJetMassPt(i, fJetMass, fJetPt, fJetEta, fJetPhi);
+    GetJetMassPt(i, fJetMass, fJetPt, fJetEta, fJetPhi, m_unFlag);
     
     if (fJetPt < cut_JetPt) continue;
     if (std::abs(fJetEta) > cut_JetEta) continue;
@@ -218,7 +192,7 @@ vector<TParticle> topObjectSelection::bjetSelection() {
   vector<TParticle> bjets;
   for (UInt_t i = 0; i < nJet; ++i ) {
     Float_t fJetMass, fJetPt, fJetEta, fJetPhi;
-    GetJetMassPt(i, fJetMass, fJetPt, fJetEta, fJetPhi);
+    GetJetMassPt(i, fJetMass, fJetPt, fJetEta, fJetPhi, m_unFlag);
     
     if (fJetPt < cut_BJetPt) continue;
     if (std::abs(fJetEta) > cut_BJetEta) continue;
@@ -239,96 +213,6 @@ vector<TParticle> topObjectSelection::bjetSelection() {
     bjets.push_back(bjet);
   }
   return bjets;
-}
-
-
-// In uncertainty study we need to switch the kinematic variables of jets
-// The following variables are for this switch
-// In the topObjectSelection.cc these variables are used instead of Jet_pt, Jet_mass, and so on.
-// In default, these are same as the original ones, but when a user wants to study systematic uncertainty 
-// so that he/she needs to switch them to the evaluated ones, 
-// just touching them in anlalyser class will be okay, and this is for it.
-void topObjectSelection::GetJetMassPt(UInt_t nIdx, 
-  Float_t &fJetMass, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi) 
-{
-  Float_t fCorrFactor = 1.0;
-  
-  fJetMass = Jet_mass[ nIdx ];
-  fJetPt   = Jet_pt[ nIdx ];
-  fJetEta  = Jet_eta[ nIdx ];
-  fJetPhi  = Jet_phi[ nIdx ];
-  
-  //if ( m_isMC && ( m_unFlag & ( OptFlag_JER_Up | OptFlag_JER_Dn | OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 )
-  if ( m_isMC ) {
-    // Evaluating the central part cJER of the factor
-    JMENano::JetParameters jetPars = {{JMENano::Binning::JetPt, fJetPt},
-                                  {JMENano::Binning::JetEta, fJetEta},
-                                  {JMENano::Binning::Rho, fixedGridRhoFastjetAll}};
-    
-    const double jetRes = jetResObj.getResolution(jetPars); // Note: this is relative resolution.
-    const double cJER = jetResSFObj.getScaleFactor(jetPars, 
-      ( ( m_unFlag & ( OptFlag_JER_Up | OptFlag_JER_Dn ) ) == 0 ? Variation::NOMINAL : 
-        ( ( m_unFlag & OptFlag_JER_Up ) != 0 ? Variation::UP : Variation::DOWN ) ));
-    
-    // We need corresponding genJet
-    //Int_t nIdxGen = Jet_genJetIdx[ nIdx ];
-    Int_t nIdxGen = GetMatchGenJet(nIdx, fJetPt * jetRes);
-    const double genJetPt = GenJet_pt[ nIdxGen ];
-    
-    // JER (nominal and up and down) - apply scaling method if matched genJet is found,
-    //       apply gaussian smearing method if unmatched
-    /*if ( nIdxGen >= 0 && //deltaR(genJet->p4(), jet.p4()) < 0.2 && // From CATTool
-         std::abs(genJetPt - fJetPt) < jetRes * 3 * fJetPt ) 
-      fCorrFactor = std::max(0., (genJetPt + ( fJetPt - genJetPt ) * cJER) / fJetPt);*/
-    if ( nIdxGen >= 0 ) {
-      fCorrFactor = ( genJetPt + ( fJetPt - genJetPt ) * cJER ) / fJetPt;
-    } else {
-      const double smear = rndEngine->Gaus(0, 1);
-      fCorrFactor = ( cJER <= 1 ? 1 : 1 + smear * jetRes * sqrt(cJER * cJER - 1) );
-    }
-    
-    if ( ( m_unFlag & ( OptFlag_JES_Up | OptFlag_JES_Dn ) ) != 0 ) { // JES
-      // The evaluator needs pT and eta of the current jet
-      jecUnc->setJetPt(fCorrFactor * fJetPt);
-      jecUnc->setJetEta(fJetEta);
-      
-      if ( ( m_unFlag & OptFlag_JES_Up ) != 0 ) {
-        fCorrFactor *= 1 + jecUnc->getUncertainty(true);
-      } else {
-        fCorrFactor *= 1 - jecUnc->getUncertainty(true);
-      }
-    }
-  }
-  
-  fJetMass *= fCorrFactor;
-  fJetPt   *= fCorrFactor;
-}
-
-
-Int_t topObjectSelection::GetMatchGenJet(UInt_t nIdxJet, Float_t fResolution) {
-  UInt_t i;
-  
-  double dEta, dPhi, dR;
-  double dRFound = m_fDRcone_JER;
-  UInt_t nIdxFound = 999;
-  
-  for ( i = 0 ; i < nGenJet ; i++ ) {
-    dEta = Jet_eta[ nIdxJet ] - GenJet_eta[ i ];
-    dPhi = std::abs(Jet_phi[ nIdxJet ] - GenJet_phi[ i ]);
-    if ( dPhi > (double)M_PI ) dPhi -= (double)( 2 * M_PI );
-    
-    dR = std::sqrt(dEta * dEta + dPhi * dPhi);
-    
-    if ( dR >= (double)m_fDRcone_JER * 0.5 ) continue;
-    if ( dRFound > dR ) {
-      if ( std::abs(Jet_pt[ nIdxJet ] - GenJet_pt[ i ]) >= m_fResFactorMathcer * fResolution ) continue;
-      
-      dRFound = dR;
-      nIdxFound = i;
-    }
-  }
- 
-  return ( dRFound < 0.75 * (double)m_fDRcone_JER ? (Int_t)nIdxFound : -1 );
 }
 
 

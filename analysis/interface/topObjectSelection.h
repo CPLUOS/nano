@@ -5,11 +5,6 @@
 #include "nano/external/interface/TopTriggerSF.h"
 //#include "nano/external/interface/TTbarModeDefs.h"
 
-#include "nano/external/interface/JetCorrectionUncertainty.h"
-#include "nano/external/interface/JetCorrectorParameters.h"
-#include "nano/external/interface/JetResolution.h"
-#include <TRandom3.h>
-
 class topObjectSelection : public nanoBase
 {
 protected:
@@ -20,12 +15,6 @@ protected:
   Float_t b_maxBDiscr_nonb;
   
   UInt_t m_unFlag;
-  
-  JetCorrectionUncertainty *jecUnc;
-  
-  JMENano::JetResolution jetResObj;
-  JMENano::JetResolutionScaleFactor jetResSFObj;
-  TRandom3 *rndEngine;
   
 public:
   // YOU MUST SET UP ALL IN THE BELOW!!!
@@ -71,9 +60,6 @@ public:
   Float_t  cut_BJetConeSizeOverlap;
   Float_t *cut_BJetTypeBTag; // For example, set it as cut_BJetTypeBTag = Jet_btagCSVV2;
   Float_t  cut_BJetBTagCut;
-  
-  Float_t m_fDRcone_JER;
-  Float_t m_fResFactorMathcer;
 
 public: 
   // Tip: If you want to use your own additional cut with the existing cut, 
@@ -95,17 +81,6 @@ public:
   virtual bool additionalConditionForBJet(UInt_t nIdx, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi, Float_t &fJetMass) 
     {return true;};
   
-  // In uncertainty study we need to switch the kinematic variables of jets
-  // The following variables are for this switch
-  // In the topObjectSelection.cc these variables are used instead of Jet_pt, Jet_mass, and so on.
-  // In default, these are same as the original ones, but when a user wants to study systematic uncertainty 
-  // so that he/she needs to switch them to the evaluated ones, 
-  // just touching them in anlalyser class will be okay, and this is for it.
-  virtual void GetJetMassPt(UInt_t nIdx, 
-    Float_t &fJetMass, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi);
-  
-  Int_t GetMatchGenJet(UInt_t nIdxJet, Float_t fResolution);
-  
 public:
   std::vector<TParticle> muonSelection();
   std::vector<TParticle> elecSelection();
@@ -120,30 +95,13 @@ public:
   topObjectSelection(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, UInt_t unFlag = 0);
   topObjectSelection(TTree *tree=0, Bool_t isMC=false, UInt_t unFlag = 0) : 
     topObjectSelection(tree, 0, 0, isMC, unFlag) {}
-  ~topObjectSelection() {
-    if ( jecUnc != NULL ) delete jecUnc;
-    if ( rndEngine != NULL ) delete rndEngine;
-  }
+  ~topObjectSelection() {}
   
   // In this function you need to set all the cut conditions in the above
   // If you do not set this function up (so that you didn't set the cuts), the compiler will deny your code, 
   // so you can be noticed that you forgot the setting up.
   // And you don't need to run this function indivisually; it will be run in the creator of this class.
   virtual int SetCutValues() = 0;
-  
-  enum {
-    OptBit_JER_Up = 0, 
-    OptBit_JER_Dn, 
-    OptBit_JES_Up, 
-    OptBit_JES_Dn
-  };
-  
-  enum {
-    OptFlag_JER_Up = ( 1 << OptBit_JER_Up ), 
-    OptFlag_JER_Dn = ( 1 << OptBit_JER_Dn ), 
-    OptFlag_JES_Up = ( 1 << OptBit_JES_Up ), 
-    OptFlag_JES_Dn = ( 1 << OptBit_JES_Dn )
-  };
 };
 
 #endif
