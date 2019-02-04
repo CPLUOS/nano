@@ -44,8 +44,12 @@ nanoBase::nanoBase(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) :
       "Summer16_25nsV1_MC_SF_AK4PFchs.txt";
     std::string strPathJetResObj = env+"/src/nano/analysis/data/jer/"
       "Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
+    std::string strPathJecUnc = env + "/src/nano/analysis/data/jer/"
+      "Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt";
     
-    if (!exists_test(strPathJetResSFObj) || !exists_test(strPathJetResObj)) {
+    if (!exists_test(strPathJetResSFObj) || !exists_test(strPathJetResObj) || 
+        !exists_test(strPathJecUnc))
+    {
       std::cout << "Missing data file, run getFiles and try again" << std::endl;
       exit(50);
     }
@@ -55,9 +59,6 @@ nanoBase::nanoBase(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC) :
     
     m_rndEngine = new TRandom3(12345);
     
-    std::string strPathJecUnc = env + "/src/nano/analysis/data/jer/"
-      //"Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt";
-      "Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt";
     
     JetCorrectorParameters JetCorPar(strPathJecUnc, "Total");
     m_jecUnc = new JetCorrectionUncertainty(JetCorPar);
