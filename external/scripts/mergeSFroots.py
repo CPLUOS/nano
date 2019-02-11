@@ -91,9 +91,9 @@ try:
         fCX = 0.5 * ( listBinX[ i ] + listBinX[ i + 1 ] )
         fCY = 0.5 * ( listBinY[ j ] + listBinY[ j + 1 ] )
         
-        nIdxXPre = ctypes.c_int()
-        nIdxYPre = ctypes.c_int()
-        nIdxZPre = ctypes.c_int()
+        nIdxX = ctypes.c_int()
+        nIdxY = ctypes.c_int()
+        nIdxZ = ctypes.c_int()
         
         # There is a strange issue that the bin indices don't correspond to the displayed bins, 
         # which means, e.g., if I call hSrc.GetBinContent(1, 3) 
@@ -101,15 +101,13 @@ try:
         # then this method returns the content in (1, 1)-bin.
         # Even this phenomonon does not occur always; only some of histograms has this issue.
         # This complicated way to get the bin indices is for avoiding this problem.
-        hSrc.GetBinXYZ(hSrc.FindBin(fCX, fCY), nIdxXPre, nIdxYPre, nIdxZPre)
-        nIdxX = nIdxXPre.value
-        nIdxY = nIdxYPre.value
+        hSrc.GetBinXYZ(hSrc.FindBin(fCX, fCY), nIdxX, nIdxY, nIdxZ)
         
         fSF = hNew.GetBinContent(i + 1, j + 1)
         fErr = hNew.GetBinError(i + 1, j + 1)
         
-        fSF  += hSrc.GetBinContent(nIdxX, nIdxY) * listLumi[ nIdxSrc ]
-        fErr += ( hSrc.GetBinError(nIdxX, nIdxY) * listLumi[ nIdxSrc ] ) ** 2
+        fSF  += hSrc.GetBinContent(nIdxX.value, nIdxY.value) * listLumi[ nIdxSrc ]
+        fErr += ( hSrc.GetBinError(nIdxX.value, nIdxY.value) * listLumi[ nIdxSrc ] ) ** 2
         
         hNew.SetBinContent(i + 1, j + 1, fSF)
         hNew.SetBinError(i + 1, j + 1, fErr)
