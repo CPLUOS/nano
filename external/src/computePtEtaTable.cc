@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-computePtEtaTable::computePtEtaTable(std::string strPath, std::string strHistName) {
+int computePtEtaTable::LoadData(std::string strPath, std::string strHistName) {
   Int_t i, j;
   
   TFile *fData;
@@ -14,11 +14,14 @@ computePtEtaTable::computePtEtaTable(std::string strPath, std::string strHistNam
   TH1D *hEta, *hPt, *hTmp;
   Int_t nNEta, nNPt, nTmp;
   
+  Float_t fBinCX, fBinCY;
+  Int_t nIdxX, nIdxY, nIdxZ;
+  
   m_bValid = false;
   
   // Opening!
   fData = TFile::Open(strPath.c_str());
-  if ( fData == NULL ) return;
+  if ( fData == NULL ) return -1;
   
   hData = (TH2 *)fData->Get(strHistName.c_str());
   m_bValid = true;
@@ -53,20 +56,34 @@ computePtEtaTable::computePtEtaTable(std::string strPath, std::string strHistNam
     
     for (j = 1; j <= nNPt; j++) {
       if (!bFlipped) {
-        // Strange, the actual one starts at index 3
-        m_listVal[i-1].push_back(hData->GetBinContent(i, j+2));
-        m_listErr[i-1].push_back(hData->GetBinError(i, j+2));
+        fBinCX = 0.5*(m_listEtaBin[i-1]+m_listEtaBin[i]);
+        fBinCY = 0.5*(m_listPtBin[j-1]+m_listPtBin[j]);
       } else {
-        m_listVal[i-1].push_back(hData->GetBinContent(j, i+2));
-        m_listErr[i-1].push_back(hData->GetBinError(j, i+2));
+        fBinCX = 0.5*(m_listPtBin[j-1]+m_listPtBin[j]);
+        fBinCY = 0.5*(m_listEtaBin[i-1]+m_listEtaBin[i]);
       }
+      
+      // There is a strange issue that the bin indices don't correspond to the displayed bins, 
+      // which means, e.g., if I call hSrc.GetBinContent(1, 3) 
+      // (see HLT_Ele32_eta2p1_WPTight_Gsf_FullRunRange.root)
+      // then this method returns the content in (1, 1)-bin.
+      // Even this phenomonon does not occur always; only some of histograms has this issue.
+      // This complicated way to get the bin indices is for avoiding this problem.
+      hData->GetBinXYZ(hData->FindBin(fBinCX, fBinCY), nIdxX, nIdxY, nIdxZ);
+      
+      m_listVal[i-1].push_back(hData->GetBinContent(nIdxX, nIdxY));
+      m_listErr[i-1].push_back(hData->GetBinError(nIdxX, nIdxY));
     }
   }
   
   fData->Close();
+  
+  return 0;
 }
 
 double computePtEtaTable::getFactor(Float_t fPt, Float_t fEta, int direction) {
+  if (!m_bValid) return -1;
+  
   // Seeking the bin in which the value is contained
   auto GetIdxRange = [](Float_t fX, std::vector<Float_t> listEdges) {
     if (fX < listEdges[0]) return 0;
@@ -81,8 +98,5 @@ double computePtEtaTable::getFactor(Float_t fPt, Float_t fEta, int direction) {
   nIdxPt  = GetIdxRange(fPt,  m_listPtBin);
   nIdxEta = GetIdxRange(fEta, m_listEtaBin);
   
-  std::cout << fPt << ", " << fEta << ": (" 
-    << nIdxPt << ", " << nIdxEta << ") - "
-    << m_listVal[nIdxEta][nIdxPt] << ", " << m_listErr[nIdxEta][nIdxPt] << std::endl;
   return m_listVal[nIdxEta][nIdxPt]+direction*m_listErr[nIdxEta][nIdxPt];
 }

@@ -145,16 +145,16 @@ int topEventSelectionSL::EventSelection()
     recolep = muons[0];
     b_channel = CH_MU;
     
-    b_mueffweight    = muonSF_.getScaleFactor(recolep, 13, 0);
-    b_mueffweight_up = muonSF_.getScaleFactor(recolep, 13, 1);
-    b_mueffweight_dn = muonSF_.getScaleFactor(recolep, 13, -1);
+    b_mueffweight    = m_tableLeptonSFMu.getFactor(recolep.Pt(), recolep.Eta());
+    b_mueffweight_up = m_tableLeptonSFMu.getFactor(recolep.Pt(), recolep.Eta(),  1);
+    b_mueffweight_dn = m_tableLeptonSFMu.getFactor(recolep.Pt(), recolep.Eta(), -1);
   } else if (elecs.size() == 1) {
     recolep = elecs[0];
     b_channel = CH_EL;
     
-    b_eleffweight    = elecSF_.getScaleFactor(recolep, 11, 0);
-    b_eleffweight_up = elecSF_.getScaleFactor(recolep, 11, 1);
-    b_eleffweight_dn = elecSF_.getScaleFactor(recolep, 11, -1);
+    b_eleffweight    = m_tableLeptonSFEl.getFactor(recolep.Pt(), recolep.Eta());
+    b_eleffweight_up = m_tableLeptonSFEl.getFactor(recolep.Pt(), recolep.Eta(),  1);
+    b_eleffweight_dn = m_tableLeptonSFEl.getFactor(recolep.Pt(), recolep.Eta(), -1);
   }
 
   recolep.Momentum(b_lep);
@@ -162,9 +162,10 @@ int topEventSelectionSL::EventSelection()
   recoleps.push_back(b_lep);
 
   b_tri = b_tri_up = b_tri_dn = 0;
-  b_tri = 1; //computeTrigSF(recolep1, recolep2);
-  b_tri_up = 1; //computeTrigSF(recolep1, recolep2, 1);
-  b_tri_dn = 1; //computeTrigSF(recolep1, recolep2, -1);
+  computePtEtaTable &tableTrigSF = (std::abs(b_lep_pid) == 11 ? m_tableTrigSFEl : m_tableTrigSFMu);
+  b_tri    = tableTrigSF.getFactor(recolep.Pt(), recolep.Eta());
+  b_tri_up = tableTrigSF.getFactor(recolep.Pt(), recolep.Eta(),  1);
+  b_tri_dn = tableTrigSF.getFactor(recolep.Pt(), recolep.Eta(), -1);
 
   // Veto Leptons
 

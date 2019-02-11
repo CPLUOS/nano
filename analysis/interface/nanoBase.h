@@ -9,6 +9,8 @@
 
 #include <TString.h>
 
+#include <string>
+
 #include "nano/external/interface/pileUpTool.h"
 #include "nano/external/interface/RoccoR.h"
 #include "nano/external/interface/lumiTool.h"
@@ -19,6 +21,7 @@
 #include "nano/external/interface/BTagCalibrationStandalone.h"
 //#include "nano/external/interface/TopTriggerSF.h"
 //#include "nano/external/interface/TTbarModeDefs.h"
+#include "nano/external/interface/computePtEtaTable.h"
 
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"
@@ -44,6 +47,12 @@ public:
   MuonScaleFactorEvaluator m_muonSF;
   ElecScaleFactorEvaluator m_elecSF;
   BTagCalibrationReader m_btagSF, m_btagSF_up, m_btagSF_dn;
+
+  std::string m_strTrigSFEl, m_strTrigSFMu;
+  std::string m_strLeptonSFEl, m_strLeptonSFMu;
+  
+  computePtEtaTable m_tableTrigSFEl, m_tableTrigSFMu;
+  computePtEtaTable m_tableLeptonSFEl, m_tableLeptonSFMu;
 
   Bool_t m_isMC;
 };

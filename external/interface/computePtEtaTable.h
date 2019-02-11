@@ -19,11 +19,12 @@ public:
   bool m_bUseAbsEta;
   
 public:
-  computePtEtaTable(std::string strPath, std::string strHistName);
+  computePtEtaTable() {};
   ~computePtEtaTable() {};
   
   bool isValid() {return m_bValid;};
   
+  int LoadData(std::string strPath, std::string strHistName);
   double getFactor(Float_t fPt, Float_t fEta, int direction=0);
 };
 
