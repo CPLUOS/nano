@@ -51,13 +51,13 @@
   <flags CXXFLAGS="-g" />
 </bin>
 
-<bin name="dmAnalysis" file="dmAnalysis.cc">
+<bin name="dmAnalyser" file="dmAnalyser.cc">
   <use name="root"/>
   <use name="rootxml"/>
   <lib name="Eve"/>
   <lib name="EG"/>
   <use name="nano/analysis"/>
-  <flags CXXFLAGS="-g" />
+  <flags CXXFLAGS="-g"/>
 </bin>
 
 <bin name="testAnalyser" file="testAnalyser.cc">

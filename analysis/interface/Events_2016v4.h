@@ -349,6 +349,7 @@ public :
    Bool_t          Tau_idDecayMode[10];   //[nTau]
    Bool_t          Tau_idDecayModeNewDMs[10];   //[nTau]
    UChar_t         Tau_idMVAnewDM[10];   //[nTau]
+   UChar_t         Tau_idMVAnew[10];   //[nTau]
    UChar_t         Tau_idMVAoldDM[10];   //[nTau]
    UChar_t         Tau_idMVAoldDMdR03[10];   //[nTau]
    Float_t         TkMET_phi;
@@ -1397,6 +1398,7 @@ public :
    TBranch        *b_Tau_idDecayMode;   //!
    TBranch        *b_Tau_idDecayModeNewDMs;   //!
    TBranch        *b_Tau_idMVAnewDM;   //!
+   TBranch        *b_Tau_idMVAnew;   //!
    TBranch        *b_Tau_idMVAoldDM;   //!
    TBranch        *b_Tau_idMVAoldDMdR03;   //!
    TBranch        *b_TkMET_phi;   //!
@@ -2521,6 +2523,7 @@ void Events::Init(TTree *tree, TTree *had, TTree *hadTruth)
    fChain->SetBranchAddress("Tau_idDecayMode", Tau_idDecayMode, &b_Tau_idDecayMode);
    fChain->SetBranchAddress("Tau_idDecayModeNewDMs", Tau_idDecayModeNewDMs, &b_Tau_idDecayModeNewDMs);
    fChain->SetBranchAddress("Tau_idMVAnewDM", Tau_idMVAnewDM, &b_Tau_idMVAnewDM);
+   fChain->SetBranchAddress("Tau_idMVAnew", Tau_idMVAnew, &b_Tau_idMVAnew);
    fChain->SetBranchAddress("Tau_idMVAoldDM", Tau_idMVAoldDM, &b_Tau_idMVAoldDM);
    fChain->SetBranchAddress("Tau_idMVAoldDMdR03", Tau_idMVAoldDMdR03, &b_Tau_idMVAoldDMdR03);
    fChain->SetBranchAddress("TkMET_phi", &TkMET_phi, &b_TkMET_phi);
