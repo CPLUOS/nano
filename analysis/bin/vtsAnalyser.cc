@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
       if (string(inFileName).find("NANOAOD") != std::string::npos) isGenericMC = false;
       else isGenericMC = true;
 
-      if (!isMC) { 
+      if (!isMC) { /* Read Data */
         Bool_t isDL = false;
         if (string(inFileName).find("DoubleMuon") != std::string::npos)     isDL = true;
         if (string(inFileName).find("DoubleEG") != std::string::npos)       isDL = true;
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
         ana.Loop();
         cout << inFileName << " : Analysis Complete " << endl;
       }
-      if (isMC && isGenericMC) {
+      if (isMC && isGenericMC) { /* MC */
         cout << "inFileName : " << inFileName << endl;
         cout << " input file is not custumized ( e.g tt###j_* ) sample" << endl;
         if (string(inFileName).find("run2") != std::string::npos) { 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
           cout << " input file has to be nanoAOD " << endl;
           continue;
         }
-      } else if (isMC) {
+      } else if (isMC) { /* Private MC */
         TFile *inFile = TFile::Open(inFileName, "READ");
         TTree *inTree = (TTree*) inFile->Get("Events");
         TString hadFileName      = dirName + "/HADAOD/" + fileName;
@@ -124,6 +124,7 @@ int main(int argc, char* argv[])
         } else { 
           cout << ">>>>> There dosen't exist hadTruth info. -----> Use NANOTREE and HADTREE <<<<< " << endl;
         }
+        if (string(dirName).find("djeon") != std::string::npos) { hadTree = inTree; hadTruthTree = inTree; cout << ">>>>>>>>>>>>>>>>>>>>> TEMP" << endl; }// Temp 
         cout << "dirName : " << dirName << " fileName : " << fileName << endl;
         vtsAnalyser ana(inTree,hadTree,hadTruthTree,isMC,false,false,false); // you don't need to use hadTree if hadTruthTree isn't NULL
         string outFileName;
@@ -153,6 +154,11 @@ void vtsAnalyser::Loop() {
     //cout << "isMC  :     " << m_isMC << endl;
     //cout << "isGeneric : " << m_isGenericMC << endl;
     if (iev%10000 == 0) cout << iev << "/" << nentries << endl;
+
+    b_iEvent           = event;
+    b_iRun             = run;
+    b_iLuminosityBlock = luminosityBlock;
+
     ResetBranch();
     EventSelection();
     m_selectedJet = jetSelection();
@@ -225,6 +231,7 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("isOverlap",      &b_isOverlap,      "isOverlap/I");
   m_jettrForTMVA->Branch("isHighest",      &b_isHighest,      "isHighest/I");
   m_jettrForTMVA->Branch("isClosestToLep", &b_isClosestToLep, "isClosestToLep/I");
+  m_jettrForTMVA->Branch("isHighBDT",      &b_isHighBDT,      "isHighBDT/I");
   m_jettrForTMVA->Branch("cmult",          &b_cmult,          "cmult/F");
   m_jettrForTMVA->Branch("nmult",          &b_nmult,          "nmult/F");
   m_jettrForTMVA->Branch("pt",             &b_pt,             "pt/F");
@@ -247,10 +254,8 @@ void vtsAnalyser::MakeBranch() {
   m_jettrForTMVA->Branch("dau_eta",     &b_dau_eta,     "dau_eta[350]/F");
   m_jettrForTMVA->Branch("dau_phi",     &b_dau_phi,     "dau_phi[350]/F");
   m_jettrForTMVA->Branch("dau_charge",  &b_dau_charge,  "dau_charge[350]/I");
-
-  m_jettrForTMVA->Branch("Jet_bdt_score",   &b_Jet_bdt_score,   "Jet_bdt_score/F");
-  m_jettrForTMVA->Branch("JKS_bdt_score",   &b_JKS_bdt_score,   "JKS_bdt_score/F");
-
+  m_jettrForTMVA->Branch("Jet_bdt_score",       &b_Jet_bdt_score,       "Jet_bdt_score/F");
+  m_jettrForTMVA->Branch("JKS_bdt_score",       &b_JKS_bdt_score,       "JKS_bdt_score/F");
   m_jettrForTMVA->Branch("KS_idx"     ,     &b_KS_idx,          "KS_idx/I");
   m_jettrForTMVA->Branch("KS_nMatched",     &b_KS_nMatched,     "KS_nMatched/I");
   m_jettrForTMVA->Branch("KS_isFrom",       &b_KS_isFrom,       "KS_isFrom/I");
@@ -295,6 +300,7 @@ void vtsAnalyser::MakeBranch() {
   #define BranchVO(name) BranchV_(Bool_t, name);
   #define BranchTLV(name) m_tree->Branch(#name, "TLorentzVector", &(b_##name));
 
+  BranchI(iEvent);    BranchI(iRun);    BranchI(iLuminosityBlock);
   BranchI(nvertex);   BranchI(channel); BranchI(njet)       BranchF(met);     BranchI(step); BranchO(passedEvent); 
   BranchI(nJet);      BranchI(nSelJet); BranchI(nSelJetEv); // njet is not nJet
   BranchI(jet_start); BranchI(jet_end); BranchI(had_start); BranchI(had_end);
@@ -395,6 +401,7 @@ void vtsAnalyser::jetOrdering(TString param, std::vector<vtsAnalyser::jetInfo>& 
   if (param == "dr2")  return sort(jets.begin(), jets.end(), [] (jetInfo a, jetInfo b) { return (a.dr2j  < b.dr2j); } );
   if (param == "drl1") return sort(jets.begin(), jets.end(), [] (jetInfo a, jetInfo b) { return (a.drl1j < b.drl1j); } );
   if (param == "drl2") return sort(jets.begin(), jets.end(), [] (jetInfo a, jetInfo b) { return (a.drl2j < b.drl2j); } );
+  if (param == "bdt")  return sort(jets.begin(), jets.end(), [] (jetInfo a, jetInfo b) { return (a.bdt   > b.bdt); } );
 }   
 
 void vtsAnalyser::MatchingForMC() {
@@ -479,7 +486,13 @@ void vtsAnalyser::MatchingForMC() {
       jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
       auto dr1  = tq1_tlv.DeltaR(jet_tlv); auto dr2  = tq2_tlv.DeltaR(jet_tlv);
       auto drl1 = b_lep1.DeltaR(jet_tlv);  auto drl2 = b_lep2.DeltaR(jet_tlv);
-      m_recJet.push_back({j, Jet_pt[j], dr1, dr2, drl1, drl2});
+      /* Evaluate jets according to Jet selection BDT */
+      r_pt = Jet_pt[j]; r_eta = Jet_eta[j]; r_phi = Jet_phi[j]; r_mass = Jet_mass[j];
+      if (drl1 < drl2) { r_drl = drl1; r_inmass = (jet_tlv + b_lep1).M(); }
+      else             { r_drl = drl2; r_inmass = (jet_tlv + b_lep2).M(); }
+      auto Jet_selection_score = m_jetSelReader->EvaluateMVA("Jet_Selection_BDT");
+      cout << ij << " th jet's selection score : " << Jet_selection_score << endl;
+      m_recJet.push_back({j, Jet_pt[j], dr1, dr2, drl1, drl2, Jet_selection_score});
     }
     b_RecSJet = 0; b_RecBJet = 0; b_RecSJetClosestToLep = 0; b_RecBJetClosestToLep = 0; b_RecSJetIsHighest = 0; b_RecBJetIsHighest = 0; // Set up 0 value for distinguish the event to not-passed events (value -1)
     /* Find closest sel jet to l+ or l- */
@@ -751,9 +764,11 @@ void vtsAnalyser::FillJetTreeForTMVA() {
     auto closest_lep1_idx = m_recJet[0].idx;
     jetOrdering("drl2", m_recJet); // dR(lep2,jet) ordering
     auto closest_lep2_idx = m_recJet[0].idx;
+    jetOrdering("bdt", m_recJet); // Jet selection BDT score ordering
+    auto highBDT_first_idx = m_recJet[0].idx; auto highBDT_second_idx = m_recJet[1].idx;
     for (unsigned int ij=0; ij<m_selectedJet.size();++ij) {
       ResetForTMVA();
-      b_isSJet = 0; b_isBJet = 0; b_isOverlap = 0; b_isHighest = 0; b_isClosestToLep = 0;
+      b_isSJet = 0; b_isBJet = 0; b_isOverlap = 0; b_isHighest = 0; b_isClosestToLep = 0; b_isHighBDT = 0;
       auto j = m_selectedJet[ij].GetFirstMother();
       TLorentzVector jet_tlv; jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
       
@@ -775,17 +790,17 @@ void vtsAnalyser::FillJetTreeForTMVA() {
         b_isClosestToLep += 1;
         if ( m_recJet[0].drl2j == -1 ) b_isClosestToLep = -1; // distinguish the fake closest
       }
-      TLorentzVector tlv_j; 
-      tlv_j.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);      
-      b_cmult = (float)jetID_cmult[j];   b_nmult = (float)jetID_nmult[j];
-      b_pt    = Jet_pt[j];               b_eta   = Jet_eta[j];              b_phi  = Jet_phi[j];              b_mass = Jet_mass[j];
-      b_c_x1  = jetID_cpt1[j]/Jet_pt[j]; b_c_x2  = jetID_cpt2[j]/Jet_pt[j]; b_c_x3 = jetID_cpt3[j]/Jet_pt[j];
-      b_n_x1  = jetID_npt1[j]/Jet_pt[j]; b_n_x2  = jetID_npt2[j]/Jet_pt[j]; b_n_x3 = jetID_npt3[j]/Jet_pt[j];
-      b_axis1 = jetID_axis1[j];          b_axis2 = jetID_axis2[j];          b_ptD  = jetID_ptD[j];
-      b_area  = Jet_area[j];             b_CSVV2 = Jet_btagCSVV2[j];
-      b_dr1   = closest_1_dr;            b_dr2   = closest_2_dr;
+      if (j == (int) highBDT_first_idx || j == (int) highBDT_second_idx)  b_isHighBDT = 1;
 
-      cout << " [ " << ij << " / " << m_selectedJet.size() << " ] In jet tree | Jet idx : " << j << " >>>>>> [ " << setw(10) << tlv_j.Pt() << " " << setw(10) << tlv_j.Eta() << " " << setw(10) << tlv_j.Phi() << " " << setw(10) << tlv_j.M() << " ] >>>>>> ( " << setw(3) << j << " " << setw(3) << m_qjMapForMC[j] << " " << setw(3) << b_isSJet << " " << setw(3) << b_isBJet << " " << setw(3) << b_isHighest << " " << setw(3) << b_isClosestToLep << " ) " << endl;
+      TLorentzVector tlv_j; 
+      tlv_j.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
+
+      b_cmult = (float)jetID_cmult[j];   b_nmult = (float)jetID_nmult[j];
+      b_pt    = Jet_pt[j];               b_eta   = Jet_eta[j];              b_phi     = Jet_phi[j];              b_mass   = Jet_mass[j];
+      b_c_x1  = jetID_cpt1[j]/Jet_pt[j]; b_c_x2  = jetID_cpt2[j]/Jet_pt[j]; b_c_x3    = jetID_cpt3[j]/Jet_pt[j];
+      b_n_x1  = jetID_npt1[j]/Jet_pt[j]; b_n_x2  = jetID_npt2[j]/Jet_pt[j]; b_n_x3    = jetID_npt3[j]/Jet_pt[j];
+      b_axis1 = jetID_axis1[j];          b_axis2 = jetID_axis2[j];          b_ptD     = jetID_ptD[j];
+      b_area  = Jet_area[j];             b_CSVV2 = Jet_btagCSVV2[j];
 
       /* Save jet daughter information */
       int ia = 0;
@@ -844,8 +859,8 @@ void vtsAnalyser::FillJetTreeForTMVA() {
           b_KS_best_bdt     = b_Rec_bdt_score;          
         }
       }
-      b_Jet_bdt_score = m_jetReader->EvaluateMVA("Jet_BDT_highest");
-      b_JKS_bdt_score = m_jksReader->EvaluateMVA("JKS_BDT_highest");
+      b_Jet_bdt_score       = m_jetReader->EvaluateMVA("Jet_BDT_highest");
+      b_JKS_bdt_score       = m_jksReader->EvaluateMVA("JKS_BDT_highest");
       m_jettrForTMVA->Fill();
     }
   } else cout << ">>>> Size of selectedJets is zero <<<< " << endl;
@@ -891,6 +906,15 @@ void vtsAnalyser::FillHadTreeForTMVA() {
 }
 
 void vtsAnalyser::SetMVAReader() {
+  m_jetSelReader = new TMVA::Reader();
+  m_jetSelReader->AddVariable("dr",     &r_drl);
+  m_jetSelReader->AddVariable("pt",     &r_pt);
+  m_jetSelReader->AddVariable("eta",    &r_eta);
+  m_jetSelReader->AddVariable("phi",    &r_phi);
+  m_jetSelReader->AddVariable("mass",   &r_mass);
+  m_jetSelReader->AddVariable("inmass", &r_inmass);
+  m_jetSelReader->BookMVA("Jet_Selection_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/Batch/JetSelWithBDT/dataset/weights/TMVAClassification_BDT.weights.xml");
+
   m_hadReader = new TMVA::Reader();            
   m_hadReader->AddVariable("d",            &b_Rec_d);
   m_hadReader->AddVariable("pt",           &b_Rec_pt);

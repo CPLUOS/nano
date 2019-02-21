@@ -233,7 +233,8 @@ void topEventSelectionDL::Reset() {
   b_csvweights.clear();
 
   b_nvertex = -1; b_step = -1; b_channel = 0; b_njet = -1; b_nbjet = -1;
-  b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; b_btagweight = 1;
+  b_met = -9; b_weight = 1; b_genweight = 1; b_puweight = 1; 
+  b_btagweight = 1;b_btagweight_up = 1;b_btagweight_dn=1;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
   b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 

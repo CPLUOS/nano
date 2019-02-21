@@ -12,7 +12,7 @@ private:
   float b_cme_dau1_chi2, b_cme_dau1_nHits, b_cme_dau1_pt, b_cme_dau1_ipsigXY, b_cme_dau1_ipsigZ;
   float b_cme_dau2_chi2, b_cme_dau2_nHits, b_cme_dau2_pt, b_cme_dau2_ipsigXY, b_cme_dau2_ipsigZ;
   float b_cme_jet_btagCMVA, b_cme_jet_btagCSVV2, b_cme_jet_btagDeepB, b_cme_jet_btagDeepC;
-  float b_cme_mass;
+  float b_cme_mass, b_cme_diffMass;
   float b_cme_tmva_bdtg;
   int b_cme_pdgId;
   int b_cme_nMatched;
@@ -21,9 +21,11 @@ private:
   //For C meson
   std::vector<TLorentzVector> d0s;
   TLorentzVector b_d0;
-  std::vector<float> b_d0_lepSV_lowM;
   std::vector<float> b_d0_lepSV_correctM;
   std::vector<float> b_d0_lepSV_dRM;
+  std::vector<float> b_d0_lepSV_dRM_wrong;
+  std::vector<float> b_vecSumLep1AndD0;
+  std::vector<float> b_vecSumLep2AndD0;
   //Making output branch
   void MakeBranch(TTree* t);
   void resetBranch();
