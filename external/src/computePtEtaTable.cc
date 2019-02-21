@@ -87,7 +87,7 @@ double computePtEtaTable::getFactor(Float_t fPt, Float_t fEta, int direction) {
   // Seeking the bin in which the value is contained
   auto GetIdxRange = [](Float_t fX, std::vector<Float_t> listEdges) {
     if (fX < listEdges[0]) return 0;
-    else if (fX >= listEdges[listEdges.size()-1]) return ((Int_t)listEdges.size())-1;
+    else if (fX >= listEdges[listEdges.size()-1]) return ((Int_t)listEdges.size())-2;
     else return (int)(std::lower_bound(listEdges.begin(), listEdges.end(), fX)-listEdges.begin())-1;
   };
   
