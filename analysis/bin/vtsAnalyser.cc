@@ -191,6 +191,17 @@ void vtsAnalyser::setOutput(std::string outFileName) {
   h_genweights = new TH1D("genweight", "genweight", 1, 0, 1);
   h_weights    = new TH1D("weight", "weight", 1, 0, 1);
   h_cutFlow    = new TH1D("cutflow", "cutflow", 11, -0.5, 10.5);
+
+  h_sSelJet_dR04to08 = new TH1D("sSelJet_dR04to08", "s sel jet in dr = [0.4, 0.8]", 50, 0.35, 0.85);
+  h_bSelJet_dR04to08 = new TH1D("bSelJet_dR04to08", "b sel jet in dr = [0.4, 0.8]", 50, 0.35, 0.85);
+
+  h_sSelJet_dR04     = new TH1D("sSelJet_dR04", "s sel jet in dr = 0.4", 50, 0, 0.5);
+  h_sSelJet_dR08     = new TH1D("sSelJet_dR08", "s sel jet in dr = 0.8", 50, 0, 0.9);
+  h_bSelJet_dR04     = new TH1D("bSelJet_dR04", "b sel jet in dr = 0.4", 50, 0, 0.5);
+  h_bSelJet_dR08     = new TH1D("bSelJet_dR08", "b sel jet in dr = 0.8", 50, 0, 0.9);
+
+  h_nSelJet             = new TH1D("nSelJet", "number of sel Jet", 1, 0, 1);
+
 }
 
 void vtsAnalyser::MakeBranch() {
@@ -493,6 +504,15 @@ void vtsAnalyser::MatchingForMC() {
       auto Jet_selection_score = m_jetSelReader->EvaluateMVA("Jet_Selection_BDT");
       cout << ij << " th jet's selection score : " << Jet_selection_score << endl;
       m_recJet.push_back({j, Jet_pt[j], dr1, dr2, drl1, drl2, Jet_selection_score});
+      if ( dr1 >= 0.4 && dr1 <= 0.8) h_sSelJet_dR04to08->Fill(dr1);
+      if ( dr2 >= 0.4 && dr2 <= 0.8) h_bSelJet_dR04to08->Fill(dr2);
+
+      if ( dr1 <= 0.4) h_sSelJet_dR04->Fill(dr1);
+      if ( dr1 <= 0.8) h_sSelJet_dR08->Fill(dr1);
+      if ( dr2 <= 0.4) h_bSelJet_dR04->Fill(dr2);
+      if ( dr2 <= 0.8) h_bSelJet_dR08->Fill(dr2);
+
+      h_nSelJet->Fill(0.5);
     }
     b_RecSJet = 0; b_RecBJet = 0; b_RecSJetClosestToLep = 0; b_RecBJetClosestToLep = 0; b_RecSJetIsHighest = 0; b_RecBJetIsHighest = 0; // Set up 0 value for distinguish the event to not-passed events (value -1)
     /* Find closest sel jet to l+ or l- */

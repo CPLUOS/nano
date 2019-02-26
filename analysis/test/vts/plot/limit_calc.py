@@ -8,7 +8,8 @@ import datetime, os, sys
 
 t_ymd = (str(datetime.datetime.now()).split()[0]).split("-")
 now_time = t_ymd[0] + t_ymd[1] + t_ymd[2]
-
+dirPath = "./"+now_time+"/"
+ 
 Ntot               = 113628397.1 # total number of ttbar event (cross-section * luminosity)
 BR_w_to_e          = 0.1071 # Branching ratio of W->electon + neutrino
 BR_w_to_mu         = 0.1063 # Branching ratio of W->muon + neutrino
@@ -32,25 +33,7 @@ vts_term_bWbW      = (vtb**2)**2
 
 
 f = ROOT.TFile("/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/output/vts_dR_04_Jet.root")
-
 t = f.Get(str(sys.argv[1])+"/Method_BDT/BDT")
-#t = f.Get("pp_combined_JKS_BDT_highest/Method_BDT/BDT")
-#t = f.Get("pp_combined_J_BDT_highest/Method_BDT/BDT")
-
-#t = f.Get("pp_combined_JKS_BDT_highBDT/Method_BDT/BDT")
-#t = f.Get("pp_combined_J_BDT_highBDT/Method_BDT/BDT")
-
-#t = f.Get("JKS_wo_KS_highest/Method_BDT/BDT")
-#t = f.Get("JKS_wo_KS_highBDT/Method_BDT/BDT")
-
-#t = f.Get("JKS_wo_KS_s_vs_b_highBDT/Method_BDT/BDT")
-#t = f.Get("JKS_wo_KS_s_vs_b_highBDT/Method_BDT/BDT")
-
-#t = f.Get("all_wo_KS_highest/Method_BDT/BDT")
-#t = f.Get("all_wo_KS_highBDT/Method_BDT/BDT")
-
-#t = f.Get("all_wo_KS_s_vs_b_highBDT/Method_BDT/BDT")
-#t = f.Get("all_wo_KS_s_vs_b_highBDT/Method_BDT/BDT")
 
 h_sig = t.Get("MVA_BDT_S")
 h_bkg = t.Get("MVA_BDT_B")
@@ -82,10 +65,10 @@ if t.GetPath().find("_JKS_") is not -1 or t.GetPath().find("JKS_") is not -1:
 elif t.GetPath().find("_J_") is not -1 or t.GetPath().find("all_") is not -1:
     w.factory("Gaussian::sig_1(bdt, meanSig1[-0.0317964,-1, 1.], sigmaSig1[0.0654243,0, 1])")
     w.factory("Gaussian::sig_2(bdt, meanSig2[-0.1, -1, 1.], sigmaSig2[0.0656842, 0, 1] )")
-    w.factory("Gaussian::sig_3(bdt, meanSig3[0, -1, 1], sigmaSig3[0, 0, 1])")
+    w.factory("Gaussian::sig_3(bdt, meanSig3[0.1, -1, 1], sigmaSig3[0.1, 0, 1])")
     fit_sig = w.factory("SUM::sig(sig_1, f1[.33, 0, 1]*sig_2, f2[.33, 0, 1]*sig_3)")
 
-#    fit_sig = w.factory("SUM::sig(sig_1,f1[.5, 0, 1]*sig_2)")
+    #fit_sig = w.factory("SUM::sig(sig_1,f1[.5, 0, 1]*sig_2)")
     fit_sig.fitTo(rooh_sig)
 
     w.factory("Gaussian::bkg_1(bdt, meanBkg0[-0.30002, -1, 1.], sigmaBkg0[0.073841, 0, 1.] )")
@@ -112,7 +95,7 @@ for i in range(ROOT.RooArgList(fit_bkg.getVariables()).getSize()):
         ROOT.RooArgList(fit_bkg.getVariables()).at(i).setConstant()
 
 w.factory("expected_sig[10000]")
-w.factory("mu[1, 0 , 2]")
+w.factory("mu[1, 0 , 5]")
 w.var("expected_sig").setVal(N_ttbar_reco_dilep*vts_term_bWsW*ep_s_sb*1)
 w.factory("expr::nsig('mu*expected_sig', {expected_sig, mu})")
 
@@ -127,16 +110,12 @@ w.factory("SUM::model(nsig*sig, nbkg*bkg)")
 w.factory("prod::sig_only(nsig,sig)")
 w.factory("prod::bkg_only(nbkg,bkg)")
 
-#w.factory("expr::sig_only('nsig*sig', {nsig, sig})")
-#w.factory("expr::bkg_only('nbkg*bkg', {nbkg, bkg})")
-
 c.cd(2)
 data = w.pdf("model").generate(ROOT.RooArgSet(w.var("bdt")))
 f=w.var("bdt").frame(RooFit.Bins(40))
 data.plotOn(f, RooFit.MarkerColor(1))
 w.pdf("model").plotOn(f, RooFit.LineColor(1))
-w.obj("sig_only").plotOn(f, RooFit.LineColor(2))
-w.obj("bkg_only").plotOn(f, RooFit.LineColor(4))
+
 f.SetTitle("Generated Dataset")
 f.Draw()
 
@@ -192,7 +171,15 @@ fcalc = RooStats.AsymptoticCalculator(dh, bMod, mc)
 
 # Hypo Test Inverter
 hi = RooStats.HypoTestInverter(fcalc)
-hi.SetConfidenceLevel(0.95)
+
+valueCL = 0.
+try:
+    valueCL = float(sys.argv[3])
+except IndexError:
+    valueCL = 0.95
+print("Set Confidence Level : " + str(valueCL))
+
+hi.SetConfidenceLevel(valueCL)
 useCLs = False
 hi.UseCLs(useCLs)
 
@@ -238,4 +225,41 @@ try:
 except OSError:#FileExistsError:
     print(now_time+" folder already exists")
 c.Draw()
-c.SaveAs("./"+now_time+"/"+"limit_calc_"+str(sys.argv[1])+"_mu_"+mu_val+"_"+now_time+".png")
+outName = "limit_calc_"+str(sys.argv[1])+"_mu_"+mu_val+"_CL_"+str(valueCL)+"_"+now_time 
+c.SaveAs(dirPath+outName+".png")
+c.SaveAs(dirPath+outName+".pdf")
+
+pValueAtMuZero = hi.GetInterval().CLsplusb(0)
+
+try:
+    os.mkdir(now_time+"/txt")
+    print(now_time+"/txt folder created")
+except OSError:
+    print(now_time+"/txt folder already exists")
+f = open(dirPath+"/txt/model_output.txt", "a")
+# Get CL for 95% and 99% 
+hi.SetConfidenceLevel(0.9545)
+useCLs = False
+hi.UseCLs(useCLs)
+toymcs = hi.GetHypoTestCalculator().GetTestStatSampler()
+r = hi.GetInterval()
+#obsValueCL95 = r.UpperLimit()
+expValueCL95 = r.GetExpectedUpperLimit()
+
+hi.SetConfidenceLevel(0.9973)
+useCLs = False
+hi.UseCLs(useCLs)
+toymcs = hi.GetHypoTestCalculator().GetTestStatSampler()
+r = hi.GetInterval()
+#obsValueCL99 = r.UpperLimit()
+expValueCL99 = r.GetExpectedUpperLimit()
+
+f.write(outName+", p-value at mu = 0, " + str(pValueAtMuZero) + ", mean 95% upper limit, " + str(expValueCL95) + ", mean 99% upper limit, " + str(expValueCL99) + "\n")
+#f.write("obs 95% upper limit, " + str(obsValueCL95) + "\n")
+#f.write("obs 99% upper limit, " + str(obsValueCL99) + "\n")
+f.write("\n")
+f.close()
+
+
+
+

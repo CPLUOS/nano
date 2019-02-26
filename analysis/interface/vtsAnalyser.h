@@ -22,6 +22,15 @@ private:
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
 
+  TH1D* h_sSelJet_dR04to08;
+  TH1D* h_sSelJet_dR04;
+  TH1D* h_sSelJet_dR08;
+  TH1D* h_bSelJet_dR04to08;
+  TH1D* h_bSelJet_dR04;
+  TH1D* h_bSelJet_dR08;
+  TH1D* h_nSelJet;
+
+
   TMVA::Reader *m_jetSelReader;
   TMVA::Reader *m_hadReader;
   TMVA::Reader *m_jetReader;
