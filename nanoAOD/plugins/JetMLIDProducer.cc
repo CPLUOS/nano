@@ -147,6 +147,15 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_npt1.push_back(neutralPt[0]);
     jet_npt2.push_back(neutralPt[0] + neutralPt[1]);
     jet_npt3.push_back(neutralPt[0] + neutralPt[1] + neutralPt[2]);
+
+    jet_JetAngularity.push_back(JetAngularity); 
+    jet_GeoMoment.push_back(GeoMoment);
+    jet_HalfPtMoment.push_back(HalfPtMoment);
+    jet_DRSquareMoment.push_back(DRSquareMoment);
+    jet_SmallDRPT.push_back(SmallDRPT);
+    jet_MassMoment.push_back(MassMoment);
+    jet_PTSquare.push_back(PTSquare);
+    jet_MyMoment.push_back(MyMoment);
   }
   
   auto jetID_table = make_unique<nanoaod::FlatTable>(jets->size(),"jetID",false);
@@ -154,6 +163,15 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   jetID_table->addColumn<float>("axis2",jet_axis2,"axis2",nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<float>("axis1",jet_axis1,"axis1",nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<float>("ptD",jet_ptD,"ptD",nanoaod::FlatTable::FloatColumn);
+
+  jetID_table->addColumn<float>("angularity",    jet_JetAngularity,  "angularity",     nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("geoMoment",     jet_GeoMoment,      "geoMoment",      nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("halfPtMoment",  jet_HalfPtMoment,   "halfPtMoment",   nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("dRSquareMoment",jet_DRSquareMoment, "dRSquareMoment", nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("smallDRPT",     jet_SmallDRPT,      "smallDRPT",      nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("massMoment",    jet_MassMoment,     "massMoment",     nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("pTSquare",      jet_PTSquare,       "pTSquare",       nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<float>("myMoment",      jet_myMoment,       "myMoment",       nanoaod::FlatTable::FloatColumn);
 
   jetID_table->addColumn<float>("cpt1",jet_cpt1,"cpt1",nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<float>("cpt2",jet_cpt2,"cpt2",nanoaod::FlatTable::FloatColumn);

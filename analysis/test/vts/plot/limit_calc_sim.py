@@ -187,7 +187,6 @@ simPdf.fitTo(combData)
 getattr(w, 'import')(simPdf)
 
 c.cd(4)
-ROOT.gPad.SetLogy(1)
 bfr4 = w.var("bdt").frame()
 #combData.plotOn(bfr4, RooFit.Cut("sample==sample::JKS")) ;
 # Plot "JKS" slice of simultaneous pdf. 
@@ -201,34 +200,21 @@ bfr4.SetTitle("JKS slice of sim pdf")
 bfr4.Draw()
 
 c.cd(5)
-ROOT.gPad.SetLogy(1)
 bfr5 = w.var("bdt").frame()
-#combData.plotOn(bfr5, RooFit.Cut("sample==sample::Jet")) ;
-# Plot "Jet" slice of simultaneous pdf. 
-# NBL You _must_ project the sample index category with data using ProjWData 
-# as a RooSimultaneous makes no prediction on the shape in the index category 
-# and can thus not be integrated
 simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.LineColor(1), RooFit.LineStyle(kDotted)) ;
 simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Components("sig2"), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
 simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Components("bkg2"), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
 bfr5.SetTitle("Jet slice of sim pdf")
 bfr5.Draw()
 
-ROOT.gPad.SetLogy(0)
-c.cd(6)
-bfr6 = w.var("bdt").frame()
-#combData.plotOn(bfr5, RooFit.Cut("sample==sample::Jet")) ;
-# Plot "JKS" slice of simultaneous pdf. 
-# NBL You _must_ project the sample index category with data using ProjWData 
-# as a RooSimultaneous makes no prediction on the shape in the index category 
-# and can thus not be integrated
+#c.cd(6)
+#bfr6 = w.var("bdt").frame()
 #simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample),combData)) ;
-simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Slice(sample, "JKS"), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
-simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Slice(sample, "Jet"), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
-bfr6.SetTitle("sim pdf")
-bfr6.Draw()
+#simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Slice(sample, "JKS"), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
+#simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Slice(sample, "Jet"), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
+#bfr6.SetTitle("sim pdf")
+#bfr6.Draw()
 
-exit()
 """
 sct = RooSimWSTool(w)
 model_sim = sct.build("model_sim","model",SplitParam("m","c"))
