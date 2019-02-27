@@ -368,17 +368,18 @@ void vtsAnalyser::FillTMVATrees() {
   /* Fill jet tree */
   b_jet_start =  m_jettrForTMVA->GetEntries();
   for (unsigned int ij=0; ij<m_selectedJet.size();++ij) {
+    unsigned int j = m_selectedJet[ij].GetFirstMother();
     ResetJetTree();
-    SetJetValues(ij);
-    if (m_isMC) { IdentifyJet(ij, closestToTq1.idx, closestToTq2.idx); }
+    SetJetValues(j);
+    if (m_isMC) { IdentifyJet(j, closestToTq1.idx, closestToTq2.idx); }
 
     b_isHighest = 0; b_isClosestToLep = 0;
-    if      (ij == highestPt.idx     || ij == NhighestPt.idx)    b_isHighest = 1;
-    else if (ij == closestToLep1.idx || ij == closestToLep2.idx) b_isClosestToLep = 1;
+    if      (j == highestPt.idx     || j == NhighestPt.idx)    b_isHighest = 1;
+    else if (j == closestToLep1.idx || j == closestToLep2.idx) b_isClosestToLep = 1;
     b_dr1   = closestToTq1.drsj;  b_dr2   = closestToTq2.drbj;
 
     TLorentzVector jet_tlv;
-    jet_tlv.SetPtEtaPhiM(Jet_pt[ij], Jet_eta[ij], Jet_phi[ij], Jet_mass[ij]);
+    jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
     auto ks_idx = FindMatchedHadron(jet_tlv);
 
     ResetHadTree();
