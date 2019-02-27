@@ -27,7 +27,7 @@ public :
 
    UInt_t          ht_run;
    UInt_t          ht_luminosityBlock;
-   UInt_t          ht_event;
+   ULong64_t       ht_event;
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 

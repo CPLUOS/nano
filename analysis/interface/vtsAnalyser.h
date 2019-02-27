@@ -100,8 +100,8 @@ private:
   float b_Ks_angleXY,          b_Ks_angleXYZ,         b_Ks_chi2,        b_Ks_dca;
   float b_Ks_dau1_chi2,        b_Ks_dau1_ipsigXY,     b_Ks_dau1_ipsigZ, b_Ks_dau1_pt;
   float b_Ks_dau2_chi2,        b_Ks_dau2_ipsigXY,     b_Ks_dau2_ipsigZ, b_Ks_dau2_pt;
-  float b_Ks_dr,               b_Ks_x,                b_Ks_best_bdt;
   float b_Ks_bdt_score;
+  float b_Ks_dr,               b_Ks_x;
  
   int b_jet_start, b_jet_end; 
   int b_had_start, b_had_end;
