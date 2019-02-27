@@ -28,7 +28,7 @@ private:
   TMVA::Reader *m_jksReader;
 
   bool b_passedEvent;
-  int b_nJet, b_nSelJet, b_nSelJetEv;
+  int b_ntotjet;
 
   /* for MatchingForMC() */
   std::map<unsigned int, int> m_qjMapForMC;  // +-3 : jet matched to s-quark, +-5 : jet matched to b-quark, -1 : jet matched to two quarks (overlap)
@@ -118,8 +118,10 @@ private:
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
 
   void FillTMVATrees();
-  void SetHadronValues(int i);
+  void IdentifyJet(unsigned int jetIdx, unsigned int sIdx, unsigned int bIdx);
+  int  FindMatchedHadron(TLorentzVector jet_tlv);
   void SetJetValues(int i);
+  void SetHadronValues(int i);
 
   void SetMVAReader();
   void ResetHadTree();

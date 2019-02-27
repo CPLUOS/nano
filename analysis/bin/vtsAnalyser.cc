@@ -7,7 +7,6 @@
 #include "nano/analysis/interface/vtsAnalyser.h"
 #include "TFile.h"
 #include "TTree.h"
-#include "TLeaf.h"
 #include "DataFormats/HepMCCandidate/interface/GenStatusFlags.h"
 
 using namespace std;
@@ -103,8 +102,7 @@ void vtsAnalyser::Loop() {
     ResetBranch();
     EventSelection();
     m_selectedJet = jetSelection();
-    b_nJet = nJet;
-    b_nSelJet = m_selectedJet.size();
+    b_ntotjet = nJet;
     b_passedEvent = (b_step >= 4); 
 
     b_had_start = -1; b_had_end = -1;
@@ -199,6 +197,8 @@ void vtsAnalyser::MakeBranch() {
 
   m_jettrForTMVA->Branch("Jet_bdt_score",   &b_Jet_bdt_score,   "Jet_bdt_score/F");
   m_jettrForTMVA->Branch("JKS_bdt_score",   &b_JKS_bdt_score,   "JKS_bdt_score/F");
+  m_jettrForTMVA->Branch("Ks_dr",           &b_Ks_dr,           "Ks_dr/F");
+  m_jettrForTMVA->Branch("Ks_x",            &b_Ks_x,            "Ks_x/F");
  
   MakeBranchOfHadron(m_jettrForTMVA);
   MakeBranchOfHadron(m_hadtrForTMVA);
@@ -213,9 +213,10 @@ void vtsAnalyser::MakeBranch() {
   #define BranchVO(name) BranchV_(Bool_t, name);
   #define BranchTLV(name) m_tree->Branch(#name, "TLorentzVector", &(b_##name));
 
-  BranchI(nvertex);   BranchI(channel); BranchI(njet)       BranchF(met);     BranchI(step); BranchO(passedEvent); 
-  BranchI(nJet);      BranchI(nSelJet); BranchI(nSelJetEv); // njet is not nJet
-  BranchI(jet_start); BranchI(jet_end); BranchI(had_start); BranchI(had_end);
+  BranchI(nvertex);     BranchI(step);     BranchI(channel);
+  BranchI(njet);        BranchI(nbjet);    BranchF(met); 
+  BranchI(jet_start);   BranchI(jet_end);  BranchI(had_start); BranchI(had_end);
+  BranchO(passedEvent); BranchI(ntotjet);
 
   /* weight */
   BranchF(genweight);   BranchF(puweight); 
@@ -241,7 +242,7 @@ void vtsAnalyser::ResetBranch() {
   Reset();
   ResetHadTree();  ResetJetTree();
 
-  b_nJet = -1; b_nSelJet = -1;
+  b_ntotjet = -1;
   b_passedEvent = false;
 
   /* For MatchingForMC() */
@@ -357,7 +358,6 @@ void vtsAnalyser::MatchingForMC() {
 }
 
 void vtsAnalyser::FillTMVATrees() {
-  //constexpr jetInfo highestPt, NhighestPt, closestToTq1, closestToTq2, closestToLep1, closestToLep2;
   sort(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
   auto highestPt = m_jetDeltaRs[0];  auto NhighestPt = m_jetDeltaRs[1];
   auto closestToTq1 = *max_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // dR(tq1,jet) ordering
@@ -370,23 +370,7 @@ void vtsAnalyser::FillTMVATrees() {
   for (unsigned int ij=0; ij<m_selectedJet.size();++ij) {
     ResetJetTree();
     SetJetValues(ij);
-    if (m_isMC) {
-      auto jidx = m_jetDeltaRs[ij];
-      b_isSJet = 0; b_isBJet = 0;
-      b_isOverlap = 0;
-      if (ij == closestToTq1.idx && fabs(jidx.drsj) < CONESIZE) {
-         b_tq1_matched_jidx = ij;
-         if (abs(m_qjMapForMC[jidx.idx]) == 3)      b_isSJet = 1;
-         else if (abs(m_qjMapForMC[jidx.idx]) == 5) b_isBJet = 1;
-         else b_isOverlap = 1; 
-      }
-      else if (ij == closestToTq2.idx && fabs(jidx.drbj) < CONESIZE) {
-         b_tq2_matched_jidx = ij;
-         if (abs(m_qjMapForMC[jidx.idx]) == 3)      b_isSJet = 1; 
-         else if (abs(m_qjMapForMC[jidx.idx]) == 5) b_isBJet = 1;
-         else b_isOverlap = 1;
-      }
-    }
+    if (m_isMC) { IdentifyJet(ij, closestToTq1.idx, closestToTq2.idx); }
 
     b_isHighest = 0; b_isClosestToLep = 0;
     if      (ij == highestPt.idx     || ij == NhighestPt.idx)    b_isHighest = 1;
@@ -395,19 +379,18 @@ void vtsAnalyser::FillTMVATrees() {
 
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[ij], Jet_eta[ij], Jet_phi[ij], Jet_mass[ij]);
-    auto hidx = -1;
-    for (unsigned int j=0; j<nhad; ++j) {
-      if (had_pdgId[j] != 310) continue;
+    auto ks_idx = FindMatchedHadron(jet_tlv);
+
+    ResetHadTree();
+    if (ks_idx != -1) {
+      SetHadronValues(ks_idx);
+      b_Ks_bdt_score = m_hadReader->EvaluateMVA("KS_BDT");
+      b_Ks_x = had_pt[ks_idx]/jet_tlv.Pt();
       TLorentzVector had_tlv;
-      had_tlv.SetPtEtaPhiM(had_pt[j], had_eta[j], had_phi[j], had_mass[j]);
-      if (jet_tlv.DeltaR(had_tlv) > CONESIZE) continue;
-      if (b_Ks_best_bdt < b_Ks_bdt_score) {
-        b_Ks_best_bdt = b_Ks_bdt_score;
-        b_Ks_dr = jet_tlv.DeltaR(had_tlv);
-        hidx = j;
-      }
+      had_tlv.SetPtEtaPhiM(had_pt[ks_idx], had_eta[ks_idx], had_phi[ks_idx], had_mass[ks_idx]);
+      b_Ks_dr = jet_tlv.DeltaR(had_tlv);
     }
-    SetHadronValues(hidx);
+
     m_jettrForTMVA->Fill();
   }
   b_jet_end = m_jettrForTMVA->GetEntries();
@@ -418,9 +401,48 @@ void vtsAnalyser::FillTMVATrees() {
     if (had_pdgId[j] != 310) continue;
     ResetHadTree();
     SetHadronValues(j);
+    b_Ks_bdt_score = m_hadReader->EvaluateMVA("KS_BDT"); // calculate based on set hadron values
     m_hadtrForTMVA->Fill();
   }
   b_had_end = m_hadtrForTMVA->GetEntries();
+}
+
+void vtsAnalyser::IdentifyJet(unsigned int jetIdx, unsigned int sIdx, unsigned int bIdx) {
+  auto jidx = m_jetDeltaRs[jetIdx];
+  b_isSJet = 0; b_isBJet = 0;
+  b_isOverlap = 0;
+  if (jetIdx == sIdx && fabs(jidx.drsj) < CONESIZE) {
+     b_tq1_matched_jidx = jetIdx;
+     if (abs(m_qjMapForMC[jidx.idx]) == 3)      b_isSJet = 1;
+     else if (abs(m_qjMapForMC[jidx.idx]) == 5) b_isBJet = 1;
+     else b_isOverlap = 1; 
+  }
+  else if (jetIdx == bIdx && fabs(jidx.drbj) < CONESIZE) {
+     b_tq2_matched_jidx = jetIdx;
+     if (abs(m_qjMapForMC[jidx.idx]) == 3)      b_isSJet = 1; 
+     else if (abs(m_qjMapForMC[jidx.idx]) == 5) b_isBJet = 1;
+     else b_isOverlap = 1;
+  }
+}
+
+int vtsAnalyser::FindMatchedHadron(TLorentzVector jet_tlv) {
+  auto hidx = -1;
+  auto maxBDTScore = -1;
+  for (unsigned int j=0; j<nhad; ++j) {
+    if (had_pdgId[j] != 310) continue;
+    TLorentzVector had_tlv;
+    had_tlv.SetPtEtaPhiM(had_pt[j], had_eta[j], had_phi[j], had_mass[j]);
+    if (jet_tlv.DeltaR(had_tlv) > CONESIZE) continue;
+
+    ResetHadTree();
+    SetHadronValues(j);
+    auto Ks_bdtScore = m_hadReader->EvaluateMVA("KS_BDT");
+    if (maxBDTScore < Ks_bdtScore) {
+      maxBDTScore = Ks_bdtScore;
+      hidx = j;
+    }
+  }
+  return hidx;
 }
 
 void vtsAnalyser::SetJetValues(int i) {
@@ -443,45 +465,43 @@ void vtsAnalyser::SetJetValues(int i) {
   }
 
   /* Save tmva value */
-  b_Jet_bdt_score = m_jetReader->EvaluateMVA("Jet_BDT_highest");
-  b_JKS_bdt_score = m_jksReader->EvaluateMVA("JKS_BDT_highest");
+  //b_Jet_bdt_score = m_jetReader->EvaluateMVA("Jet_BDT_highest");
+  //b_JKS_bdt_score = m_jksReader->EvaluateMVA("JKS_BDT_highest");
 }
 
 void vtsAnalyser::SetHadronValues(int i) {
-    if (i == -1) { ResetHadTree(); return; }
-    if (!m_isGenericMC) {
-      b_Ks_isHadFromTop = hadTruth_isHadFromTop[i];
-      b_Ks_isHadFromW = hadTruth_isHadFromW[i];
-      b_Ks_isHadFromS = hadTruth_isHadFromS[i];
-      b_Ks_isHadFromC = hadTruth_isHadFromC[i];
-      b_Ks_isHadFromB = hadTruth_isHadFromB[i];
-      b_Ks_isFrom = hadTruth_isHadFromTsb[i];
-      b_Ks_nMatched = hadTruth_nMatched[i];
-    }
-    b_Ks_d = GetD(had_pt[i], had_eta[i], had_phi[i], had_mass[i], had_x[i], had_y[i], had_z[i]);
-    b_Ks_pt = had_pt[i];
-    b_Ks_eta = had_eta[i];
-    b_Ks_phi = had_phi[i];
-    b_Ks_mass = had_mass[i];
-    b_Ks_lxy = had_lxy[i];
-    b_Ks_lxySig = had_lxy[i]/had_lxyErr[i];
-    b_Ks_angleXY = had_angleXY[i];
-    b_Ks_angleXYZ = had_angleXYZ[i];
-    b_Ks_chi2 = had_chi2[i];
-    b_Ks_dca = had_dca[i];
-    b_Ks_l3D = had_l3D[i];
-    b_Ks_l3DSig = had_l3D[i] / had_l3DErr[i];
-    b_Ks_legDR = had_legDR[i];
-    b_Ks_pdgId = had_pdgId[i];
-    b_Ks_dau1_chi2 = had_dau1_chi2[i];
-    b_Ks_dau1_ipsigXY = had_dau1_ipsigXY[i];
-    b_Ks_dau1_ipsigZ = had_dau1_ipsigZ[i];
-    b_Ks_dau1_pt = had_dau1_pt[i];
-    b_Ks_dau2_chi2 = had_dau2_chi2[i];
-    b_Ks_dau2_ipsigXY = had_dau2_ipsigXY[i];
-    b_Ks_dau2_ipsigZ = had_dau2_ipsigZ[i];
-    b_Ks_dau2_pt = had_dau2_pt[i];
-    b_Ks_bdt_score = m_hadReader->EvaluateMVA("KS_BDT");
+  if (!m_isGenericMC) {
+    b_Ks_isHadFromTop = hadTruth_isHadFromTop[i];
+    b_Ks_isHadFromW = hadTruth_isHadFromW[i];
+    b_Ks_isHadFromS = hadTruth_isHadFromS[i];
+    b_Ks_isHadFromC = hadTruth_isHadFromC[i];
+    b_Ks_isHadFromB = hadTruth_isHadFromB[i];
+    b_Ks_isFrom = hadTruth_isHadFromTsb[i];
+    b_Ks_nMatched = hadTruth_nMatched[i];
+  }
+  b_Ks_d = GetD(had_pt[i], had_eta[i], had_phi[i], had_mass[i], had_x[i], had_y[i], had_z[i]);
+  b_Ks_pt = had_pt[i];
+  b_Ks_eta = had_eta[i];
+  b_Ks_phi = had_phi[i];
+  b_Ks_mass = had_mass[i];
+  b_Ks_lxy = had_lxy[i];
+  b_Ks_lxySig = had_lxy[i]/had_lxyErr[i];
+  b_Ks_angleXY = had_angleXY[i];
+  b_Ks_angleXYZ = had_angleXYZ[i];
+  b_Ks_chi2 = had_chi2[i];
+  b_Ks_dca = had_dca[i];
+  b_Ks_l3D = had_l3D[i];
+  b_Ks_l3DSig = had_l3D[i] / had_l3DErr[i];
+  b_Ks_legDR = had_legDR[i];
+  b_Ks_pdgId = had_pdgId[i];
+  b_Ks_dau1_chi2 = had_dau1_chi2[i];
+  b_Ks_dau1_ipsigXY = had_dau1_ipsigXY[i];
+  b_Ks_dau1_ipsigZ = had_dau1_ipsigZ[i];
+  b_Ks_dau1_pt = had_dau1_pt[i];
+  b_Ks_dau2_chi2 = had_dau2_chi2[i];
+  b_Ks_dau2_ipsigXY = had_dau2_ipsigXY[i];
+  b_Ks_dau2_ipsigZ = had_dau2_ipsigZ[i];
+  b_Ks_dau2_pt = had_dau2_pt[i];
 }
 
 void vtsAnalyser::SetMVAReader() {
@@ -491,23 +511,23 @@ void vtsAnalyser::SetMVAReader() {
   #define jksTMVABranch(name) TMVABranch_(m_jksReader,name);
 
   m_hadReader = new TMVA::Reader();            
-  hadTMVABranch(Ks_pt); hadTMVABranch(Ks_eta);   hadTMVABranch(Ks_phi); //hadTMVABranch(Ks_mass);
-  hadTMVABranch(Ks_d);  hadTMVABranch(Ks_legDR); hadTMVABranch(Ks_chi2);  hadTMVABranch(Ks_dca);
-  hadTMVABranch(Ks_lxy);     hadTMVABranch(Ks_lxySig);
-  hadTMVABranch(Ks_l3D);     hadTMVABranch(Ks_l3DSig);
-  hadTMVABranch(Ks_angleXY); hadTMVABranch(Ks_angleXYZ);
-  hadTMVABranch(Ks_dau1_chi2);  hadTMVABranch(Ks_dau1_ipsigXY);  hadTMVABranch(Ks_dau1_ipsigZ);  hadTMVABranch(Ks_dau1_pt);
-  hadTMVABranch(Ks_dau2_chi2);  hadTMVABranch(Ks_dau2_ipsigXY);  hadTMVABranch(Ks_dau2_ipsigZ);  hadTMVABranch(Ks_dau2_pt);
-  m_hadReader->BookMVA("KS_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Had/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  hadTMVABranch(Ks_d); hadTMVABranch(Ks_pt); hadTMVABranch(Ks_eta); hadTMVABranch(Ks_phi);
+  hadTMVABranch(Ks_lxy); hadTMVABranch(Ks_lxySig);
+  hadTMVABranch(Ks_l3D); hadTMVABranch(Ks_l3DSig);
+  hadTMVABranch(Ks_legDR); hadTMVABranch(Ks_angleXY); hadTMVABranch(Ks_angleXYZ);
+  hadTMVABranch(Ks_chi2); hadTMVABranch(Ks_dca);
+  hadTMVABranch(Ks_dau1_chi2); hadTMVABranch(Ks_dau1_ipsigXY); hadTMVABranch(Ks_dau1_ipsigZ); hadTMVABranch(Ks_dau1_pt);
+  hadTMVABranch(Ks_dau2_chi2); hadTMVABranch(Ks_dau2_ipsigXY); hadTMVABranch(Ks_dau2_ipsigZ); hadTMVABranch(Ks_dau2_pt);
+  m_hadReader->BookMVA("KS_BDT", "/cms/ldap_home/tt8888tt/nanoAOD_tmp/src/nano/analysis/test/vts/tmva/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
 
   m_jetReader = new TMVA::Reader();
   jetTMVABranch(pt);  jetTMVABranch(eta);  jetTMVABranch(phi);  jetTMVABranch(mass);
-  jetTMVABranch(ptD); jetTMVABranch(area); jetTMVABranch(CSVV2);
   jetTMVABranch(c_x1);  jetTMVABranch(c_x2);  jetTMVABranch(c_x3);
   jetTMVABranch(n_x1);  jetTMVABranch(n_x2);  jetTMVABranch(n_x3);
   jetTMVABranch(cmult); jetTMVABranch(nmult);
   jetTMVABranch(axis1); jetTMVABranch(axis2);
-  m_jetReader->BookMVA("Jet_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
+  jetTMVABranch(ptD); jetTMVABranch(area); jetTMVABranch(CSVV2);
+  //m_jetReader->BookMVA("Jet_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 
   m_jksReader = new TMVA::Reader();
   jksTMVABranch(pt); jksTMVABranch(eta); jksTMVABranch(phi); jksTMVABranch(mass);
@@ -517,16 +537,17 @@ void vtsAnalyser::SetMVAReader() {
   jksTMVABranch(axis1); jksTMVABranch(axis2);
   jksTMVABranch(ptD);  jksTMVABranch(area);  jksTMVABranch(CSVV2);
 
-  jksTMVABranch(Ks_pt); jksTMVABranch(Ks_eta); jksTMVABranch(Ks_phi); //jksTMVABranch(Ks_mass);
-  jksTMVABranch(Ks_lxy);  jksTMVABranch(Ks_lxySig);
-  jksTMVABranch(Ks_l3D);  jksTMVABranch(Ks_l3DSig);
-  jksTMVABranch(Ks_angleXY);  jksTMVABranch(Ks_angleXYZ);
-  jksTMVABranch(Ks_d);  jksTMVABranch(Ks_legDR);  jksTMVABranch(Ks_chi2);  jksTMVABranch(Ks_dca);
-  jksTMVABranch(Ks_dau1_chi2);  jksTMVABranch(Ks_dau1_ipsigXY);  jksTMVABranch(Ks_dau1_ipsigZ);  jksTMVABranch(Ks_dau1_pt);
-  jksTMVABranch(Ks_dau2_chi2);  jksTMVABranch(Ks_dau2_ipsigXY);  jksTMVABranch(Ks_dau2_ipsigZ);  jksTMVABranch(Ks_dau2_pt);
-  jksTMVABranch(Ks_best_bdt);
+  jksTMVABranch(Ks_d); jksTMVABranch(Ks_pt); jksTMVABranch(Ks_eta); jksTMVABranch(Ks_phi);
+  jksTMVABranch(Ks_lxy); jksTMVABranch(Ks_lxySig);
+  jksTMVABranch(Ks_l3D); jksTMVABranch(Ks_l3DSig);
+  jksTMVABranch(Ks_legDR); jksTMVABranch(Ks_angleXY); jksTMVABranch(Ks_angleXYZ);
+  jksTMVABranch(Ks_chi2); jksTMVABranch(Ks_dca);
+  jksTMVABranch(Ks_dau1_chi2); jksTMVABranch(Ks_dau1_ipsigXY); jksTMVABranch(Ks_dau1_ipsigZ); jksTMVABranch(Ks_dau1_pt);
+  jksTMVABranch(Ks_dau2_chi2); jksTMVABranch(Ks_dau2_ipsigXY); jksTMVABranch(Ks_dau2_ipsigZ); jksTMVABranch(Ks_dau2_pt);
+
+  jksTMVABranch(Ks_bdt_score);
   jksTMVABranch(Ks_x);
-  m_jksReader->BookMVA("JKs_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKs_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
+  //m_jksReader->BookMVA("JKs_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKs_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 }
 
 void vtsAnalyser::ResetJetTree() {
@@ -540,6 +561,9 @@ void vtsAnalyser::ResetJetTree() {
     b_dau_phi[i]    = -9.;
     b_dau_charge[i] = -9;
   }
+
+  b_Ks_dr = -99;
+  b_Ks_x = -99;
 }
 
 void vtsAnalyser::ResetHadTree() {
@@ -548,8 +572,8 @@ void vtsAnalyser::ResetHadTree() {
   b_Ks_d            = -99;   b_Ks_pt           = -99;   b_Ks_eta          = -99;   b_Ks_phi          = -99;   b_Ks_mass         = -99; 
   b_Ks_lxy          = -99;   b_Ks_lxySig       = -99;   b_Ks_l3D          = -99;   b_Ks_l3DSig       = -99;   b_Ks_legDR        = -99; 
   b_Ks_angleXY      = -99;   b_Ks_angleXYZ     = -99;   b_Ks_chi2         = -99;   b_Ks_dca          = -99; 
-  b_Ks_dau1_chi2    = -99;   b_Ks_dau1_ipsigXY = -99;   b_Ks_dau1_ipsigZ  = -99;   b_Ks_dau1_pt      = -99;   b_Ks_dau2_chi2    = -99; 
-  b_Ks_dau2_ipsigXY = -99;   b_Ks_dau2_ipsigZ  = -99;   b_Ks_dau2_pt      = -99; 
-  b_Ks_dr           = -99;   b_Ks_x            = -99;   b_Ks_best_bdt     = -99; 
+  b_Ks_dau1_chi2    = -99;   b_Ks_dau1_ipsigXY = -99;   b_Ks_dau1_ipsigZ  = -99;   b_Ks_dau1_pt      = -99;
+  b_Ks_dau2_chi2    = -99;   b_Ks_dau2_ipsigXY = -99;   b_Ks_dau2_ipsigZ  = -99;   b_Ks_dau2_pt      = -99; 
+  b_Ks_bdt_score    = -99;
 }
 
