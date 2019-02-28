@@ -17,28 +17,28 @@
 #include "TMVA/TMVAGui.h"
 
 void addHadVariable(TMVA::DataLoader *dataloader) {
-  dataloader->AddVariable("d",            'F');
-  dataloader->AddVariable("pt",           'F');
-  dataloader->AddVariable("eta",          'F');
-  dataloader->AddVariable("phi",          'F');
-//  dataloader->AddVariable("mass",         'F');
-  dataloader->AddVariable("lxy",          'F');
-  dataloader->AddVariable("lxySig",       'F');
-  dataloader->AddVariable("l3D",          'F');
-  dataloader->AddVariable("l3DSig",       'F');
-  dataloader->AddVariable("legDR",        'F');
-  dataloader->AddVariable("angleXY",      'F');
-  dataloader->AddVariable("angleXYZ",     'F');
-  dataloader->AddVariable("chi2",         'F');
-  dataloader->AddVariable("dca",          'F');
-  dataloader->AddVariable("dau1_chi2",    'F');
-  dataloader->AddVariable("dau1_ipsigXY", 'F');
-  dataloader->AddVariable("dau1_ipsigZ",  'F');
-  dataloader->AddVariable("dau1_pt",      'F');
-  dataloader->AddVariable("dau2_chi2",    'F');
-  dataloader->AddVariable("dau2_ipsigXY", 'F');
-  dataloader->AddVariable("dau2_ipsigZ",  'F');
-  dataloader->AddVariable("dau2_pt",      'F');
+  dataloader->AddVariable("Ks_d",            'F');
+  dataloader->AddVariable("Ks_pt",           'F');
+  dataloader->AddVariable("Ks_eta",          'F');
+  dataloader->AddVariable("Ks_phi",          'F');
+  //dataloader->AddVariable("Ks_mass",         'F');
+  dataloader->AddVariable("Ks_lxy",          'F');
+  dataloader->AddVariable("Ks_lxySig",       'F');
+  dataloader->AddVariable("Ks_l3D",          'F');
+  dataloader->AddVariable("Ks_l3DSig",       'F');
+  dataloader->AddVariable("Ks_legDR",        'F');
+  dataloader->AddVariable("Ks_angleXY",      'F');
+  dataloader->AddVariable("Ks_angleXYZ",     'F');
+  dataloader->AddVariable("Ks_chi2",         'F');
+  dataloader->AddVariable("Ks_dca",          'F');
+  dataloader->AddVariable("Ks_dau1_chi2",    'F');
+  dataloader->AddVariable("Ks_dau1_ipsigXY", 'F');
+  dataloader->AddVariable("Ks_dau1_ipsigZ",  'F');
+  dataloader->AddVariable("Ks_dau1_pt",      'F');
+  dataloader->AddVariable("Ks_dau2_chi2",    'F');
+  dataloader->AddVariable("Ks_dau2_ipsigXY", 'F');
+  dataloader->AddVariable("Ks_dau2_ipsigZ",  'F');
+  dataloader->AddVariable("Ks_dau2_pt",      'F');
 }
 
 void addTree(TMVA::DataLoader *dataloader, TTree* sig, TTree* bkg, Double_t sigW = 1.0, Double_t bkgW = 1.0) {

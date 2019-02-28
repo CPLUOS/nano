@@ -249,7 +249,6 @@ void vtsAnalyser::ResetBranch() {
   m_tqMC.clear();       m_wqMC.clear(); 
   m_qjMapForMC.clear();
   m_jetDeltaRs.clear();
-  //m_closestRecJetForLep1.clear(); m_closestRecJetForLep2.clear(); 
   b_tq1_idx    = -99;   b_tq2_idx    = -99;
   b_tq1_pdgId  = -99;   b_tq2_pdgId  = -99;
   b_tq1_tlv.SetPtEtaPhiM(0,0,0,0);
