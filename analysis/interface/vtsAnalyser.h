@@ -5,8 +5,11 @@
 
 class vtsAnalyser : public hadAnalyser {
 public:
-  float m_jetConeSize = 0.4; float m_xCut = 0.2; unsigned int m_jetDauArrSize = 350;
+  float CONESIZE = 0.4; float m_xCut = 0.2; unsigned int m_jetDauArrSize = 350;
   std::vector<TParticle> m_selectedJet;
+  int m_nj = 0; int m_nj2 = 0;
+  int m_ej = -1; int m_jj = -2;
+  int m_nej = 0; int m_njj = 0;
 
   vtsAnalyser(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, Bool_t dl = false, Bool_t sle = false, Bool_t slm = false);
   vtsAnalyser(TTree *tree=0, Bool_t isMC=false, Bool_t dl=false, Bool_t sle=false, Bool_t slm=false) : vtsAnalyser(tree, 0, 0, isMC, dl, sle, slm) {}
@@ -15,43 +18,31 @@ public:
 
   void setOutput(std::string outputName);
   virtual void Loop();
-
 private:
   Bool_t m_isGenericMC = false;
 
   TTree *m_hadtrForTMVA;
   TTree *m_jettrForTMVA;
-
-  TMVA::Reader *m_jetSelReader;
   TMVA::Reader *m_hadReader;
   TMVA::Reader *m_jetReader;
   TMVA::Reader *m_jksReader;
 
-  Float_t r_pt = -9; Float_t r_eta = -9; Float_t r_phi = -9; Float_t r_mass = -9; Float_t r_drl = -9; Float_t r_inmass = -9; // these are for m_jetSelReader
-
   bool b_passedEvent;
-  int  b_iEvent, b_iRun, b_iLuminosityBlock, b_nJet, b_nSelJet, b_nSelJetEv;
-
+  int b_ntotjet;
 
   /* for MatchingForMC() */
   std::map<unsigned int, int> m_qjMapForMC;  // +-3 : jet matched to s-quark, +-5 : jet matched to b-quark, -1 : jet matched to two quarks (overlap)
-  std::map<unsigned int, int> m_qgjMapForMC;
-  std::map<unsigned int, int> m_closestRecJetForLep1; std::map<unsigned int, int> m_closestRecJetForLep2; 
-  std::map<unsigned int, int> m_closestGenJetForLep1; std::map<unsigned int, int> m_closestGenJetForLep2;
 
   /// Additional information about global properties of the jet,
   /// relevant to our Vts analysis
-
   struct jetInfo {
-    int idx; /// jet idx
+    unsigned int idx; /// jet idx
     double pt; /// jet pt
-    double dr1j; /// DeltaR(s,jet) if bbbar sample, then also DeltaR(b, jet)
-    double dr2j; /// DeltaR(b,jet)
+    double drsj; /// DeltaR(s,jet)
+    double drbj; /// DeltaR(b,jet)
     double drl1j; /// DeltaR(lep1,jet)
     double drl2j; /// DeltaR(lep2,jet)
-    double bdt;   /// Jet Selection BDT score
   };
-
   /// information about global properties of the gen quark
   struct genInfo {
     int idx; // gen idx
@@ -63,61 +54,37 @@ private:
     TLorentzVector tlv; // gen 4-vector
   };
 
-  std::vector<jetInfo> m_genJet; 
-  std::vector<jetInfo> m_recJet;
+  struct ksInfo {
+    unsigned int idx; // ks idx
+    double dr; // DeltaR(ks, jet)
+    double x; // ks_pt/jet_pt
+  };
+
+  std::vector<jetInfo> m_jetDeltaRs;
   std::vector<genInfo> m_tqMC;   
   std::vector<genInfo> m_wqMC;
 
-  int   b_matched1_jidx,    b_matched1_isOverlap;
-  int   b_matched1_idx,     b_matched1_pdgId,     b_matched1_status;
-  int   b_matched1_mom_idx, b_matched1_mom_pdgId, b_matched1_mom_status;
-  float b_matched1_dr,      b_matched1_x;
-  TLorentzVector b_matched1_tlv;
+  int   b_tq1_idx, b_tq1_pdgId;
+  int   b_tq2_idx, b_tq2_pdgId;
+  TLorentzVector b_tq1_tlv;
+  TLorentzVector b_tq2_tlv;
+  int   b_tq1_matched_jidx, b_tq1_matched_isOverlap, b_tq1_matched_dr, b_tq1_matched_x;
+  int   b_tq2_matched_jidx, b_tq2_matched_isOverlap, b_tq2_matched_dr, b_tq2_matched_x;
 
-  int   b_matched2_jidx,    b_matched2_isOverlap;
-  int   b_matched2_idx,     b_matched2_pdgId,     b_matched2_status;
-  int   b_matched2_mom_idx, b_matched2_mom_pdgId, b_matched2_mom_status;
-  float b_matched2_dr,      b_matched2_x;
-  TLorentzVector b_matched2_tlv;
-
-  int b_RecSJet,             b_RecBJet;            
-  int b_RecSJetClosestToLep, b_RecBJetClosestToLep;
-  int b_RecSJetIsHighest,    b_RecBJetIsHighest;
-
-  /* for RecAnalysis() */
-  std::vector<int>   b_hadTruth_pdgId_vec;        std::vector<int>   b_hadTruth_nMatched_vec;      std::vector<int>   b_hadTruth_isFrom_vec;
-  std::vector<bool>  b_hadTruth_isHadFromTop_vec; std::vector<bool>  b_hadTruth_isHadFromW_vec;    std::vector<bool>  b_hadTruth_isHadFromS_vec;   std::vector<bool>  b_hadTruth_isHadFromC_vec;   std::vector<bool>  b_hadTruth_isHadFromB_vec;
-  std::vector<float> b_hadTruth_d_vec;            std::vector<float> b_hadTruth_pt_vec;            std::vector<float> b_hadTruth_eta_vec;          std::vector<float> b_hadTruth_phi_vec;          std::vector<float> b_hadTruth_mass_vec;
-  std::vector<float> b_hadTruth_lxy_vec;          std::vector<float> b_hadTruth_lxySig_vec;        std::vector<float> b_hadTruth_l3D_vec;          std::vector<float> b_hadTruth_l3DSig_vec;       std::vector<float> b_hadTruth_legDR_vec;
-  std::vector<float> b_hadTruth_angleXY_vec;      std::vector<float> b_hadTruth_angleXYZ_vec;      std::vector<float> b_hadTruth_chi2_vec;         std::vector<float> b_hadTruth_dca_vec;
-  std::vector<float> b_hadTruth_dau1_chi2_vec;    std::vector<float> b_hadTruth_dau1_ipsigXY_vec;  std::vector<float> b_hadTruth_dau1_ipsigZ_vec;  std::vector<float> b_hadTruth_dau1_pt_vec;
-  std::vector<float> b_hadTruth_dau2_chi2_vec;    std::vector<float> b_hadTruth_dau2_ipsigXY_vec;  std::vector<float> b_hadTruth_dau2_ipsigZ_vec;  std::vector<float> b_hadTruth_dau2_pt_vec;
-  std::vector<float> b_hadTruth_x_closest_j_vec;  std::vector<float> b_hadTruth_dr_closest_j_vec;  std::vector<float> b_hadTruth_x_highest_j_vec;  std::vector<float> b_hadTruth_dr_highest_j_vec;
-  std::vector<float> b_hadTruth_x_closest_gj_vec; std::vector<float> b_hadTruth_dr_closest_gj_vec; std::vector<float> b_hadTruth_x_highest_gj_vec; std::vector<float> b_hadTruth_dr_highest_gj_vec;
-  std::vector<int>   b_hadTruth_isClosestPair_xOrder_j_vec;  std::vector<int> b_hadTruth_isHighestPair_xOrder_j_vec;
-  std::vector<int>   b_hadTruth_isClosestPair_xOrder_gj_vec; std::vector<int> b_hadTruth_isHighestPair_xOrder_gj_vec;
-
-  /* for CollectVar() */
-  float b_MET_pt, b_MET_phi, b_MET_sumEt;
-
-  /* for FillHadTreeForTMVA() */
-  int   b_Rec_pdgId,        b_Rec_nMatched,     b_Rec_isFrom;
-  bool  b_Rec_isHadFromTop, b_Rec_isHadFromW,   b_Rec_isHadFromS,   b_Rec_isHadFromC,   b_Rec_isHadFromB;
-  float b_Rec_d,            b_Rec_pt,           b_Rec_eta,          b_Rec_phi,          b_Rec_mass;
-  float b_Rec_lxy,          b_Rec_lxySig,       b_Rec_l3D,          b_Rec_l3DSig,       b_Rec_legDR;
-  float b_Rec_angleXY,      b_Rec_angleXYZ,     b_Rec_chi2,         b_Rec_dca;
-  float b_Rec_dau1_chi2,    b_Rec_dau1_ipsigXY, b_Rec_dau1_ipsigZ,  b_Rec_dau1_pt;     
-  float b_Rec_dau2_chi2,    b_Rec_dau2_ipsigXY, b_Rec_dau2_ipsigZ,  b_Rec_dau2_pt;     
-  float b_Rec_bdt_score;
+  /* for JetAnalysis() */
+  float b_Jet_axis1, b_Jet_axis2, b_Jet_cpt1, b_Jet_cpt2, b_Jet_cpt3, b_Jet_npt1, b_Jet_npt2, b_Jet_npt3, b_Jet_ptD, b_Jet_delta;
+  int   b_Jet_nmult, b_Jet_cmult;
+  std::vector<int> b_Jet_isCorrectMat;
 
   /* for FillJetTreeForTMVA() */
-  int   b_isSJet, b_isBJet,  b_isOverlap, b_isHighest, b_isClosestToLep, b_isHighBDT;
+  int   b_isSJet, b_isBJet, b_isOverlap, b_isHighest, b_isClosestToLep;
   float b_cmult,  b_nmult; // Data type was changed since JKS (and Jet) BDT require to provide variables for TMVA::reader as float
-  float b_pt,     b_eta,     b_phi,       b_mass;
-  float b_c_x1,   b_c_x2,    b_c_x3;
-  float b_n_x1,   b_n_x2,    b_n_x3;
-  float b_axis1,  b_axis2,   b_ptD,       b_area;
-  float b_CSVV2;
+  float b_pt,     b_eta,    b_phi,       b_mass;
+  float b_c_x1,   b_c_x2,   b_c_x3;
+  float b_n_x1,   b_n_x2,   b_n_x3;
+  float b_axis1,  b_axis2,  b_ptD,       b_area;
+  float b_CSVV2,  b_hadronFlavour;
+  float b_dr1,    b_dr2;
 
   float b_dau_pt[350], b_dau_eta[350], b_dau_phi[350];  
   int   b_dau_charge[350];
@@ -125,34 +92,40 @@ private:
     /* for TMVA with KS info. */
   float b_Jet_bdt_score,       b_JKS_bdt_score;
 
-  int   b_KS_idx,              b_KS_nMatched,         b_KS_isFrom;
-  bool  b_KS_isHadFromTop,     b_KS_isHadFromW,       b_KS_isHadFromS,       b_KS_isHadFromC, b_KS_isHadFromB;
-  float b_KS_d,                b_KS_pt,               b_KS_eta,              b_KS_phi,        b_KS_mass;
-  float b_KS_lxy,              b_KS_lxySig,           b_KS_l3D,              b_KS_l3DSig,     b_KS_legDR;
-  float b_KS_angleXY,          b_KS_angleXYZ,         b_KS_chi2,             b_KS_dca;
-  float b_KS_dau1_chi2,        b_KS_dau1_ipsigXY,     b_KS_dau1_ipsigZ,      b_KS_dau1_pt;
-  float b_KS_dau2_chi2,        b_KS_dau2_ipsigXY,     b_KS_dau2_ipsigZ,      b_KS_dau2_pt;
-  float b_KS_dr,               b_KS_x,                b_KS_best_bdt;
+  int   b_Ks_pdgId;
+  int   b_Ks_idx,              b_Ks_nMatched,         b_Ks_isFrom;
+  bool  b_Ks_isHadFromTop,     b_Ks_isHadFromW,       b_Ks_isHadFromS,  b_Ks_isHadFromC, b_Ks_isHadFromB;
+  float b_Ks_d,                b_Ks_pt,               b_Ks_eta,         b_Ks_phi,        b_Ks_mass;
+  float b_Ks_lxy,              b_Ks_lxySig,           b_Ks_l3D,         b_Ks_l3DSig,     b_Ks_legDR;
+  float b_Ks_angleXY,          b_Ks_angleXYZ,         b_Ks_chi2,        b_Ks_dca;
+  float b_Ks_dau1_chi2,        b_Ks_dau1_ipsigXY,     b_Ks_dau1_ipsigZ, b_Ks_dau1_pt;
+  float b_Ks_dau2_chi2,        b_Ks_dau2_ipsigXY,     b_Ks_dau2_ipsigZ, b_Ks_dau2_pt;
+  float b_Ks_bdt_score;
+  float b_Ks_dr,               b_Ks_x;
  
   int b_jet_start, b_jet_end; 
   int b_had_start, b_had_end;
 
   /* functions */
-  void jetOrdering(TString param, std::vector<vtsAnalyser::jetInfo>& jets);
-
   void ResetBranch();
   void MakeBranch();
+  void MakeBranchOfHadron(TTree* tr);
   void MatchingForMC();
+  void GenAnalysis();
   void RecAnalysis();
+  void JetAnalysis();
 
   bool isGenFrom(int count, int idx, int & isFrom, bool & isFromTop, bool & isFromW, bool & isFromKstar);
-  void CollectVar();
 
-  void ResetForTMVA();
+  void FillTMVATrees();
+  void IdentifyJet(unsigned int jetIdx, unsigned int sIdx, unsigned int bIdx);
+  int  FindMatchedHadron(TLorentzVector jet_tlv);
+  void SetJetValues(int i);
+  void SetHadronValues(int i);
 
-  void FillJetTreeForTMVA();
-  void FillHadTreeForTMVA();
   void SetMVAReader();
+  void ResetHadTree();
+  void ResetJetTree();
 
 };
 
