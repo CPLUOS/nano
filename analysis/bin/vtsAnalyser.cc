@@ -293,10 +293,7 @@ void vtsAnalyser::MatchingForMC() {
     }
   }
 
-  if (m_tqMC.size() < 2) {
-    cout << " >>>>> No 2 quarks from top in this event <<<<< " << endl;
-    return;
-  }
+  if (m_tqMC.size() < 2) return;
 
   /* Select quarks originated from t->qW */
   genInfo tq1; genInfo tq2; // tq1 : s-quark , tq2 : b-quark
@@ -341,19 +338,16 @@ void vtsAnalyser::MatchingForMC() {
       m_qjMapForMC[j.idx]  = -9;
       b_tq1_matched_isOverlap = 1;
       b_tq2_matched_isOverlap = 1;
-      break;
     }
     else if (j.drsj <= CONESIZE && j.drbj > CONESIZE) {
       m_qjMapForMC[j.idx] = tq1.pdgId; 
       b_tq1_matched_dr    = j.drsj;
       b_tq1_matched_x     = j.pt/tq1.tlv.Pt();
-      break;
     }
     else if (j.drbj <= CONESIZE && j.drsj > CONESIZE) {
       m_qjMapForMC[j.idx] = tq2.pdgId; 
       b_tq2_matched_dr    = j.drbj;
       b_tq2_matched_x     = j.pt/tq2.tlv.Pt();
-      break;
     }
     else cout << "No matched quark to this jet..." << endl;
   }
