@@ -2,7 +2,7 @@
 # https://twiki.cern.ch/twiki/bin/view/RooStats/RooStatsExercisesMarch2015
 
 import ROOT
-from ROOT import RooStats, RooFit, kBlue, kRed, kBlack, kGreen, kYellow, RooWorkspace, TLegend, kDashed
+from ROOT import RooStats, RooFit, kBlue, kRed, kBlack, kGreen, kYellow, RooWorkspace, TLegend, kDashed, kDotted
 #from ROOT import *
 import datetime, os, sys
 
@@ -35,50 +35,20 @@ f = ROOT.TFile("/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/t
 t  = f.Get(str(sys.argv[1])+"/Method_BDT/BDT")
 t2 = f.Get(str(sys.argv[2])+"/Method_BDT/BDT")
  
-#t = f.Get("pp_combined_JKS_BDT_highest/Method_BDT/BDT")
-#t = f.Get("pp_combined_J_BDT_highest/Method_BDT/BDT")
-
-#t = f.Get("pp_combined_JKS_BDT_highBDT/Method_BDT/BDT")
-#t = f.Get("pp_combined_J_BDT_highBDT/Method_BDT/BDT")
-
-#t = f.Get("JKS_wo_KS_highest/Method_BDT/BDT")
-#t = f.Get("JKS_wo_KS_highBDT/Method_BDT/BDT")
-
-#t = f.Get("JKS_wo_KS_s_vs_b_highBDT/Method_BDT/BDT")
-#t = f.Get("JKS_wo_KS_s_vs_b_highBDT/Method_BDT/BDT")
-
-#t = f.Get("all_wo_KS_highest/Method_BDT/BDT")
-#t = f.Get("all_wo_KS_highBDT/Method_BDT/BDT")
-
-#t = f.Get("all_wo_KS_s_vs_b_highBDT/Method_BDT/BDT")
-#t = f.Get("all_wo_KS_s_vs_b_highBDT/Method_BDT/BDT")
-
 h_sig = t.Get("MVA_BDT_S")
 h_bkg = t.Get("MVA_BDT_B")
-
 h_sig2 = t2.Get("MVA_BDT_S")
 h_bkg2 = t2.Get("MVA_BDT_B")
 
 w = RooWorkspace()
 c = ROOT.TCanvas("plots","plots",1920, 1080)
-c.Divide(6,2)
+c.Divide(4,2)
 
 w.factory("bdt[-1,1]")
 rooh_sig  = ROOT.RooDataHist("sigHist", "sigHist", ROOT.RooArgList(w.var("bdt")), h_sig)
 rooh_bkg  = ROOT.RooDataHist("bkgHist", "bkgHist", ROOT.RooArgList(w.var("bdt")), h_bkg)
-
-#rooh_sig2 = ROOT.RooDataHist("sigHist2", "sigHist2", ROOT.RooArgList(w.var("bdt")), h_sig2)
-#rooh_bkg2 = ROOT.RooDataHist("bkgHist2", "bkgHist2", ROOT.RooArgList(w.var("bdt")), h_bkg2)
-
-#getattr(w, 'import')(h_sig)
-#getattr(w, 'import')(h_bkg)
 getattr(w, 'import')(rooh_sig)
 getattr(w, 'import')(rooh_bkg)
-
-#getattr(w, 'import')(h_sig2)
-#getattr(w, 'import')(h_bkg2)
-#getattr(w, 'import')(rooh_sig2)
-#getattr(w, 'import')(rooh_bkg2)
 
 if t.GetPath().find("_JKS_") is not -1 or t.GetPath().find("JKS_") is not -1:
     w.factory("Gaussian::sig_1(bdt, meanSig1[-0.0317964,-1, 1.], sigmaSig1[0.0654243,0, 1])")
@@ -94,7 +64,7 @@ if t.GetPath().find("_JKS_") is not -1 or t.GetPath().find("JKS_") is not -1:
 elif t.GetPath().find("_J_") is not -1 or t.GetPath().find("all_") is not -1:
     w.factory("Gaussian::sig_1(bdt, meanSig1[-0.0317964,-1, 1.], sigmaSig1[0.0654243,0, 1])")
     w.factory("Gaussian::sig_2(bdt, meanSig2[-0.1, -1, 1.], sigmaSig2[0.0656842, 0, 1] )")
-    w.factory("Gaussian::sig_3(bdt, meanSig3[0, -1, 1], sigmaSig3[0, 0, 1])")
+    w.factory("Gaussian::sig_3(bdt, meanSig3[0.1, -1, 1], sigmaSig3[0.1, 0, 1])")
     fit_sig = w.factory("SUM::sig(sig_1, f1[.33, 0, 1]*sig_2, f2[.33, 0, 1]*sig_3)")
     fit_sig.fitTo(rooh_sig)
 
@@ -105,7 +75,6 @@ elif t.GetPath().find("_J_") is not -1 or t.GetPath().find("all_") is not -1:
     fit_bkg.fitTo(rooh_bkg)
 
 w.var("bdt").setRange(-1,1)
-#w.factory("bdt2[-1,1]")
 rooh_sig2 = ROOT.RooDataHist("sigHist2", "sigHist2", ROOT.RooArgList(w.var("bdt")), h_sig2)
 rooh_bkg2 = ROOT.RooDataHist("bkgHist2", "bkgHist2", ROOT.RooArgList(w.var("bdt")), h_bkg2)
 getattr(w, 'import')(rooh_sig2)
@@ -125,7 +94,7 @@ if t2.GetPath().find("_JKS_") is not -1 or t2.GetPath().find("JKS_") is not -1:
 elif t2.GetPath().find("_J_") is not -1 or t2.GetPath().find("all_") is not -1:
     w.factory("Gaussian::sig2_1(bdt, meanSig2_1[-0.0317964,-1, 1.], sigmaSig2_1[0.0654243,0, 1])")
     w.factory("Gaussian::sig2_2(bdt, meanSig2_2[-0.1, -1, 1.], sigmaSig2_2[0.0656842, 0, 1] )")
-    w.factory("Gaussian::sig2_3(bdt, meanSig2_3[0, -1, 1], sigmaSig2_3[0, 0, 1])")
+    w.factory("Gaussian::sig2_3(bdt, meanSig2_3[0.1, -1, 1], sigmaSig2_3[0.1, 0, 1])")
     fit_sig2 = w.factory("SUM::sig2(sig2_1, f2_1[.33, 0, 1]*sig2_2, f2_2[.33, 0, 1]*sig2_3)")
     fit_sig2.fitTo(rooh_sig2)
 
@@ -179,33 +148,35 @@ w.var("expected_bkg").setVal(N_ttbar_reco_dilep*(vts_term_bWbW)*nSelJet_avg_bWbW
                             + N_ttbar_reco_dilep*(vts_term_bWsW)*(ep_s_sb)*(nSelJet_avg_bWsW - 1) # N bkg for bWsW 1 : when rec s jet exist, avg of number of bkg is nSelJet_avg - 1 
                             + N_ttbar_reco_dilep*(vts_term_bWsW)*(ep_ns_sb)*nSelJet_avg_bWsW # N bkg for bWsW 2 : when rec s jet does not exist, avg of number of bkg is nSelJet_avg
                   )
+
 w.factory("expr::nbkg('nu*expected_bkg', {expected_bkg, nu})")
+
+w.factory("eff_sig[0.1, 0, 1]")
+w.factory("eff_bkg[0.1, 0, 1]")
+
+w.factory("expr::nsig2('eff_sig*mu*expected_sig', {eff_sig, expected_sig, mu})")
+w.factory("expr::nbkg2('eff_bkg*nu*expected_bkg', {eff_bkg, expected_bkg, nu})")
+
 w.factory("SUM::model(nsig*sig, nbkg*bkg)")
-w.factory("SUM::model2(nsig*sig2, nbkg*bkg2)")
+w.factory("SUM::model2(nsig2*sig2, nbkg2*bkg2)")
 
-#w.factory("prod::sig_only(nsig,sig)")
-#w.factory("prod::bkg_only(nbkg,bkg)")
-#w.factory("expr::sig_only('nsig*sig', {nsig, sig})")
-#w.factory("expr::bkg_only('nbkg*bkg', {nbkg, bkg})")
-
-c.cd(3)
 data = w.pdf("model").generate(ROOT.RooArgSet(w.var("bdt")))
 data2 = w.pdf("model2").generate(ROOT.RooArgSet(w.var("bdt")))
 
 sample = ROOT.RooCategory("sample","sample") ;
 sample.defineType("JKS") ;
 sample.defineType("Jet") ;
+getattr(w, 'import')(sample)
+
 # Construct combined dataset in (bdt,sample)
 combData = ROOT.RooDataSet("combData", "combined data", ROOT.RooArgSet(w.var("bdt")), RooFit.Index(sample), RooFit.Import("JKS",data), RooFit.Import("Jet",data2))
+getattr(w, 'import')(combData)
 
+c.cd(3)
 bfr3 = w.var("bdt").frame()#(RooFit.Bins(40))
-data.plotOn(bfr3, RooFit.MarkerColor(2))
-data2.plotOn(bfr3, RooFit.MarkerColor(4))
-#w.pdf("model").plotOn(bfr3, RooFit.LineColor(1))
-#w.pdf("model2").plotOn(bfr3, RooFit.LineColor(2))
-#w.obj("sig_only").plotOn(f, RooFit.LineColor(2))
-#w.obj("bkg_only").plotOn(f, RooFit.LineColor(4))
 combData.plotOn(bfr3, RooFit.MarkerColor(1))
+combData.plotOn(bfr3, RooFit.Cut("sample==sample::JKS"), RooFit.MarkerColor(2))
+combData.plotOn(bfr3, RooFit.Cut("sample==sample::Jet"), RooFit.MarkerColor(4))
 bfr3.SetTitle("Generated Dataset")
 bfr3.Draw()
 
@@ -213,7 +184,6 @@ simPdf = ROOT.RooSimultaneous("simPdf", "simultaneous pdf", sample)
 simPdf.addPdf(w.pdf("model"), "JKS")
 simPdf.addPdf(w.pdf("model2"),"Jet")
 simPdf.fitTo(combData)
-
 getattr(w, 'import')(simPdf)
 
 c.cd(4)
@@ -223,62 +193,48 @@ bfr4 = w.var("bdt").frame()
 # NBL You _must_ project the sample index category with data using ProjWData 
 # as a RooSimultaneous makes no prediction on the shape in the index category 
 # and can thus not be integrated
-simPdf.plotOn(bfr4, RooFit.Slice(sample,"JKS"), RooFit.ProjWData(ROOT.RooArgSet(sample), combData)) ;
-simPdf.plotOn(bfr4, RooFit.Slice(sample,"JKS"), RooFit.Components("sig"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
-simPdf.plotOn(bfr4, RooFit.Slice(sample,"JKS"), RooFit.Components("bkg"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
+simPdf.plotOn(bfr4, RooFit.Slice(sample,"JKS"), RooFit.ProjWData(ROOT.RooArgSet(sample), combData), RooFit.LineColor(1), RooFit.LineStyle(kDotted)) ;
+simPdf.plotOn(bfr4, RooFit.Slice(sample,"JKS"), RooFit.ProjWData(ROOT.RooArgSet(sample), combData), RooFit.Components("sig"), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
+simPdf.plotOn(bfr4, RooFit.Slice(sample,"JKS"), RooFit.ProjWData(ROOT.RooArgSet(sample), combData), RooFit.Components("bkg"), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
 bfr4.SetTitle("JKS slice of sim pdf")
 bfr4.Draw()
 
 c.cd(5)
 bfr5 = w.var("bdt").frame()
-#combData.plotOn(bfr5, RooFit.Cut("sample==sample::Jet")) ;
-# Plot "JKS" slice of simultaneous pdf. 
-# NBL You _must_ project the sample index category with data using ProjWData 
-# as a RooSimultaneous makes no prediction on the shape in the index category 
-# and can thus not be integrated
-simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.ProjWData(ROOT.RooArgSet(sample), combData)) ;
-simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.Components("sig2"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
-simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.Components("bkg2"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
+simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.LineColor(1), RooFit.LineStyle(kDotted)) ;
+simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Components("sig2"), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
+simPdf.plotOn(bfr5, RooFit.Slice(sample,"Jet"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Components("bkg2"), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
 bfr5.SetTitle("Jet slice of sim pdf")
 bfr5.Draw()
 
-c.cd(6)
-bfr6 = w.var("bdt").frame()
-#combData.plotOn(bfr5, RooFit.Cut("sample==sample::Jet")) ;
-# Plot "JKS" slice of simultaneous pdf. 
-# NBL You _must_ project the sample index category with data using ProjWData 
-# as a RooSimultaneous makes no prediction on the shape in the index category 
-# and can thus not be integrated
-simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample), combData)) ;
-simPdf.plotOn(bfr6, RooFit.Components("sig2"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
-simPdf.plotOn(bfr6, RooFit.Components("bkg2"), RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
-bfr6.SetTitle("sim pdf")
-bfr6.Draw()
+#c.cd(6)
+#bfr6 = w.var("bdt").frame()
+#simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample),combData)) ;
+#simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Slice(sample, "JKS"), RooFit.LineColor(2), RooFit.LineStyle(kDashed))
+#simPdf.plotOn(bfr6, RooFit.ProjWData(ROOT.RooArgSet(sample),combData), RooFit.Slice(sample, "Jet"), RooFit.LineColor(4), RooFit.LineStyle(kDashed))
+#bfr6.SetTitle("sim pdf")
+#bfr6.Draw()
 
-#exit()
 """
 sct = RooSimWSTool(w)
 model_sim = sct.build("model_sim","model",SplitParam("m","c"))
 """
 mc = RooStats.ModelConfig("mc", w)
-#mc.SetPdf(w.pdf("model"))
 mc.SetPdf(simPdf)
 mc.SetParametersOfInterest("mu")
 mc.SetObservables("bdt")
 mc.SetNuisanceParameters("nbkg")
-#getattr(w, 'import')(mc)
+mc.SetNuisanceParameters("nbkg2")
 
 c.cd(7)
 bfr7 = w.var("bdt").frame()
-#data = ROOT.RooStats.AsymptoticCalculator.MakeAsimovData(data, mc, ROOT.RooArgSet(w.var("bdt")), ROOT.RooArgSet())
-data = ROOT.RooStats.AsymptoticCalculator.MakeAsimovData(combData, mc, ROOT.RooArgSet(w.var("bdt")), ROOT.RooArgSet())
-dh = ROOT.RooDataHist("","",w.argSet("bdt"), data)#combData)
+cdata = ROOT.RooStats.AsymptoticCalculator.MakeAsimovData(combData, mc, w.argSet("bdt,sample"), ROOT.RooArgSet())
+dh = ROOT.RooDataHist("","",w.argSet("bdt,sample") , cdata)
 err_correction = [dh.set(dh.get(i), dh.weight(dh.get(i)), ROOT.TMath.Sqrt(dh.weight(dh.get(i)))) for i in range(0, dh.numEntries())]
 dh.plotOn(bfr7)
 bfr7.SetTitle("Asimov Dataset")
 bfr7.Draw()
 
-# exit(0)
 # h = ROOT.TH1F("hobs", "hobs", 100, -1, 1); data.fillHistogram(h, ROOT.RooArgList(w.var("bdt")))
 # h.Draw()
 # dh = ROOT.RooDataHist("obs", "obs", ROOT.RooArgList(w.var("bdt")), h)
@@ -310,7 +266,6 @@ mc.SetSnapshot(w.argSet("mu"))
 #fcalc.SetToys(300,300)
 
 # Asymp. Calc
-#fcalc = RooStats.AsymptoticCalculator(dh, bMod, mc)
 print("dh", dh)
 print("bMod", bMod)
 print("mc", mc)
