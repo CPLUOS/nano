@@ -293,7 +293,10 @@ void vtsAnalyser::MatchingForMC() {
     }
   }
 
-  if (m_tqMC.size() < 2) return;
+  if (m_tqMC.size() < 2) {
+    cout << " >>>>> No 2 quarks from top in this event <<<<< " << endl;
+    return;
+  }
 
   /* Select quarks originated from t->qW */
   genInfo tq1; genInfo tq2; // tq1 : s-quark , tq2 : b-quark
@@ -334,26 +337,30 @@ void vtsAnalyser::MatchingForMC() {
   /* Find closest sel jet to s or b */ 
   sort(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); 
   for (auto j : m_jetDeltaRs) {
-    if (j.drsj < CONESIZE && j.drbj < CONESIZE) {
+    if (j.drsj <= CONESIZE && j.drbj <= CONESIZE) {
       m_qjMapForMC[j.idx]  = -9;
       b_tq1_matched_isOverlap = 1;
       b_tq2_matched_isOverlap = 1;
+      break;
     }
-    else if (j.drsj < CONESIZE && j.drbj > CONESIZE) {
+    else if (j.drsj <= CONESIZE && j.drbj > CONESIZE) {
       m_qjMapForMC[j.idx] = tq1.pdgId; 
-      b_tq1_matched_dr    = m_jetDeltaRs[0].drsj;
-      b_tq1_matched_x     = m_jetDeltaRs[0].pt/tq1.tlv.Pt();
+      b_tq1_matched_dr    = j.drsj;
+      b_tq1_matched_x     = j.pt/tq1.tlv.Pt();
+      break;
     }
-    else if (j.drbj < CONESIZE && j.drsj > CONESIZE) {
+    else if (j.drbj <= CONESIZE && j.drsj > CONESIZE) {
       m_qjMapForMC[j.idx] = tq2.pdgId; 
-      b_tq2_matched_dr    = m_jetDeltaRs[0].drbj;
-      b_tq2_matched_x     = m_jetDeltaRs[0].pt/tq2.tlv.Pt();
+      b_tq2_matched_dr    = j.drbj;
+      b_tq2_matched_x     = j.pt/tq2.tlv.Pt();
+      break;
     }
     else cout << "No matched quark to this jet..." << endl;
   }
 }
 
 void vtsAnalyser::FillTMVATrees() {
+  if (m_isMC && m_jetDeltaRs.size() == 0 ) return; // For the case of absence of 2 gen quarks from top quark (m_tqMC.size() < 2), pass FillTMVATrees()
   sort(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
   auto highestPt = m_jetDeltaRs[0];  auto NhighestPt = m_jetDeltaRs[1];
   auto closestToTq1 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // dR(tq1,jet) ordering
@@ -408,13 +415,13 @@ void vtsAnalyser::IdentifyJet(unsigned int jetIdx, unsigned int sIdx, unsigned i
   auto jidx = m_jetDeltaRs[jetIdx];
   b_isSJet = 0; b_isBJet = 0;
   b_isOverlap = 0;
-  if (jetIdx == sIdx && fabs(jidx.drsj) < CONESIZE) {
+  if (jidx.idx == sIdx && fabs(jidx.drsj) <= CONESIZE) {
      b_tq1_matched_jidx = jetIdx;
      if (abs(m_qjMapForMC[jidx.idx]) == 3)      b_isSJet = 1;
      else if (abs(m_qjMapForMC[jidx.idx]) == 5) b_isBJet = 1;
      else b_isOverlap = 1; 
   }
-  else if (jetIdx == bIdx && fabs(jidx.drbj) < CONESIZE) {
+  else if (jidx.idx == bIdx && fabs(jidx.drbj) <= CONESIZE) {
      b_tq2_matched_jidx = jetIdx;
      if (abs(m_qjMapForMC[jidx.idx]) == 3)      b_isSJet = 1; 
      else if (abs(m_qjMapForMC[jidx.idx]) == 5) b_isBJet = 1;
@@ -524,7 +531,7 @@ void vtsAnalyser::SetMVAReader() {
   jetTMVABranch(cmult); jetTMVABranch(nmult);
   jetTMVABranch(axis1); jetTMVABranch(axis2);
   jetTMVABranch(ptD); jetTMVABranch(area); jetTMVABranch(CSVV2);
-  m_jetReader->BookMVA("Jet_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
+  //m_jetReader->BookMVA("Jet_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 
   m_jksReader = new TMVA::Reader();
   jksTMVABranch(pt); jksTMVABranch(eta); jksTMVABranch(phi); jksTMVABranch(mass);
@@ -544,7 +551,7 @@ void vtsAnalyser::SetMVAReader() {
 
   jksTMVABranch(Ks_bdt_score);
   jksTMVABranch(Ks_x);
-  m_jksReader->BookMVA("JKs_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKs_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
+  //m_jksReader->BookMVA("JKs_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKs_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 }
 
 void vtsAnalyser::ResetJetTree() {
