@@ -1,5 +1,6 @@
 
-for num in [0.1] do;
+for num in {0..1}
+do
   python limit_calc.py pp_combined_JKS_BDT_highest $num
   python limit_calc.py pp_combined_JKS_BDT_highBDT $num
   python limit_calc.py pp_combined_J_BDT_highest $num
@@ -29,4 +30,4 @@ for num in [0.1] do;
   python limit_calc.py all_wo_KS_highBDT $num
   python limit_calc.py all_wo_KS_s_vs_b_highest $num
   python limit_calc.py all_wo_KS_s_vs_b_highBDT $num
-done;
+done
