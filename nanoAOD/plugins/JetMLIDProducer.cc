@@ -12,6 +12,7 @@ JetMLIDProducer::JetMLIDProducer(const edm::ParameterSet & iConfig) :
   useQC( iConfig.getParameter<bool>("useQualityCuts"))
 {
   produces<nanoaod::FlatTable>("jetID");
+  produces<nanoaod::FlatTable>("jetDau");
 }
 
 void JetMLIDProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
@@ -39,7 +40,10 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     jet_SmallDRPT, jet_MassMoment, jet_PTSquare, jet_MyMoment;
 
   vector<int> jet_cmult, jet_nmult;
+  vector<int> jet_dauIdx1, jet_dauIdx2;
+  vector<float> jetDau_pt, jetDau_eta, jetDau_phi, jetDau_E, jetDau_charge;
 
+  int nDaughter = 0;
   for (auto jet = jets->begin();  jet != jets->end(); ++jet) {
 
     float sum_weight = 0., sum_deta = 0., sum_dphi = 0., sum_deta2 = 0., sum_dphi2 = 0., sum_detadphi = 0., sum_pt = 0.;
@@ -52,6 +56,7 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     std::vector<float> chargedPt;
     std::vector<float> neutralPt;
 
+    jet_dauIdx1.push_back(nDaughter);
     //Loop over the jet constituents
     for(auto daughter : jet->getJetConstituentsQuick()){
       //packed candidate situation
@@ -111,7 +116,15 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       sum_deta2    += deta*deta*weight;
       sum_detadphi += deta*dphi*weight;
       sum_dphi2    += dphi*dphi*weight;
+
+      nDaughter += 1;
+      jetDau_pt.push_back(daughter->pt());
+      jetDau_eta.push_back(daughter->eta());
+      jetDau_phi.push_back(daughter->phi());
+      jetDau_E.push_back(daughter->energy());
+      jetDau_charge.push_back(daughter->charge());
     }
+    jet_dauIdx2.push_back(nDaughter);
 
     //Calculate axis2 and ptD
     float a = 0., b = 0., c = 0.;
@@ -166,6 +179,8 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   jetID_table->addColumn<float>("axis2",jet_axis2,"axis2",nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<float>("axis1",jet_axis1,"axis1",nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<float>("ptD",jet_ptD,"ptD",nanoaod::FlatTable::FloatColumn);
+  jetID_table->addColumn<int>("dauIdx1",jet_dauIdx1,"start index in daughter table",nanoaod::FlatTable::IntColumn);
+  jetID_table->addColumn<int>("dauIdx2",jet_dauIdx2,"end index in daughter table",nanoaod::FlatTable::IntColumn);
 
   jetID_table->addColumn<float>("angularity",    jet_JetAngularity,  "angularity",     nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<float>("geoMoment",     jet_GeoMoment,      "geoMoment",      nanoaod::FlatTable::FloatColumn);
@@ -186,7 +201,15 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   jetID_table->addColumn<float>("npt3",jet_npt3,"npt3",nanoaod::FlatTable::FloatColumn);
   jetID_table->addColumn<int>("nmult",jet_nmult,"nmult",nanoaod::FlatTable::IntColumn);
 
+  auto jetDau_table = make_unique<nanoaod::FlatTable>(nDaughter,"jetDau",false);
+  jetDau_table->addColumn<float>("pt",jetDau_pt,"pt",nanoaod::FlatTable::FloatColumn);
+  jetDau_table->addColumn<float>("eta",jetDau_eta,"eta",nanoaod::FlatTable::FloatColumn);
+  jetDau_table->addColumn<float>("phi",jetDau_phi,"phi",nanoaod::FlatTable::FloatColumn);
+  jetDau_table->addColumn<float>("E",jetDau_E,"E",nanoaod::FlatTable::FloatColumn);
+  jetDau_table->addColumn<float>("charge",jetDau_charge,"charge",nanoaod::FlatTable::FloatColumn);
+
   iEvent.put(move(jetID_table),"jetID");
+  iEvent.put(move(jetDau_table),"jetDau");
 }
 
 DEFINE_FWK_MODULE(JetMLIDProducer);
