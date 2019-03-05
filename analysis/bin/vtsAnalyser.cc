@@ -540,7 +540,7 @@ void vtsAnalyser::SetMVAReader() {
   jksTMVABranch(axis1); jksTMVABranch(axis2);
   jksTMVABranch(ptD);  jksTMVABranch(area);  jksTMVABranch(CSVV2);
 
-  jksTMVABranch(Ks_d); jksTMVABranch(Ks_pt); jksTMVABranch(Ks_eta); jksTMVABranch(Ks_phi);
+  jksTMVABranch(Ks_d); jksTMVABranch(Ks_pt); jksTMVABranch(Ks_eta); jksTMVABranch(Ks_phi); jksTMVABranch(Ks_mass);
   jksTMVABranch(Ks_lxy); jksTMVABranch(Ks_lxySig);
   jksTMVABranch(Ks_l3D); jksTMVABranch(Ks_l3DSig);
   jksTMVABranch(Ks_legDR); jksTMVABranch(Ks_angleXY); jksTMVABranch(Ks_angleXYZ);
