@@ -468,8 +468,8 @@ void vtsAnalyser::SetJetValues(int i) {
   }
 
   /* Save tmva value */
-  //b_Jet_bdt_score = m_jetReader->EvaluateMVA("Jet_BDT_highest");
-  //b_JKS_bdt_score = m_jksReader->EvaluateMVA("JKS_BDT_highest");
+  b_Jet_bdt_score = m_jetReader->EvaluateMVA("Jet_BDT_highest");
+  b_JKS_bdt_score = m_jksReader->EvaluateMVA("JKS_BDT_highest");
 }
 
 void vtsAnalyser::SetHadronValues(int i) {
@@ -550,7 +550,7 @@ void vtsAnalyser::SetMVAReader() {
 
   jksTMVABranch(Ks_bdt_score);
   jksTMVABranch(Ks_x);
-  m_jksReader->BookMVA("JKs_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKs_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
+  m_jksReader->BookMVA("JKS_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKS_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 }
 
 void vtsAnalyser::ResetJetTree() {
