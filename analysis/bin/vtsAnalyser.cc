@@ -73,6 +73,10 @@ int main(int argc, char* argv[])
           TFile *hadTruthFile = TFile::Open(hadTruthFileName, "READ");
           TTree *hadTree(0);      
           TTree *hadTruthTree(0);
+          if (string(inFileName).find("/djeon/tt012j_bbars_2l_FxFx/") != std::string::npos) { // Let had-like files be null since there are wrong files in ~/djeon/tt012j_bbars_2l_FxFx/~ for now
+              hadFile = NULL;
+              hadTruthFile = NULL;
+          }
           if (hadFile != NULL) hadTree = (TTree*) hadFile->Get("Events");
           if (hadTruthFile != NULL) hadTruthTree = (TTree*) hadTruthFile->Get("Events");
           else cout << ">>>>> There dosen't exist hadTruth info. -----> Use NANOTREE and HADTREE <<<<< " << endl;
@@ -354,6 +358,7 @@ void vtsAnalyser::MatchingForMC() {
 }
 
 void vtsAnalyser::FillTMVATrees() {
+  if (m_isMC && m_jetDeltaRs.size() == 0 ) return; // For the case of absence of 2 gen quarks from top quark (m_tqMC.size() < 2), pass FillTMVATrees()
   sort(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
   auto highestPt = m_jetDeltaRs[0];  auto NhighestPt = m_jetDeltaRs[1];
   auto closestToTq1 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // dR(tq1,jet) ordering
@@ -370,9 +375,10 @@ void vtsAnalyser::FillTMVATrees() {
     if (m_isMC) { IdentifyJet(ij, closestToTq1.idx, closestToTq2.idx); }
 
     b_isHighest = 0; b_isClosestToLep = 0;
-    if      (j == highestPt.idx     || j == NhighestPt.idx)    b_isHighest = 1;
-    else if (j == closestToLep1.idx || j == closestToLep2.idx) b_isClosestToLep = 1;
-    b_dr1   = closestToTq1.drsj;  b_dr2   = closestToTq2.drbj;
+    if (j == highestPt.idx     || j == NhighestPt.idx)    b_isHighest = 1;
+    if (j == closestToLep1.idx || j == closestToLep2.idx) b_isClosestToLep = 1;
+    b_dr1 = closestToTq1.drsj;
+    b_dr2 = closestToTq2.drbj;
 
     TLorentzVector jet_tlv;
     jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
@@ -515,7 +521,7 @@ void vtsAnalyser::SetMVAReader() {
   hadTMVABranch(Ks_chi2); hadTMVABranch(Ks_dca);
   hadTMVABranch(Ks_dau1_chi2); hadTMVABranch(Ks_dau1_ipsigXY); hadTMVABranch(Ks_dau1_ipsigZ); hadTMVABranch(Ks_dau1_pt);
   hadTMVABranch(Ks_dau2_chi2); hadTMVABranch(Ks_dau2_ipsigXY); hadTMVABranch(Ks_dau2_ipsigZ); hadTMVABranch(Ks_dau2_pt);
-  m_hadReader->BookMVA("KS_BDT", "/cms/ldap_home/tt8888tt/nanoAOD_tmp/src/nano/analysis/test/vts/tmva/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  m_hadReader->BookMVA("KS_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Had/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
 
   m_jetReader = new TMVA::Reader();
   jetTMVABranch(pt);  jetTMVABranch(eta);  jetTMVABranch(phi);  jetTMVABranch(mass);
