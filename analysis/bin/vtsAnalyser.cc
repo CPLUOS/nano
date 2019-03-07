@@ -345,58 +345,59 @@ void vtsAnalyser::MatchingForMC() {
     }
     else if (j.drsj < CONESIZE && j.drbj > CONESIZE) {
       m_qjMapForMC[j.idx] = tq1.pdgId; 
-      b_tq1_matched_dr    = m_jetDeltaRs[0].drsj;
-      b_tq1_matched_x     = m_jetDeltaRs[0].pt/tq1.tlv.Pt();
+      b_tq1_matched_dr    = j.drsj;
+      b_tq1_matched_x     = j.pt/tq1.tlv.Pt();
     }
     else if (j.drbj < CONESIZE && j.drsj > CONESIZE) {
       m_qjMapForMC[j.idx] = tq2.pdgId; 
-      b_tq2_matched_dr    = m_jetDeltaRs[0].drbj;
-      b_tq2_matched_x     = m_jetDeltaRs[0].pt/tq2.tlv.Pt();
+      b_tq2_matched_dr    = j.drbj;
+      b_tq2_matched_x     = j.pt/tq2.tlv.Pt();
     }
     else cout << "No matched quark to this jet..." << endl;
   }
 }
 
 void vtsAnalyser::FillTMVATrees() {
-  if (m_isMC && m_jetDeltaRs.size() == 0 ) return; // For the case of absence of 2 gen quarks from top quark (m_tqMC.size() < 2), pass FillTMVATrees()
-  sort(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
-  auto highestPt = m_jetDeltaRs[0];  auto NhighestPt = m_jetDeltaRs[1];
-  auto closestToTq1 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // dR(tq1,jet) ordering
-  auto closestToTq2 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // dR(tq2,jet) ordering
-  auto closestToLep1 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drl1j < b.drl1j); } ); // dR(lep1,jet) ordering
-  auto closestToLep2 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drl2j < b.drl2j); } ); // dR(lep2,jet) ordering
-
-  /* Fill jet tree */
-  b_jet_start =  m_jettrForTMVA->GetEntries();
-  for (unsigned int ij=0; ij<m_selectedJet.size();++ij) {
-    unsigned int j = m_selectedJet[ij].GetFirstMother();
-    ResetJetTree();
-    SetJetValues(j);
-    if (m_isMC) { IdentifyJet(ij, closestToTq1.idx, closestToTq2.idx); }
-
-    b_isHighest = 0; b_isClosestToLep = 0;
-    if (j == highestPt.idx     || j == NhighestPt.idx)    b_isHighest = 1;
-    if (j == closestToLep1.idx || j == closestToLep2.idx) b_isClosestToLep = 1;
-    b_dr1 = closestToTq1.drsj;
-    b_dr2 = closestToTq2.drbj;
-
-    TLorentzVector jet_tlv;
-    jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
-    auto ks_idx = FindMatchedHadron(jet_tlv);
-
-    ResetHadTree();
-    if (ks_idx != -1) {
-      SetHadronValues(ks_idx);
-      b_Ks_bdt_score = m_hadReader->EvaluateMVA("KS_BDT");
-      b_Ks_x = had_pt[ks_idx]/jet_tlv.Pt();
-      TLorentzVector had_tlv;
-      had_tlv.SetPtEtaPhiM(had_pt[ks_idx], had_eta[ks_idx], had_phi[ks_idx], had_mass[ks_idx]);
-      b_Ks_dr = jet_tlv.DeltaR(had_tlv);
+  if (m_isMC && m_jetDeltaRs.size() != 0 ) {
+    sort(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.pt > b.pt); } ); // pT ordering
+    auto highestPt = m_jetDeltaRs[0];  auto NhighestPt = m_jetDeltaRs[1];
+    auto closestToTq1 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drsj < b.drsj); } ); // dR(tq1,jet) ordering
+    auto closestToTq2 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drbj < b.drbj); } ); // dR(tq2,jet) ordering
+    auto closestToLep1 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drl1j < b.drl1j); } ); // dR(lep1,jet) ordering
+    auto closestToLep2 = *min_element(m_jetDeltaRs.begin(), m_jetDeltaRs.end(), [] (jetInfo a, jetInfo b) { return (a.drl2j < b.drl2j); } ); // dR(lep2,jet) ordering
+  
+    /* Fill jet tree */
+    b_jet_start =  m_jettrForTMVA->GetEntries();
+    for (unsigned int ij=0; ij<m_selectedJet.size();++ij) {
+      unsigned int j = m_selectedJet[ij].GetFirstMother();
+      ResetJetTree();
+      SetJetValues(j);
+      if (m_isMC) { IdentifyJet(ij, closestToTq1.idx, closestToTq2.idx); }
+  
+      b_isHighest = 0; b_isClosestToLep = 0;
+      if (j == highestPt.idx     || j == NhighestPt.idx)    b_isHighest = 1;
+      if (j == closestToLep1.idx || j == closestToLep2.idx) b_isClosestToLep = 1;
+      b_dr1 = closestToTq1.drsj;
+      b_dr2 = closestToTq2.drbj;
+  
+      TLorentzVector jet_tlv;
+      jet_tlv.SetPtEtaPhiM(Jet_pt[j], Jet_eta[j], Jet_phi[j], Jet_mass[j]);
+      auto ks_idx = FindMatchedHadron(jet_tlv);
+  
+      ResetHadTree();
+      if (ks_idx != -1) {
+        SetHadronValues(ks_idx);
+        b_Ks_bdt_score = m_hadReader->EvaluateMVA("KS_BDT");
+        b_Ks_x = had_pt[ks_idx]/jet_tlv.Pt();
+        TLorentzVector had_tlv;
+        had_tlv.SetPtEtaPhiM(had_pt[ks_idx], had_eta[ks_idx], had_phi[ks_idx], had_mass[ks_idx]);
+        b_Ks_dr = jet_tlv.DeltaR(had_tlv);
+      }
+  
+      m_jettrForTMVA->Fill();
     }
-
-    m_jettrForTMVA->Fill();
-  }
-  b_jet_end = m_jettrForTMVA->GetEntries();
+    b_jet_end = m_jettrForTMVA->GetEntries();
+  } else return; // For the case of absence of 2 gen quarks from top quark (m_tqMC.size() < 2), pass FillTMVATrees()
 
   /* Fill hadron tree */
   b_had_start = m_hadtrForTMVA->GetEntries();
@@ -414,13 +415,13 @@ void vtsAnalyser::IdentifyJet(unsigned int jetIdx, unsigned int sIdx, unsigned i
   auto jidx = m_jetDeltaRs[jetIdx];
   b_isSJet = 0; b_isBJet = 0;
   b_isOverlap = 0;
-  if (jetIdx == sIdx && fabs(jidx.drsj) < CONESIZE) {
+  if (jidx.idx == sIdx && fabs(jidx.drsj) < CONESIZE) {
      b_tq1_matched_jidx = jetIdx;
      if (abs(m_qjMapForMC[jidx.idx]) == 3)      b_isSJet = 1;
      else if (abs(m_qjMapForMC[jidx.idx]) == 5) b_isBJet = 1;
      else b_isOverlap = 1; 
   }
-  else if (jetIdx == bIdx && fabs(jidx.drbj) < CONESIZE) {
+  else if (jidx.idx == bIdx && fabs(jidx.drbj) < CONESIZE) {
      b_tq2_matched_jidx = jetIdx;
      if (abs(m_qjMapForMC[jidx.idx]) == 3)      b_isSJet = 1; 
      else if (abs(m_qjMapForMC[jidx.idx]) == 5) b_isBJet = 1;
@@ -466,7 +467,6 @@ void vtsAnalyser::SetJetValues(int i) {
     b_dau_charge[ia] = jetDau_charge[didx];
     ia += 1;
   }
-
   /* Save tmva value */
   b_Jet_bdt_score = m_jetReader->EvaluateMVA("Jet_BDT_highest");
   b_JKS_bdt_score = m_jksReader->EvaluateMVA("JKS_BDT_highest");
@@ -567,6 +567,14 @@ void vtsAnalyser::ResetJetTree() {
 
   b_Ks_dr = -99;
   b_Ks_x = -99;
+
+  b_pt    = -99; b_eta   = -99; b_phi   = -99; b_mass = -99;
+  b_c_x1  = -99; b_c_x2  = -99; b_c_x3  = -99;
+  b_n_x1  = -99; b_n_x2  = -99; b_n_x3  = -99;
+  b_cmult = -99; b_nmult = -99;
+  b_axis1 = -99; b_axis2 = -99;
+  b_ptD   = -99; b_area  = -99; b_CSVV2 = -99;
+
 }
 
 void vtsAnalyser::ResetHadTree() {
