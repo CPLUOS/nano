@@ -2162,20 +2162,13 @@ Events::Events(TTree *tree, TTree *had, TTree *hadTruth) : fChain(0), h_fChain(0
 
 Events::~Events()
 {
-  if (!fChain) return;
-  delete fChain->GetCurrentFile();
-  if (!h_fChain) {
-    if (!ht_fChain) return;
-    else delete ht_fChain->GetCurrentFile();
-  } else h_fChain->GetCurrentFile();
-  if (!ht_fChain) return;
-  else delete ht_fChain->GetCurrentFile();
-/*
-   if (!fChain) return;
-   delete fChain->GetCurrentFile();
-   if (h_fChain) delete h_fChain->GetCurrentFile();
-   if (ht_fChain) delete ht_fChain->GetCurrentFile();
-*/
+  if (fChain == h_fChain) h_fChain = NULL;
+  if (fChain == ht_fChain) ht_fChain = NULL;
+  if (h_fChain == ht_fChain) ht_fChain = NULL;
+
+  if (fChain) delete fChain->GetCurrentFile();
+  if (h_fChain) delete h_fChain->GetCurrentFile();
+  if (ht_fChain) delete ht_fChain->GetCurrentFile();
 }
 
 #include<iostream>
