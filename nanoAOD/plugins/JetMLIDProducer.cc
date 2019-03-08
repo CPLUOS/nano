@@ -42,6 +42,7 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<int> jet_cmult, jet_nmult;
   vector<int> jet_dauIdx1, jet_dauIdx2;
   vector<float> jetDau_pt, jetDau_eta, jetDau_phi, jetDau_E, jetDau_charge;
+  vector<int> jetDau_pdgId;
 
   int nDaughter = 0;
   for (auto jet = jets->begin();  jet != jets->end(); ++jet) {
@@ -123,6 +124,7 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
       jetDau_phi.push_back(daughter->phi());
       jetDau_E.push_back(daughter->energy());
       jetDau_charge.push_back(daughter->charge());
+      jetDau_pdgId.push_back(daughter->pdgId());
     }
     jet_dauIdx2.push_back(nDaughter);
 
@@ -207,6 +209,7 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   jetDau_table->addColumn<float>("phi",jetDau_phi,"phi",nanoaod::FlatTable::FloatColumn);
   jetDau_table->addColumn<float>("E",jetDau_E,"E",nanoaod::FlatTable::FloatColumn);
   jetDau_table->addColumn<float>("charge",jetDau_charge,"charge",nanoaod::FlatTable::FloatColumn);
+  jetDau_table->addColumn<int>("pdgId",jetDau_pdgId,"pdgId",nanoaod::FlatTable::FloatColumn);
 
   iEvent.put(move(jetID_table),"jetID");
   iEvent.put(move(jetDau_table),"jetDau");
