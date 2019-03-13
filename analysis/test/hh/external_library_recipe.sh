@@ -13,8 +13,6 @@ cat > BuildFile.xml << EOL
 <flags LDFLAGS="-lMinuit2" />
 <flags CXXFLAGS="-Wno-error=unused-but-set-variable" />
 <flags CXXFLAGS="-Wno-error=unused-variable" />
-<flags CXXFLAGS="-Wno-error=sign-compare" />
-<flags CXXFLAGS="-Wno-error=maybe-uninitialized" />
 <export>
   <lib name="1"/>
 </export>
