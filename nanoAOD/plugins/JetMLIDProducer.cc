@@ -209,7 +209,7 @@ JetMLIDProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   jetDau_table->addColumn<float>("phi",jetDau_phi,"phi",nanoaod::FlatTable::FloatColumn);
   jetDau_table->addColumn<float>("E",jetDau_E,"E",nanoaod::FlatTable::FloatColumn);
   jetDau_table->addColumn<float>("charge",jetDau_charge,"charge",nanoaod::FlatTable::FloatColumn);
-  jetDau_table->addColumn<int>("pdgId",jetDau_pdgId,"pdgId",nanoaod::FlatTable::FloatColumn);
+  jetDau_table->addColumn<int>("pdgId",jetDau_pdgId,"pdgId",nanoaod::FlatTable::IntColumn);
 
   iEvent.put(move(jetID_table),"jetID");
   iEvent.put(move(jetDau_table),"jetDau");
