@@ -45,8 +45,9 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<int> isHadFromTsb;
   vector<uint8_t> isHadFromTop;
   vector<uint8_t> isHadFromW, isHadFromS, isHadFromC, isHadFromB;
+  vector<int> matchedGenhadIdx;
 
-  std::map<const reco::GenParticle*, const reco::VertexCompositeCandidate*> matchHad; 
+  std::map<const reco::GenParticle*, int> matchHad; 
   std::vector<const reco::GenParticle*> matchedGen;
 
   for (auto& cand : *hadronCands) {
@@ -107,7 +108,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if (nmatched == 2) {
       isHadFrom(trueHad, 6, count, hadFromQuark, hadFromTop, hadFromW, hadFromS, hadFromB, hadFromC);
-      matchHad.insert({trueHad.get(), &cand});
+      matchHad.insert({trueHad.get(), nmatchedv.size()-1});
       matchedGen.push_back(trueHad.get());
     } else { matchedGen.push_back(nullptr); }
 
@@ -117,6 +118,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     isHadFromS.push_back(hadFromS);
     isHadFromB.push_back(hadFromB);
     isHadFromC.push_back(hadFromC);
+    matchedGenhadIdx.push_back(-9);
   }
   
   for (auto indices : *hadronIndices) {
@@ -154,16 +156,6 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     isHadFromC[indices[0]] = hadFromC;
   }
 
-  auto hadTruthTable = make_unique<nanoaod::FlatTable>(hadronCands->size(),"hadTruth",false);
-  hadTruthTable->addColumn<int>("nMatched",nmatchedv,"no. of dau match",nanoaod::FlatTable::IntColumn);
-  hadTruthTable->addColumn<int>("nTrueDau",ntruedau,"no. of true dau",nanoaod::FlatTable::IntColumn);
-  hadTruthTable->addColumn<int>("isHadFromTsb",isHadFromTsb,"Hadron from t->s/b",nanoaod::FlatTable::IntColumn);
-  hadTruthTable->addColumn<uint8_t>("isHadFromTop",isHadFromTop,"Hadron from Top",nanoaod::FlatTable::UInt8Column);
-  hadTruthTable->addColumn<uint8_t>("isHadFromW",isHadFromW,"Hadron from W",nanoaod::FlatTable::UInt8Column);
-  hadTruthTable->addColumn<uint8_t>("isHadFromS",isHadFromS,"Hadron from s quark",nanoaod::FlatTable::UInt8Column);
-  hadTruthTable->addColumn<uint8_t>("isHadFromC",isHadFromC,"Hadron from c quark",nanoaod::FlatTable::UInt8Column);
-  hadTruthTable->addColumn<uint8_t>("isHadFromB",isHadFromB,"Hadron from b quark",nanoaod::FlatTable::UInt8Column);
-  iEvent.put(move(hadTruthTable),"hadTruth");
 
   auto candidates = make_unique<std::vector<reco::LeafCandidate>>();
   vector<int> isGenHadFromTsb;
@@ -175,6 +167,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   vector<int> isGenParticle;// for distinguishing genParticles from trackingVertexs
 
   vector<uint8_t> isMatching, isMatched; // for hadTruth-GenParticle matching
+  vector<int> matchedHadIdx; // for hadTruth-GenParticle matching
 
   // for LambdaB and JPsi
   for (const auto& gen : *genParticles) {
@@ -195,6 +188,7 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
     vz.push_back(0);
 
     isGenParticle.push_back(1);
+    matchedHadIdx.push_back(-1);
         
     candidates->push_back(gen);
     if (gen.numberOfDaughters() >= 2) {
@@ -247,12 +241,16 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
       isMatching.push_back(true);
 
+      auto hadTruthIdx = -9;
       if (matchHad.find(gen) != matchHad.end()) {
         isMatched.push_back(true);
+        hadTruthIdx = matchHad[gen];
+        matchedGenhadIdx[hadTruthIdx] = isMatching.size()-1;
       }
       else {
-	isMatched.push_back(false);
+        isMatched.push_back(false);
       }
+      matchedHadIdx.push_back(hadTruthIdx);
 
       if (trackVertex.nDaughterTracks() >= 2) { 
         auto dau1 = trackVertex.daughterTracks().at(0).get();
@@ -296,9 +294,22 @@ HadTruthProducer::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
   genHadTable->addColumn<int>("isGenParticle", isGenParticle,"from genParticle or not",nanoaod::FlatTable::IntColumn); // for distinguishing genParticles from trackingVertexs
   genHadTable->addColumn<uint8_t>("isMatching", isMatching,"is Matching event",nanoaod::FlatTable::UInt8Column);
   genHadTable->addColumn<uint8_t>("isMatched", isMatched,"hadTruth and GenParticle matching",nanoaod::FlatTable::UInt8Column); // For seeing not matched case, you should choose entries with isMatching == true
+  genHadTable->addColumn<int>("matchedHadIdx", matchedHadIdx,"index of matched hadTruth",nanoaod::FlatTable::IntColumn); 
 
   iEvent.put(move(genHadTable),"genHadron");
   iEvent.put(move(candidates));
+
+  auto hadTruthTable = make_unique<nanoaod::FlatTable>(hadronCands->size(),"hadTruth",false);
+  hadTruthTable->addColumn<int>("nMatched",nmatchedv,"no. of dau match",nanoaod::FlatTable::IntColumn);
+  hadTruthTable->addColumn<int>("nTrueDau",ntruedau,"no. of true dau",nanoaod::FlatTable::IntColumn);
+  hadTruthTable->addColumn<int>("isHadFromTsb",isHadFromTsb,"Hadron from t->s/b",nanoaod::FlatTable::IntColumn);
+  hadTruthTable->addColumn<uint8_t>("isHadFromTop",isHadFromTop,"Hadron from Top",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<uint8_t>("isHadFromW",isHadFromW,"Hadron from W",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<uint8_t>("isHadFromS",isHadFromS,"Hadron from s quark",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<uint8_t>("isHadFromC",isHadFromC,"Hadron from c quark",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<uint8_t>("isHadFromB",isHadFromB,"Hadron from b quark",nanoaod::FlatTable::UInt8Column);
+  hadTruthTable->addColumn<int>("matchedGenhadIdx",matchedGenhadIdx,"index of matched genHadron",nanoaod::FlatTable::IntColumn);
+  iEvent.put(move(hadTruthTable),"hadTruth");
 }
 
 int HadTruthProducer::trackingVertex_pdgId(const TrackingVertex* tv)
