@@ -513,6 +513,8 @@ void vtsAnalyser::SetMVAReader() {
   #define jetTMVABranch(name) TMVABranch_(m_jetReader,name);
   #define jksTMVABranch(name) TMVABranch_(m_jksReader,name);
 
+  TString CMSSW_BASE = getenv("CMSSW_BASE");
+
   m_hadReader = new TMVA::Reader();            
   hadTMVABranch(Ks_d); hadTMVABranch(Ks_pt); hadTMVABranch(Ks_eta); hadTMVABranch(Ks_phi);
   hadTMVABranch(Ks_lxy); hadTMVABranch(Ks_lxySig);
@@ -521,7 +523,7 @@ void vtsAnalyser::SetMVAReader() {
   hadTMVABranch(Ks_chi2); hadTMVABranch(Ks_dca);
   hadTMVABranch(Ks_dau1_chi2); hadTMVABranch(Ks_dau1_ipsigXY); hadTMVABranch(Ks_dau1_ipsigZ); hadTMVABranch(Ks_dau1_pt);
   hadTMVABranch(Ks_dau2_chi2); hadTMVABranch(Ks_dau2_ipsigXY); hadTMVABranch(Ks_dau2_ipsigZ); hadTMVABranch(Ks_dau2_pt);
-  m_hadReader->BookMVA("KS_BDT", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Had/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
+  m_hadReader->BookMVA("KS_BDT", CMSSW_BASE+"/src/nano/analysis/test/vts/tmva/dataset/Had/pp_real_vs_fake/weights/vts_dR_04_Had_BDT.weights.xml");
 
   m_jetReader = new TMVA::Reader();
   jetTMVABranch(pt);  jetTMVABranch(eta);  jetTMVABranch(phi);  jetTMVABranch(mass);
@@ -530,7 +532,7 @@ void vtsAnalyser::SetMVAReader() {
   jetTMVABranch(cmult); jetTMVABranch(nmult);
   jetTMVABranch(axis1); jetTMVABranch(axis2);
   jetTMVABranch(ptD); jetTMVABranch(area); jetTMVABranch(CSVV2);
-  m_jetReader->BookMVA("Jet_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
+  m_jetReader->BookMVA("Jet_BDT_highest", CMSSW_BASE+"/src/nano/analysis/test/vts/tmva/dataset/Jet/pp_combined_J_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 
   m_jksReader = new TMVA::Reader();
   jksTMVABranch(pt); jksTMVABranch(eta); jksTMVABranch(phi); jksTMVABranch(mass);
@@ -550,7 +552,7 @@ void vtsAnalyser::SetMVAReader() {
 
   jksTMVABranch(Ks_bdt_score);
   jksTMVABranch(Ks_x);
-  m_jksReader->BookMVA("JKS_BDT_highest", "/cms/ldap_home/wjjang/wj_nanoAOD_CMSSW_9_4_4/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKS_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
+  m_jksReader->BookMVA("JKS_BDT_highest", CMSSW_BASE+"/src/nano/analysis/test/vts/tmva/dataset/JKS/pp_combined_JKS_BDT_highest/weights/vts_dR_04_Jet_BDT.weights.xml");
 }
 
 void vtsAnalyser::ResetJetTree() {
