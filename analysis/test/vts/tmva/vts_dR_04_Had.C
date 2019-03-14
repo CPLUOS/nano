@@ -113,16 +113,16 @@ int vts_dR_04_Had( TString myMethodList = "" )
   TFile *bbars_bsbar_pythia(0);       TFile *bbars_bsbar_herwig(0);
   TFile *bbars_bsbar_bbbar_pythia(0);
 
-  TString sample_bbars_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_2l_FxFx_sum_349.root";
-  TString sample_bbars_herwig             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bbars_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20190304/tt012j_bbars_2l_FxFx_sum_349.root";
+  TString sample_bbars_herwig             = "/xrootd/store/user/wjjang/test/sum_tt012j/20190304/tt012j_bbars_2l_FxFx_herwigpp_sum_49.root";
 
-  TString sample_bsbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bsbar_2l_FxFx_sum_350.root";
-  TString sample_bsbar_herwig             = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
+  TString sample_bsbar_pythia             = "/xrootd/store/user/wjjang/test/sum_tt012j/20190304/tt012j_bsbar_2l_FxFx_sum_350.root";
+  TString sample_bsbar_herwig             = "/xrootd/store/user/wjjang/test/sum_tt012j/20190304/tt012j_bsbar_2l_FxFx_herwigpp_sum_49.root";
 
-  TString sample_bbars_bsbar_pythia       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_sum_349_350.root";
-  TString sample_bbars_bsbar_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_herwigpp_sum_49.root";
+  TString sample_bbars_bsbar_pythia       = "/xrootd/store/user/wjjang/test/sum_tt012j/20190304/tt012j_bbars_bsbar_sum_349_350.root";
+  TString sample_bbars_bsbar_herwig       = "/xrootd/store/user/wjjang/test/sum_tt012j/20190304/tt012j_bbars_bsbar_herwigpp_sum_49.root";
 
-  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20181120/tt012j_bbars_bsbar_bbbar_sum_349_350_201.root";
+  TString sample_bbars_bsbar_bbbar_pythia = "/xrootd/store/user/wjjang/test/sum_tt012j/20190304/tt012j_bbars_bsbar_bbbar_sum_349_350_201.root";//"/xrootd/store/user/wjjang/test/sum_tt012j/20190105/tt012j_bbars_bsbar_bbbar_sum_349_350_201.root";
 
   bbars_pythia = TFile::Open( sample_bbars_pythia );                          //bbars_herwig = TFile::Open( sample_bbars_herwig );
   bsbar_pythia = TFile::Open( sample_bsbar_pythia );                          //bsbar_herwig = TFile::Open( sample_bsbar_herwig );
@@ -165,8 +165,8 @@ int vts_dR_04_Had( TString myMethodList = "" )
 
   Double_t signalWeight     = 1.0; Double_t backgroundWeight = 1.0;
 
-  TCut cut_real = "nMatched == 2";
-  TCut cut_fake = "nMatched != 2";
+  TCut cut_real = "Ks_nMatched == 2";
+  TCut cut_fake = "Ks_nMatched != 2";
   // It's for 20181120 samples
   TString opt_pp = "nTrain_Signal=12000:nTrain_Background=870000:SplitMode=Random:NormMode=NumEvents:!V";
 
