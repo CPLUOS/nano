@@ -14,6 +14,8 @@ protected:
   
   Float_t b_maxBDiscr_nonb;
   
+  UInt_t m_unFlag;
+  
 public:
   // YOU MUST SET UP ALL IN THE BELOW!!!
   // (SetCutValues() will force you to do it)
@@ -73,8 +75,11 @@ public:
     return Muon_isPFcand[ nIdx ] && ( Muon_globalMu[ nIdx ] || Muon_trackerMu[ nIdx ] );
   };
   virtual bool additionalConditionForGenJet(UInt_t nIdx) {return true;};
-  virtual bool additionalConditionForJet(UInt_t nIdx) {return true;};
-  virtual bool additionalConditionForBJet(UInt_t nIdx) {return true;};
+  
+  virtual bool additionalConditionForJet(UInt_t nIdx, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi, Float_t &fJetMass) 
+    {return true;};
+  virtual bool additionalConditionForBJet(UInt_t nIdx, Float_t &fJetPt, Float_t &fJetEta, Float_t &fJetPhi, Float_t &fJetMass) 
+    {return true;};
   
 public:
   std::vector<TParticle> muonSelection();
@@ -87,8 +92,9 @@ public:
 
   std::vector<TParticle> genJetSelection();
 
-  topObjectSelection(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false);
-  topObjectSelection(TTree *tree=0, Bool_t isMC=false) : topObjectSelection(tree, 0, 0, isMC) {}
+  topObjectSelection(TTree *tree=0, TTree *had=0, TTree *hadTruth=0, Bool_t isMC = false, UInt_t unFlag = 0);
+  topObjectSelection(TTree *tree=0, Bool_t isMC=false, UInt_t unFlag = 0) : 
+    topObjectSelection(tree, 0, 0, isMC, unFlag) {}
   ~topObjectSelection() {}
   
   // In this function you need to set all the cut conditions in the above

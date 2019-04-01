@@ -2,8 +2,8 @@
 
 using std::vector;
 
-topEventSelectionSL::topEventSelectionSL(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t sle, Bool_t slm) :
-  topObjectSelection(tree, had, hadTruth, isMC),
+topEventSelectionSL::topEventSelectionSL(TTree *tree, TTree *had, TTree *hadTruth, Bool_t isMC, Bool_t sle, Bool_t slm, UInt_t unFlag) :
+  topObjectSelection(tree, had, hadTruth, isMC, unFlag),
   h_nevents(0),
   h_genweights(0),
   h_cutFlow(0),
